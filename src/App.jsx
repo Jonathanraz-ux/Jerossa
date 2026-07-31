@@ -1,3 +1,4 @@
+import './App.css';
 import ScrollAnimations from './components/ScrollAnimations';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
