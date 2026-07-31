@@ -25,7 +25,7 @@ const Producer = () => {
 
       <div className="container page-container">
         {/* Producers Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+        <div className="producers-list-grid">
           {producersData.map((producer, i) => (
             <Link to={`/producteur/${producer.id}`} key={producer.id} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
               <div className="premium-card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

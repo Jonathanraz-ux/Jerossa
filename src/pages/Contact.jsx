@@ -34,7 +34,7 @@ const Contact = () => {
       </section>
 
       <div className="container">
-        <div className="scroll-animate" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', maxWidth: '1100px' }}>
+        <div className="scroll-animate contact-layout">
           <div>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-dark)' }}>Envoyez-nous un message</h2>
             {submitted ? (
@@ -45,7 +45,7 @@ const Contact = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="scroll-animate" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-row">
                   <div className="form-group">
                     <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Nom</label>
                     <input type="text" name="name" className="form-input" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />

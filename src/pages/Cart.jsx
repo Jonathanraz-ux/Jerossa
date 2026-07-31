@@ -79,7 +79,7 @@ const Cart = () => {
         </div>
       </section>
 
-      <div className="cart-layout scroll-animate" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px', alignItems: 'start' }}>
+      <div className="cart-layout scroll-animate">
         <div className="cart-items" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {cartItems.map(item => {
             const product = productsData.find(p => p.id === item.productId);

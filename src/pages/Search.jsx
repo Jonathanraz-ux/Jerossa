@@ -68,7 +68,7 @@ const Search = () => {
             <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>Voir le catalogue</Link>
           </div>
         ) : (
-          <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+          <div className="product-grid">
             {results.map((prod, i) => (
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>

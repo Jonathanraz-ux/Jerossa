@@ -49,7 +49,7 @@ const Wishlist = () => {
               </Link>
             </div>
 
-            <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+            <div className="product-grid">
               {favorites.map((prod, i) => (
                 <div key={prod.id || i} className="scroll-animate premium-card" style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                   <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>

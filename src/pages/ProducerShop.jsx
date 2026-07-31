@@ -45,7 +45,7 @@ const ProducerShop = () => {
 
         {/* Profile */}
         <div className="scroll-animate" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', marginBottom: '48px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '0' }}>
+          <div className="producer-profile-grid">
             <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#fafafa' }}>
               <img src={producer.image} alt={producer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
@@ -65,7 +65,7 @@ const ProducerShop = () => {
           </div>
 
           {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '0', padding: '24px 32px', background: 'var(--bg-cream)', borderTop: '1px solid var(--border)' }}>
+          <div className="producer-stats-grid" style={{ padding: '24px 32px', background: 'var(--bg-cream)', borderTop: '1px solid var(--border)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 700, color: 'var(--primary)' }}>{producer.rating}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Note moyenne</div>
@@ -91,7 +91,7 @@ const ProducerShop = () => {
             Aucun produit disponible pour le moment.
           </div>
         ) : (
-          <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+          <div className="product-grid">
             {producerProducts.map((prod, i) => (
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>

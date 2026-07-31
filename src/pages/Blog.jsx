@@ -25,7 +25,7 @@ const Blog = () => {
 
       <div className="container">
         {/* Articles Grid */}
-        <div className="scroll-animate" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+        <div className="scroll-animate blog-grid">
           {blogPosts.map((post, i) => (
             <Link key={post.id || i} to={`/blog/${post.title.toLowerCase().replace(/\s+/g, '-')}`} className="link-premium" style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>

@@ -42,7 +42,7 @@ const Register = () => {
             </div>
 
             <form onSubmit={(e) => { e.preventDefault(); }}>
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div className="form-row" style={{ marginBottom: '16px' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Prénom</label>
                   <input type="text" name="firstName" className="form-input" placeholder="Jean" value={formData.firstName} onChange={handleChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />

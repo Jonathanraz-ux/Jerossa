@@ -49,7 +49,7 @@ const Category = () => {
             <p>Aucun produit dans cette catégorie pour le moment.</p>
           </div>
         ) : (
-          <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+          <div className="product-grid">
             {products.map((prod, i) => (
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>

@@ -29,7 +29,7 @@ const Settings = () => {
         </div>
       </section>
 
-      <div className="scroll-animate" style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
+      <div className="scroll-animate settings-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '32px', borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}

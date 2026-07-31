@@ -81,7 +81,7 @@ const OrderDetails = () => {
       </div>
 
       {/* Info Grid */}
-      <div className="scroll-animate" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+      <div className="scroll-animate order-info-grid">
         <div className="premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
           <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
             <MapPin size={18} style={{ color: 'var(--primary)' }} /> Livraison

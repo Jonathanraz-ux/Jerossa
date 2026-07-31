@@ -24,7 +24,7 @@ const About = () => {
       <div className="container">
         <div className="stats-section" style={{ padding: '4rem 0' }}>
           <div className="container">
-            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem', textAlign: 'center' }}>
+            <div className="stats-grid" style={{ textAlign: 'center' }}>
               {[
                 { num: '200+', label: 'Producteurs partenaires', icon: Users },
                 { num: '15', label: 'Années d\'expérience', icon: Clock },
@@ -46,7 +46,7 @@ const About = () => {
         {/* Mission */}
         <div className="scroll-animate" style={{ marginTop: '64px' }}>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '32px', textAlign: 'center', color: 'var(--text-dark)' }}>Notre mission</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+          <div className="about-values-grid">
             {[
               { icon: Leaf, title: 'Qualité premium', desc: 'Nous sélectionnons uniquement les meilleures matières premières, vérifiées et certifiées par nos experts.' },
               { icon: Shield, title: 'Commerce équitable', desc: 'Nous garantissons une rémunération juste à nos producteurs et des conditions transparentes pour tous.' },
