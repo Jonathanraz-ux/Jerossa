@@ -1,0 +1,113 @@
+.account-page {
+  padding: 120px 0 80px;
+  min-height: 80vh;
+  background-color: var(--color-background-alt);
+}
+
+.account-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 50px;
+}
+
+.account-header h1 {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  margin-bottom: 15px;
+  font-family: var(--font-heading);
+}
+
+.account-header p {
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+}
+
+.account-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.account-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+}
+
+.account-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+.account-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.client-card .account-icon-wrapper {
+  background-color: rgba(30, 61, 47, 0.1);
+  color: var(--color-primary);
+}
+
+.seller-card .account-icon-wrapper {
+  background-color: rgba(189, 140, 97, 0.1);
+  color: var(--color-accent);
+}
+
+.account-card h2 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: var(--color-text);
+}
+
+.account-card p {
+  color: var(--color-text-light);
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.account-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px 0;
+  flex-grow: 1;
+}
+
+.account-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.client-card .account-benefits li svg {
+  color: var(--color-primary);
+}
+
+.seller-card .account-benefits li svg {
+  color: var(--color-accent);
+}
+
+.account-forms {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+}

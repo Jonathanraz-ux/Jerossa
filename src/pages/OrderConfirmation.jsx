@@ -1,0 +1,77 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { CheckCircle, Package, Truck, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
+import './animations.css';
+
+const OrderConfirmation = () => {
+  const order = {
+    id: 'CMD-2026-004',
+    date: '2026-07-30',
+    status: 'confirmed',
+    total: '448,50 €',
+    items: [
+      { name: 'Gousses de Vanille Bourbon Gourmet - Grade A', qty: 2, price: '220,00 € / kg' },
+      { name: 'Fèves de Cacao Fermentées Bio - Sambirano', qty: 1, price: '8,50 € / kg' }
+    ]
+  };
+
+  return (
+    <div className="container page-container">
+      {/* Hero */}
+      <section className="page-hero" style={{ height: '300px' }}>
+        <div className="page-hero-content">
+          <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
+  <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
+    <li style={{ color: '#fff', fontWeight: 500 }}>Confirmation</li>
+  </ol>
+</nav>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">Confirmation</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">Merci pour votre commande !</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">Votre commande a été confirmée avec succès.</p>
+        </div>
+      </section>
+
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div className="scroll-animate" style={{ textAlign: 'center', padding: '40px 0' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--success-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <CheckCircle size={48} style={{ color: 'var(--success)' }} />
+          </div>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', fontWeight: 600, marginBottom: '8px' }}>Merci pour votre commande !</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>Votre commande a été confirmée. Vous recevrez un email de confirmation sous peu.</p>
+        </div>
+
+        <div className="scroll-animate" style={{ background: 'var(--bg-cream)', borderRadius: '12px', padding: '24px', marginBottom: '32px', textAlign: 'left' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Numéro de commande</span>
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order.id}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Date</span>
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order.date}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Statut</span>
+            <span className="status-badge" style={{ background: 'var(--success-bg)', color: 'var(--success)', padding: '4px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>Confirmée</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Total</span>
+            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)' }}>{order.total}</span>
+          </div>
+        </div>
+
+        <div className="scroll-animate" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/my-orders" className="btn btn-primary premium-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <Package size={16} /> Mes commandes
+          </Link>
+          <Link to="/" className="btn btn-outline premium-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <ArrowLeft size={16} /> Retour à l\'accueil
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderConfirmation;

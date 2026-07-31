@@ -1,0 +1,237 @@
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.anim-fade-up { animation: fadeInUp 0.5s ease both; }
+.anim-fade-down { animation: fadeInDown 0.5s ease both; }
+.anim-fade-left { animation: fadeInLeft 0.5s ease both; }
+.anim-fade-right { animation: fadeInRight 0.5s ease both; }
+.anim-fade { animation: fadeIn 0.4s ease both; }
+.anim-scale { animation: scaleIn 0.4s ease both; }
+.anim-slide-up { animation: slideUp 0.6s ease both; }
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-animate.left { transform: translateX(-20px); }
+.scroll-animate.left.visible { transform: translateX(0); }
+.scroll-animate.right { transform: translateX(20px); }
+.scroll-animate.right.visible { transform: translateX(0); }
+.scroll-animate.scale { transform: scale(0.96); }
+.scroll-animate.scale.visible { transform: scale(1); }
+
+/* Page Hero Base */
+.page-hero {
+  position: relative;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(26,36,30,0.92), rgba(26,36,30,0.7)),
+    url('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=1920&q=80') center/cover;
+  z-index: 1;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, var(--color-background));
+  z-index: 2;
+}
+
+.page-hero-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  color: #fff;
+  max-width: 650px;
+  padding: 0 24px;
+}
+
+.page-hero-surtitre {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.page-hero-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: #fff;
+}
+
+.page-hero-subtitle {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.75);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Decorative */
+.hero-deco {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-deco-1 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,163,115,0.12) 0%, transparent 70%);
+  top: -100px; right: -100px;
+}
+
+.hero-deco-2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(140,98,57,0.08) 0%, transparent 70%);
+  bottom: -50px; left: -50px;
+}
+
+.hero-deco-3 {
+  width: 200px; height: 200px;
+  border: 1px solid rgba(255,255,255,0.05);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.page-container { padding-top: 4rem; min-height: 80vh; }
+.page-section { padding: 4rem 0; }
+.page-section-sm { padding: 2.5rem 0; }
+
+.premium-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+}
+
+.premium-btn { transition: all 0.25s ease; }
+.premium-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(140,98,57,0.25); }
+
+.img-zoom { overflow: hidden; }
+.img-zoom img { transition: transform 0.5s ease; }
+.img-zoom:hover img { transform: scale(1.05); }
+
+.icon-hover { transition: all 0.25s ease; }
+.icon-hover:hover { transform: scale(1.1); color: var(--primary); }
+
+.link-premium { position: relative; transition: color 0.25s ease; }
+.link-premium::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 1.5px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+.link-premium:hover::after { width: 100%; }
+.link-premium:hover { color: var(--primary); }
+
+.badge-pulse { animation: pulse 2s ease-in-out infinite; }
+
+.gradient-border { position: relative; }
+.gradient-border::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-cream) 25%, var(--border) 50%, var(--bg-cream) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
