@@ -419,7 +419,7 @@ const AdminDashboard = () => {
 
       <style>{`
         .admin-page {
-          display: flex; min-height: 100vh; background: #f5f4f0;
+          display: flex; min-height: 100vh; background: #f5f4f0; overflow-x: hidden;
         }
         .admin-sidebar {
           width: 250px; background: var(--bg-white); border-right: 1px solid var(--border);
@@ -448,7 +448,7 @@ const AdminDashboard = () => {
         .admin-logout-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: none; background: none; width: 100%; font-size: 0.8125rem; color: var(--danger); cursor: pointer; transition: all 0.2s; }
         .admin-logout-btn:hover { background: var(--danger-bg); }
 
-        .admin-main { flex: 1; margin-left: 250px; }
+        .admin-main { flex: 1; margin-left: 250px; min-width: 0; }
         .admin-topbar {
           display: flex; justify-content: space-between; align-items: center;
           padding: 0.75rem 2rem; background: var(--bg-white); border-bottom: 1px solid var(--border);
@@ -521,14 +521,28 @@ const AdminDashboard = () => {
           .admin-grid-2col { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-          .admin-sidebar { width: 60px; }
+          .admin-sidebar { width: 56px; }
+          .admin-sidebar-brand { justify-content: center; padding: 1rem 0.5rem; }
           .admin-sidebar-brand > div:last-child { display: none; }
+          .admin-nav-btn { justify-content: center; padding: 0.7rem 0; }
           .admin-nav-btn span { display: none; }
+          .admin-nav-badge { position: absolute; top: 4px; right: 4px; }
           .admin-sidebar-footer { display: none; }
-          .admin-main { margin-left: 60px; }
-          .admin-topbar-search { width: 180px; }
+          .admin-nav-btn { position: relative; }
+          .admin-main { margin-left: 56px; }
+          .admin-topbar-search { display: none; }
+          .admin-topbar { padding: 0.75rem 1rem; }
+          .admin-content { padding: 1.5rem 1rem; }
           .admin-kpi-grid { grid-template-columns: 1fr; }
           .admin-header { flex-direction: column; gap: 1rem; }
+        }
+        @media (max-width: 480px) {
+          .admin-content { padding: 1rem; }
+          .admin-header-actions { width: 100%; flex-direction: column; align-items: stretch; }
+          .admin-header-actions .admin-btn-primary,
+          .admin-header-actions .admin-btn-secondary { justify-content: center; }
+          .admin-kpi { padding: 1rem; gap: 0.75rem; }
+          .admin-card { padding: 1rem; }
         }
       `}</style>
     </div>

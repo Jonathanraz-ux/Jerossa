@@ -140,17 +140,7 @@
   .tracking-steps:before { display: none; }
 }
 
-/* ---------- Admin dashboard small-screen tweaks ---------- */
-@media (max-width: 600px) {
-  .admin-content { padding: 1rem; }
-  .admin-topbar { padding: 0.75rem 1rem; }
-  .admin-topbar-search { display: none !important; }
-  .admin-header-actions { width: 100%; }
-  .admin-header-actions .admin-btn-primary,
-  .admin-header-actions .admin-btn-secondary { flex: 1; justify-content: center; }
-  .admin-sidebar { width: 56px; }
-  .admin-main { margin-left: 56px; }
-}
+/* ---------- Admin dashboard small-screen tweaks (defined in AdminDashboard.jsx) ---------- */
 
 /* ---------- Product details actions ---------- */
 @media (max-width: 600px) {

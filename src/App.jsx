@@ -1,6 +1,6 @@
 import './App.css';
 import ScrollAnimations from './components/ScrollAnimations';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -38,11 +38,14 @@ import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
+
   return (
-    <Router>
+    <>
       <ScrollAnimations />
-      <Navbar />
+      {!isAdmin && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -80,8 +83,16 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdmin && <Footer />}
       <ProductQuickView />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppRoutes />
     </Router>
   );
 }
