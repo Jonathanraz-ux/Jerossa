@@ -1,9 +1,13 @@
 import './App.css';
 import ScrollAnimations from './components/ScrollAnimations';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { CurrencyProvider } from './context/CurrencyContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import Services from './pages/Services';
+import ServiceDetails from './pages/ServiceDetails';
+import Publish from './pages/Publish';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Account from './pages/Account';
@@ -50,6 +54,9 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/boutique" element={<Catalogue />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/services/:id" element={<ServiceDetails />} />
+          <Route path="/publier" element={<Publish />} />
           <Route path="/search" element={<Search />} />
           <Route path="/categories/:slug" element={<Category />} />
           <Route path="/producteurs" element={<Producer />} />
@@ -92,7 +99,9 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AppRoutes />
+      <CurrencyProvider>
+        <AppRoutes />
+      </CurrencyProvider>
     </Router>
   );
 }

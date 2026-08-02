@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { productsData } from '../data/products';
-import { Search, ArrowRight, Star, SlidersHorizontal, X, ShoppingBag } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck } from 'lucide-react';
 import './animations.css';
 
 const Catalogue = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const { convert } = useCurrency();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setSearchQuery(q);
+  }, [searchParams]);
 
   const filteredProducts = productsData.filter(p => {
     const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,9 +53,9 @@ const Catalogue = () => {
             <span className="breadcrumb-sep">/</span>
             <span>Catalogue</span>
           </nav>
-          <span className="page-header-tag">Boutique</span>
-          <h1 className="page-header-title">Notre catalogue</h1>
-          <p className="page-header-desc">Matières premières d'exception, directement des producteurs</p>
+          <span className="page-header-tag">Marketplace Produits</span>
+          <h1 className="page-header-title">Nos produits</h1>
+          <p className="page-header-desc">Produits authentiques et matières premières d'exception, directement des producteurs et fournisseurs</p>
         </div>
       </section>
 
@@ -127,7 +135,7 @@ const Catalogue = () => {
                   <span className="catalog-product-type">{prod.type}</span>
                 </div>
                 <div className="catalog-product-body">
-                  <span className="catalog-product-seller">{prod.seller}</span>
+                  <span className="catalog-product-seller">{prod.seller}{prod.verified && <em className="catalog-verified"><BadgeCheck size={12} /> vérifié</em>}</span>
                   <h3 className="catalog-product-name">{prod.title}</h3>
                   <div className="catalog-product-rating">
                     <div className="stars">
@@ -138,9 +146,12 @@ const Catalogue = () => {
                     <span>({prod.reviews})</span>
                   </div>
                   <div className="catalog-product-footer">
-                    <span className="catalog-product-price">{prod.price}</span>
+                    <span className="catalog-product-price">
+                      {convert(prod.priceEUR)}
+                      <em className="catalog-product-unit">/ {prod.unit}</em>
+                    </span>
                     <span className="catalog-product-view">
-                      Voir <ArrowRight size={12} />
+                      Voir l'offre <ArrowRight size={12} />
                     </span>
                   </div>
                 </div>
@@ -243,7 +254,10 @@ const Catalogue = () => {
           padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .catalog-product-body { padding: 1.15rem; display: flex; flex-direction: column; flex: 1; }
-        .catalog-product-seller { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 4px; }
+        .catalog-product-seller { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .catalog-verified { font-style: normal; display: inline-flex; align-items: center; gap: 2px; font-size: 0.6rem; color: var(--brand-green, #3a6b4f); text-transform: none; letter-spacing: normal; font-weight: 600; }
+        .catalog-verified svg { fill: currentColor; }
+        .catalog-product-unit { font-style: normal; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); margin-left: 2px; }
         .catalog-product-name { font-family: var(--font-serif); font-size: 0.95rem; font-weight: 600; color: var(--text-dark); line-height: 1.4; margin-bottom: 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .catalog-product-rating { display: flex; align-items: center; gap: 0.375rem; margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--text-muted); }
         .catalog-product-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border); }

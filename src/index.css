@@ -3,7 +3,7 @@
 :root {
   --color-background: #ffffff;
   --color-surface-light: #faf8f5;
-  --color-surface-dark: #1a241e;
+  --color-surface-dark: #14211a;
   --color-text-main: #1a1a1a;
   --color-text-muted: #7a7a7a;
   --color-primary: #8c6239;
@@ -20,7 +20,7 @@
   --accent-gold: #d4a373;
   --bg-white: #ffffff;
   --bg-cream: #faf8f5;
-  --bg-dark: #1a241e;
+  --bg-dark: #14211a;
   --text-dark: #1a1a1a;
   --text-muted: #7a7a7a;
   --text-light: #ffffff;
@@ -32,6 +32,13 @@
   --danger-bg: rgba(192, 57, 43, 0.08);
   --warning: #b8860b;
   --warning-bg: rgba(184, 134, 11, 0.08);
+
+  --brand-green: #3a6b4f;
+  --brand-green-dark: #2b5240;
+  --brand-green-light: rgba(58, 107, 79, 0.1);
+  --brand-sand: #f0e9df;
+  --brand-gold: #d4a373;
+  --brand-gold-soft: rgba(212, 163, 115, 0.15);
 
   --font-serif: 'Playfair Display', serif;
   --font-sans: 'Inter', sans-serif;
@@ -190,4 +197,190 @@ main {
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* ===== JEROSSA SHARED COMPONENTS ===== */
+
+/* Trust / status badges */
+.j-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.j-badge--verified {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.j-badge--recommended {
+  background: var(--brand-gold-soft);
+  color: var(--primary);
+}
+
+.j-badge--new {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.j-badge--available {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.j-badge--rapid {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.j-badge--dark {
+  background: rgba(20, 33, 26, 0.85);
+  color: #fff;
+}
+
+/* Verified chip on cards */
+.j-verified-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--success);
+}
+
+/* Pill buttons */
+.j-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.72rem 1.5rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.j-pill-btn--primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.j-pill-btn--primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(140, 98, 57, 0.3);
+}
+
+.j-pill-btn--green {
+  background: var(--brand-green);
+  color: #fff;
+}
+
+.j-pill-btn--green:hover {
+  background: var(--brand-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(58, 107, 79, 0.3);
+}
+
+.j-pill-btn--gold {
+  background: var(--accent);
+  color: var(--bg-dark);
+}
+
+.j-pill-btn--gold:hover {
+  background: #c4956a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 163, 115, 0.35);
+}
+
+.j-pill-btn--outline {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.j-pill-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.j-pill-btn--outline-dark {
+  background: transparent;
+  color: var(--text-dark);
+  border: 1px solid var(--border);
+}
+
+.j-pill-btn--outline-dark:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+/* Generic icon chip */
+.j-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Currency note */
+.j-currency-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Market flag chips */
+.j-flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 4px 12px;
+}
+
+/* Modal backdrop shared with publish chooser */
+.j-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 18, 14, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.25s ease both;
+}
+
+.j-modal-panel {
+  background: var(--bg-white);
+  border-radius: 20px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
