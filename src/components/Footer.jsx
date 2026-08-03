@@ -22,7 +22,7 @@ const Footer = () => {
             </div>
             <p className="footer-desc">
               La marketplace de référence entre Madagascar et Maurice : produits authentiques,
-              matières premières, fournisseurs, professionnels et prestataires de services.
+              matières premières et fournisseurs.
               Créer des opportunités. Développer les échanges.
             </p>
             <div className="footer-contact">
@@ -50,10 +50,9 @@ const Footer = () => {
             <h4 className="footer-col-title">Marketplace</h4>
             <ul className="footer-links-list">
               <li><Link to="/boutique">Explorer les produits</Link></li>
-              <li><Link to="/services">Découvrir les services</Link></li>
               <li><Link to="/publier">Publier une offre</Link></li>
               <li><Link to="/producteurs">Fournisseurs & producteurs</Link></li>
-              <li><Link to="/services">Professionnels</Link></li>
+              <li><Link to="/blog">Blog & actualités</Link></li>
               <li><Link to="/about">À propos</Link></li>
             </ul>
           </div>
@@ -71,14 +70,13 @@ const Footer = () => {
           </div>
 
           <div className="footer-block">
-            <h4 className="footer-col-title">Services & Professionnels</h4>
+            <h4 className="footer-col-title">Aide & Ressources</h4>
             <ul className="footer-links-list">
-              <li><Link to="/services?cat=construction-batiment">Construction & Bâtiment</Link></li>
-              <li><Link to="/services?cat=maison-entretien">Maison & Entretien</Link></li>
-              <li><Link to="/services?cat=automobile-transport">Automobile & Transport</Link></li>
-              <li><Link to="/services?cat=services-professionnels">Services professionnels</Link></li>
-              <li><Link to="/services?cat=evenementiel-personnels">Événementiel</Link></li>
               <li><Link to="/faq">Aide & FAQ</Link></li>
+              <li><Link to="/contact">Nous contacter</Link></li>
+              <li><Link to="/legal">Mentions légales</Link></li>
+              <li><Link to="/privacy">Confidentialité</Link></li>
+              <li><Link to="/cgv">CGV</Link></li>
             </ul>
             <Link to="/publier" className="footer-publish-link">
               <PlusCircle size={14} /> Publier une offre

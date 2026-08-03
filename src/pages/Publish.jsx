@@ -59,7 +59,7 @@ const Publish = () => {
             <span>/</span>
             <span>Publier une offre</span>
           </nav>
-          <span className="pub-hero-tag">Espace vendeur & prestataire</span>
+          <span className="pub-hero-tag">Espace vendeur</span>
           <h1>Publier une offre</h1>
           <p>
             Que souhaitez-vous publier ? Complétez le formulaire, ajoutez vos photos
@@ -71,12 +71,6 @@ const Publish = () => {
               onClick={() => setType('produit')}
             >
               <Package size={17} /> Un produit
-            </button>
-            <button
-              className={`pub-type-btn${type === 'service' ? ' is-active' : ''}`}
-              onClick={() => setType('service')}
-            >
-              <Briefcase size={17} /> Un service
             </button>
           </div>
         </div>
@@ -298,7 +292,7 @@ const Publish = () => {
               <ul className="pub-aside-list">
                 <li><CheckCircle2 size={15} /> <span>Les acheteurs de Madagascar et de Maurice</span></li>
                 <li><CheckCircle2 size={15} /> <span>Les entreprises et professionnels en recherche de fournisseurs</span></li>
-                <li><CheckCircle2 size={15} /> <span>Les particuliers à la recherche de services</span></li>
+                <li><CheckCircle2 size={15} /> <span>Les importateurs et négociants des deux territoires</span></li>
               </ul>
             </div>
 
@@ -313,7 +307,7 @@ const Publish = () => {
 
             <div className="pub-aside-note">
               <Lock size={15} />
-              Badges « Professionnel vérifié », « Prestataire recommandé » et « Intervention rapide »
+              Badges « Fournisseur vérifié » et « Produit contrôlé »
               seront attribués après vérification de votre profil.
             </div>
           </aside>

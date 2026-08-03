@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, Briefcase, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User } from 'lucide-react';
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
 import { categoriesData } from '../data/categories';
@@ -112,17 +112,6 @@ const PublishModal = ({ open, onClose }) => {
             </span>
             <ArrowRight size={16} className="publish-option-arrow" />
           </button>
-          <button
-            className="publish-option"
-            onClick={() => { onClose(); navigate('/publier?type=service'); }}
-          >
-            <span className="publish-option-icon publish-option-icon--service"><Briefcase size={22} strokeWidth={1.6} /></span>
-            <span className="publish-option-body">
-              <strong>Un service</strong>
-              <span>Construction, entretien, transport, services professionnels…</span>
-            </span>
-            <ArrowRight size={16} className="publish-option-arrow" />
-          </button>
         </div>
       </div>
     </div>
@@ -178,7 +167,6 @@ const Navbar = () => {
           <div className={`nav-links${menuOpen ? ' nav-links--open' : ''}`}>
             <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>Accueil</Link>
             <Link to="/boutique" className="nav-link" onClick={() => setMenuOpen(false)}>Produits</Link>
-            <Link to="/services" className="nav-link" onClick={() => setMenuOpen(false)}>Services</Link>
             <div className={`nav-link nav-link--dd${catsOpen ? ' is-open' : ''}`}>
               <button
                 className="nav-link-dd-trigger"
@@ -212,7 +200,6 @@ const Navbar = () => {
               </div>
             </div>
             <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>Fournisseurs</Link>
-            <Link to="/services" className="nav-link" onClick={() => setMenuOpen(false)}>Professionnels</Link>
             <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>Comment ça marche</Link>
           </div>
 
@@ -256,7 +243,6 @@ const Navbar = () => {
           <span className="mobile-bar-publish-ico"><PlusCircle size={22} strokeWidth={2} /></span>
           <span>Publier</span>
         </button>
-        <Link to="/services" className="mobile-bar-item"><Briefcase size={19} strokeWidth={1.8} /><span>Services</span></Link>
         <Link to="/account" className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
       </div>
     </>

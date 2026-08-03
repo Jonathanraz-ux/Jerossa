@@ -11,10 +11,24 @@
   padding: 6rem 0 4rem;
 }
 
+.hero-bg-img {
+  position: absolute; inset: 0;
+  z-index: 0;
+}
+
+.hero-bg-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.08) saturate(1.12);
+}
+
 .hero-bg-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(26,36,30,0.97) 0%, rgba(26,36,30,0.85) 50%, rgba(26,36,30,0.6) 100%),
-    url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Sambava_-_grading_vanilla_beans.jpg/1920px-Sambava_-_grading_vanilla_beans.jpg') center/cover;
+  background:
+    linear-gradient(90deg, rgba(13,20,16,0.78) 0%, rgba(13,20,16,0.36) 48%, rgba(13,20,16,0.05) 100%),
+    linear-gradient(180deg, rgba(13,20,16,0) 55%, rgba(13,20,16,0.25) 100%);
   z-index: 1;
 }
 
@@ -71,6 +85,7 @@
   color: #fff;
   font-weight: 500;
   margin-bottom: 1.5rem;
+  text-shadow: 0 2px 28px rgba(0,0,0,0.45);
   animation: fadeInUp 0.6s ease 0.2s both;
 }
 
@@ -86,6 +101,7 @@
   color: rgba(255,255,255,0.75);
   margin-bottom: 2.5rem;
   max-width: 520px;
+  text-shadow: 0 1px 14px rgba(0,0,0,0.35);
   animation: fadeInUp 0.6s ease 0.35s both;
 }
 
@@ -189,73 +205,32 @@
   animation: fadeInUp 0.8s ease 0.4s both;
 }
 
-.hero-image-card {
-  width: 320px;
-  height: 400px;
-  border-radius: 16px;
+.hero-gemini-card {
+  position: absolute;
+  width: 250px;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
-  position: relative;
+  box-shadow: 0 24px 50px rgba(0,0,0,0.45);
+  border: 2px solid rgba(255,255,255,0.9);
+  background: #1a241e;
+  animation: float 4s ease-in-out infinite;
 }
 
-.hero-image-card img {
+.hero-gemini-card img {
   width: 100%; height: 100%; object-fit: cover;
+  filter: contrast(1.05) saturate(1.05);
 }
 
-.hero-image-card-2 {
-  position: absolute;
-  width: 200px;
-  height: 260px;
-  bottom: -30px;
-  right: -20px;
-  border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+.hero-gemini-card-1 {
+  top: 18%;
+  right: 8px;
 }
 
-.hero-floating-card {
-  position: absolute;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  animation: float 3s ease-in-out infinite;
-}
-
-.hero-floating-1 {
-  top: 10%;
-  right: -10px;
-  animation-delay: 0.5s;
-}
-
-.hero-floating-2 {
-  bottom: 20%;
-  left: -30px;
-  animation-delay: 1.5s;
-}
-
-.floating-card-inner {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-.floating-card-inner svg { color: var(--success); }
-
-.floating-card-inner div {
-  display: flex;
-  flex-direction: column;
-}
-
-.floating-card-inner strong {
-  font-size: 0.75rem;
-  color: var(--text-dark);
-}
-
-.floating-card-inner span {
-  font-size: 0.65rem;
-  color: var(--text-muted);
+.hero-gemini-card-2 {
+  bottom: 18%;
+  right: 8px;
+  animation-delay: 1s;
 }
 
 @keyframes float {
