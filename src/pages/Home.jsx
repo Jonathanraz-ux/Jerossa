@@ -130,10 +130,10 @@ const Home = () => {
 
           <div className="hero-visual">
             <div className="hero-gemini-card hero-gemini-card-1">
-              <img src="/Gemini_Generated_Image_8431gg8431gg8431.png" alt="Épices et produits de Madagascar" loading="eager" />
+              <img src="/Gemini_Generated_Image_8431gg8431gg8431.png" alt="Épices et produits de Madagascar" loading="lazy" />
             </div>
             <div className="hero-gemini-card hero-gemini-card-2">
-              <img src="/Gemini_Generated_Image_ogy5rjogy5rjogy5.png" alt="Produits de Madagascar" loading="eager" />
+              <img src="/Gemini_Generated_Image_ogy5rjogy5rjogy5.png" alt="Produits de Madagascar" loading="lazy" />
             </div>
           </div>
         </div>
