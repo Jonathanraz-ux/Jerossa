@@ -27,8 +27,8 @@
 .hero-bg-overlay {
   position: absolute; inset: 0;
   background:
-    linear-gradient(90deg, rgba(13,20,16,0.78) 0%, rgba(13,20,16,0.36) 48%, rgba(13,20,16,0.05) 100%),
-    linear-gradient(180deg, rgba(13,20,16,0) 55%, rgba(13,20,16,0.25) 100%);
+    linear-gradient(90deg, rgba(13,20,16,0.65) 0%, rgba(13,20,16,0.28) 48%, rgba(13,20,16,0.03) 100%),
+    linear-gradient(180deg, rgba(13,20,16,0) 55%, rgba(13,20,16,0.18) 100%);
   z-index: 1;
 }
 
@@ -201,41 +201,124 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
+  min-height: 420px;
   animation: fadeInUp 0.8s ease 0.4s both;
 }
 
 .hero-gemini-card {
   position: absolute;
-  width: 250px;
+  width: 185px;
   aspect-ratio: 16 / 9;
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 24px 50px rgba(0,0,0,0.45);
-  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.35);
   background: #1a241e;
-  animation: float 4s ease-in-out infinite;
+  animation: float 5s ease-in-out infinite;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .hero-gemini-card img {
   width: 100%; height: 100%; object-fit: cover;
-  filter: contrast(1.05) saturate(1.05);
+  image-rendering: auto;
+  transform: translateZ(0);
 }
 
 .hero-gemini-card-1 {
-  top: 18%;
-  right: 8px;
+  top: 12%;
+  right: 0;
+}
+
+.hero-gemini-card-1::before {
+  content: "Livraison & Export";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(20,33,26,0.88);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.hero-gemini-card-1::after {
+  content: "Rapide et sécurisé";
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(20,33,26,0.75);
+  color: rgba(255,255,255,0.95);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .hero-gemini-card-2 {
-  bottom: 18%;
-  right: 8px;
-  animation-delay: 1s;
+  bottom: 8%;
+  right: 24px;
+  animation-delay: 1.2s;
+}
+
+.hero-gemini-card-2::before {
+  content: "Qualité Certifié";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(20,33,26,0.88);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.hero-gemini-card-2::after {
+  content: "Origine Contrôlée";
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(20,33,26,0.75);
+  color: rgba(255,255,255,0.95);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-3px); }
 }
 
 .hero-scroll-indicator {
