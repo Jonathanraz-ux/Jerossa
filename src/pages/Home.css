@@ -21,12 +21,12 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: contrast(1.08) saturate(1.12);
+  filter: contrast(1.02) saturate(1.06);
 }
 
 .hero-bg-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(13,20,16,0.72) 0%, rgba(13,20,16,0.45) 25%, rgba(13,20,16,0.15) 50%, rgba(13,20,16,0) 70%);
+  background: linear-gradient(90deg, rgba(13,20,16,0.62) 0%, rgba(13,20,16,0.38) 25%, rgba(13,20,16,0.12) 50%, rgba(13,20,16,0) 70%);
   z-index: 1;
 }
 
@@ -273,6 +273,7 @@
   bottom: 8%;
   right: 24px;
   animation-delay: 1.2s;
+  will-change: auto;
 }
 
 .hero-gemini-card-2::before {

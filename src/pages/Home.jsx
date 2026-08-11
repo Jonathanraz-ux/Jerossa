@@ -73,7 +73,7 @@ const Home = () => {
       <section className="hero-section" id="accueil">
         <div className="hero-bg-img">
           <img
-            src="/WhatsApp%20Image%202026-08-03%20at%2011.21.35.jpeg"
+            src="/hero-bg.jpg"
             alt=""
             loading="eager"
             fetchPriority="high"
@@ -133,7 +133,7 @@ const Home = () => {
               <img src="/Gemini_Generated_Image_8431gg8431gg8431.png" alt="Épices et produits de Madagascar" loading="lazy" />
             </div>
             <div className="hero-gemini-card hero-gemini-card-2">
-              <img src="/Gemini_Generated_Image_ogy5rjogy5rjogy5.png" alt="Produits de Madagascar" loading="lazy" />
+              <img src="/hero-certif.png" alt="Produits de Madagascar" loading="lazy" />
             </div>
           </div>
         </div>
