@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, Package, Heart, Settings as SettingsIcon, LogOut, MapPin, Mail, Phone, ChevronRight, Bell } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Package, Heart, Settings as SettingsIcon, LogOut, MapPin, Mail, Phone, ChevronRight, Bell, FileText, RotateCcw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { ordersData } from '../data/orders';
 import './animations.css';
 
 const MyAccount = () => {
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const menuItems = [
     { id: 'profile', label: 'Mon profil', icon: User },
     { id: 'orders', label: 'Mes commandes', icon: Package },
+    { id: 'quotes', label: 'Mes devis', icon: FileText },
+    { id: 'refunds', label: 'Mes remboursements', icon: RotateCcw },
     { id: 'addresses', label: 'Mes adresses', icon: MapPin },
     { id: 'favorites', label: 'Mes favoris', icon: Heart },
     { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
@@ -25,10 +35,10 @@ const MyAccount = () => {
               <h2>Mon profil</h2>
             </div>
             <div className="account-avatar-section">
-              <div className="account-avatar">JD</div>
+              <div className="account-avatar">{((profile?.full_name || user?.email || 'U').charAt(0) || 'U').toUpperCase()}</div>
               <div>
-                <div className="account-name">Jean Dupont</div>
-                <div className="account-email">jean.dupont@email.com</div>
+                <div className="account-name">{profile?.full_name || user?.email || 'Mon compte'}</div>
+                <div className="account-email">{user?.email || ''}</div>
               </div>
             </div>
             <div className="form-group">
@@ -91,6 +101,34 @@ const MyAccount = () => {
                 </table>
               </div>
             )}
+          </div>
+        );
+      case 'quotes':
+        return (
+          <div>
+            <div className="account-section-header">
+              <FileText size={20} />
+              <h2>Mes devis</h2>
+            </div>
+            <div className="account-empty">
+              <FileText size={32} />
+              <p>Retrouvez vos demandes de devis et les réponses des vendeurs.</p>
+              <Link to="/my-quotes" className="btn btn-primary" style={{ textDecoration: 'none' }}>Voir mes devis</Link>
+            </div>
+          </div>
+        );
+      case 'refunds':
+        return (
+          <div>
+            <div className="account-section-header">
+              <RotateCcw size={20} />
+              <h2>Mes remboursements</h2>
+            </div>
+            <div className="account-empty">
+              <RotateCcw size={32} />
+              <p>Suivez l'état de vos demandes de remboursement.</p>
+              <Link to="/my-refunds" className="btn btn-primary" style={{ textDecoration: 'none' }}>Voir mes remboursements</Link>
+            </div>
           </div>
         );
       case 'addresses':
@@ -191,7 +229,7 @@ const MyAccount = () => {
               </button>
             ))}
             <div style={{ borderTop: '1px solid var(--border)', margin: '0.5rem 0', paddingTop: '0.5rem' }}>
-              <button className="db-side-btn" style={{ color: 'var(--danger)' }}>
+              <button className="db-side-btn" style={{ color: 'var(--danger)' }} onClick={handleLogout}>
                 <LogOut size={18} />
                 Se déconnecter
               </button>

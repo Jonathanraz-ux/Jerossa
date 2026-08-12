@@ -1,15 +1,52 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ArrowRight, Eye, EyeOff, Store } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './animations.css';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', type: 'client' });
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setNotice('');
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+    setLoading(true);
+    const { data, error: authError } = await signUp({
+      email: formData.email,
+      password: formData.password,
+      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+      role: formData.type === 'seller' ? 'seller' : 'customer',
+    });
+    setLoading(false);
+    if (authError) {
+      setError(authError.message);
+      return;
+    }
+    if (data.session) {
+      navigate('/my-account');
+    } else {
+      setNotice('Compte créé ! Vérifiez votre email pour confirmer votre inscription.');
+    }
   };
 
   return (
@@ -41,7 +78,17 @@ const Register = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Rejoignez la communauté Jerossa</p>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); }}>
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
+                  {error}
+                </div>
+              )}
+              {notice && (
+                <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--primary)', fontSize: '13px', fontWeight: 500 }}>
+                  {notice}
+                </div>
+              )}
               <div className="form-row" style={{ marginBottom: '16px' }}>
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Prénom</label>
@@ -97,7 +144,7 @@ const Register = () => {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary premium-btn" style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>Créer mon compte</button>
+              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? 'Création…' : 'Créer mon compte'}</button>
             </form>
 
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)' }}>

@@ -8,8 +8,7 @@ import {
   UserPlus, Wallet, Lock, LayoutGrid, PlusCircle, Tag, FileText, Flag, LifeBuoy
 } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
-import { productsData } from '../data/products';
-import { categoriesData } from '../data/categories';
+import { fetchProducts, fetchCategories } from '../services/catalog';
 import { useCurrency, CURRENCY_NOTE } from '../context/CurrencyContext';
 
 const FAQ_ITEMS = [
@@ -40,6 +39,13 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [searchMarket, setSearchMarket] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+    fetchProducts().then((data) => setFeaturedProducts(data.slice(0, 8)));
+  }, []);
 
   useEffect(() => {
     if (location.hash) {
@@ -64,8 +70,6 @@ const Home = () => {
     if (searchMarket) params.set('market', searchMarket);
     window.location.href = `/boutique${params.toString() ? `?${params.toString()}` : ''}`;
   };
-
-  const featuredProducts = productsData.slice(0, 8);
 
   return (
     <div className="home-page">
@@ -167,7 +171,7 @@ const Home = () => {
                 <Tag size={15} strokeWidth={1.8} />
                 <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
                   <option value="">Catégorie</option>
-                  {categoriesData.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+                  {categories.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
                 </select>
               </div>
               <div className="search-select-wrap">
@@ -260,7 +264,7 @@ const Home = () => {
           </div>
 
           <div className="categories-grid">
-            {categoriesData.slice(0, 10).map((cat) => (
+            {categories.slice(0, 10).map((cat) => (
               <Link to={`/categories/${cat.slug}`} key={cat.id} className="category-card">
                 <div className="category-image-wrapper">
                   <div className="category-image">

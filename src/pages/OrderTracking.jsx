@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
-import { Package, Truck, ShieldCheck, Clock, Search } from 'lucide-react';
+import { Truck, Clock, Search } from 'lucide-react';
 import { ordersData } from '../data/orders';
+import { fetchOrderByNumber } from '../services/orders';
 import './animations.css';
 
 const OrderTracking = () => {
   const [orderId, setOrderId] = useState('');
   const [trackingOrder, setTrackingOrder] = useState(null);
+  const [searching, setSearching] = useState(false);
 
-  const handleTrack = (e) => {
+  const handleTrack = async (e) => {
     e.preventDefault();
-    const order = ordersData.find(o => o.id === orderId.toUpperCase());
-    setTrackingOrder(order || null);
+    const normalized = orderId.trim().toUpperCase();
+    if (!normalized) return;
+    setSearching(true);
+    const found = await fetchOrderByNumber(normalized);
+    setTrackingOrder(found || ordersData.find(o => o.id === normalized) || null);
+    setSearching(false);
   };
 
   return (
@@ -45,7 +51,7 @@ const OrderTracking = () => {
               style={{ width: '100%', padding: '12px 14px 12px 44px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }}
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>Suivre</button>
+          <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{searching ? 'Recherche…' : 'Suivre'}</button>
         </form>
 
         {trackingOrder && (
@@ -55,7 +61,7 @@ const OrderTracking = () => {
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-dark)' }}>{trackingOrder.id}</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Commandée le {trackingOrder.date}</p>
               </div>
-              <span className="status-badge" style={{ background: trackingOrder.status === 'delivered' ? 'var(--success-bg)' : trackingOrder.status === 'shipped' ? '#eff6ff' : trackingOrder.status === 'pending' ? 'var(--warning-bg)' : 'var(--danger-bg)', color: trackingOrder.status === 'delivered' ? 'var(--success)' : trackingOrder.status === 'shipped' ? '#1d4ed8' : trackingOrder.status === 'pending' ? 'var(--warning)' : 'var(--danger)', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{trackingOrder.status}</span>
+              <span className="status-badge" style={{ background: trackingOrder.status === 'delivered' || trackingOrder.status === 'paid' || trackingOrder.status === 'confirmed' ? 'var(--success-bg)' : trackingOrder.status === 'shipped' ? '#eff6ff' : trackingOrder.status === 'pending' ? 'var(--warning-bg)' : 'var(--danger-bg)', color: trackingOrder.status === 'delivered' || trackingOrder.status === 'paid' || trackingOrder.status === 'confirmed' ? 'var(--success)' : trackingOrder.status === 'shipped' ? '#1d4ed8' : trackingOrder.status === 'pending' ? 'var(--warning)' : 'var(--danger)', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{trackingOrder.statusLabel || trackingOrder.status}</span>
             </div>
 
             <div className="order-tracking scroll-animate" style={{ marginBottom: '24px', padding: '20px', background: 'var(--bg-cream)', borderRadius: '12px' }}>
@@ -65,7 +71,7 @@ const OrderTracking = () => {
                     <div className="step-indicator" style={{ width: '30px', height: '30px', borderRadius: '50%', background: step.completed ? 'var(--success-bg)' : '#fff', border: `3px solid ${step.completed ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: step.completed ? 'var(--success)' : 'var(--text-muted)', fontSize: '11px', fontWeight: 700 }}>
                       {step.completed ? '✓' : i + 1}
                     </div>
-                    <div className="step-label" style={{ fontSize: '11px', fontWeight: 500, marginTop: '8px', textAlign: 'center', color: step.completed ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: step.completed ? 600 : 400 }}>{step.label}</div>
+                    <div className="step-label" style={{ fontSize: '11px', marginTop: '8px', textAlign: 'center', color: step.completed ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: step.completed ? 600 : 400 }}>{step.label}</div>
                     <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>{step.date}</div>
                   </div>
                 ))}

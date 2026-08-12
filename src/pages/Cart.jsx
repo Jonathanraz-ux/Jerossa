@@ -1,37 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, ArrowLeft, ShoppingBag, Plus, Minus, ShieldCheck, Truck, ArrowRight } from 'lucide-react';
-import { productsData } from '../data/products';
+import { Trash2, ArrowLeft, ShoppingBag, Plus, Minus, ShieldCheck, X } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 import './animations.css';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    { productId: 'prod-001', qty: 2 },
-    { productId: 'prod-003', qty: 1 }
-  ]);
+  const { items, subtotal, shipping, total, updateQty, removeItem, notice, dismissNotice } = useCart();
 
-  const updateQty = (productId, delta) => {
-    setCartItems(prev => {
-      const item = prev.find(i => i.productId === productId);
-      if (!item) return prev;
-      const newQty = item.qty + delta;
-      if (newQty <= 0) return prev.filter(i => i.productId !== productId);
-      return prev.map(i => i.productId === productId ? { ...i, qty: newQty } : i);
-    });
-  };
-
-  const removeItem = (productId) => {
-    setCartItems(prev => prev.filter(i => i.productId !== productId));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => {
-    const product = productsData.find(p => p.id === item.productId);
-    if (!product) return sum;
-    const price = parseFloat(product.price.replace(' € / kg', '').replace(',', '.'));
-    return sum + price * item.qty;
-  }, 0);
-  const shipping = subtotal > 200 ? 0 : 15;
-  const total = subtotal + shipping;
+  const cartItems = items;
 
   if (cartItems.length === 0) {
     return (
@@ -80,29 +56,35 @@ const Cart = () => {
       </section>
 
       <div className="cart-layout scroll-animate">
+        {notice && (
+          <div className="cart-notice" style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', borderRadius: '8px', background: 'var(--warning-bg)', color: 'var(--warning)', border: '1px solid rgba(210,153,34,0.3)', fontSize: '13px', fontWeight: 500 }}>
+            <ShieldCheck size={16} />
+            <span style={{ flex: 1 }}>{notice}</span>
+            <button onClick={dismissNotice} aria-label="Fermer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'flex' }}>
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <div className="cart-items" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {cartItems.map(item => {
-            const product = productsData.find(p => p.id === item.productId);
-            if (!product) return null;
-            const price = parseFloat(product.price.replace(' € / kg', '').replace(',', '.'));
             return (
               <div key={item.productId} className="cart-item premium-card" style={{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '12px' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#fdfbf7', border: '1px solid var(--border)' }}>
-                  <img src={product.images[0]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div className="cart-item-details" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h3 className="cart-item-name" style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, color: 'var(--text-dark)', margin: '0 0 4px' }}>{product.title}</h3>
-                  <span className="cart-item-spec" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>{product.seller}</span>
-                  <span className="cart-item-price" style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700, color: 'var(--primary)' }}>{price.toFixed(2)} € / kg</span>
+                  <h3 className="cart-item-name" style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, color: 'var(--text-dark)', margin: '0 0 4px' }}>{item.title}</h3>
+                  <span className="cart-item-spec" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>{item.seller}</span>
+                  <span className="cart-item-price" style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700, color: 'var(--primary)' }}>{item.priceEUR.toFixed(2)} € / {item.unit}</span>
                   <div className="cart-item-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '12px' }}>
                     <div className="qty-control" style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
-                      <button className="qty-btn" onClick={() => updateQty(product.id, -1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={14} /></button>
+                      <button className="qty-btn" onClick={() => updateQty(item.productId, -1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={14} /></button>
                       <span className="qty-val" style={{ width: '32px', textAlign: 'center', fontSize: '14px', fontWeight: 600 }}>{item.qty}</span>
-                      <button className="qty-btn" onClick={() => updateQty(product.id, 1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={14} /></button>
+                      <button className="qty-btn" onClick={() => updateQty(item.productId, 1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={14} /></button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{(price * item.qty).toFixed(2)} €</span>
-                      <button className="cart-remove-btn" onClick={() => removeItem(product.id)} aria-label="Supprimer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', transition: 'color 0.2s' }}>
+                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{(item.priceEUR * item.qty).toFixed(2)} €</span>
+                      <button className="cart-remove-btn" onClick={() => removeItem(item.productId)} aria-label="Supprimer" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', transition: 'color 0.2s' }}>
                         <Trash2 size={16} />
                       </button>
                     </div>

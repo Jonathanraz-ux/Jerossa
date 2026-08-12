@@ -1,16 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { producersData } from '../data/producers';
-import { productsData } from '../data/products';
+import { fetchProducerByIdentifier, fetchProductsByProducer } from '../services/catalog';
 import { Star, MapPin, Award, Truck, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
 import './animations.css';
 
 const ProducerShop = () => {
   const { id } = useParams();
-  const producer = producersData.find(p => p.id === id);
-  const producerProducts = productsData.filter(p => producer && producer.products.includes(p.id));
+  const [producer, setProducer] = useState(null);
+  const [producerProducts, setProducerProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!producer) {
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    Promise.all([
+      fetchProducerByIdentifier(id),
+      fetchProductsByProducer(id),
+    ]).then(([pro, prods]) => {
+      if (!active) return;
+      setProducer(pro);
+      setProducerProducts(prods);
+      setNotFound(!pro);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container page-container" style={{ textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Chargement…</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Récupération du producteur.</p>
+      </div>
+    );
+  }
+
+  if (notFound || !producer) {
     return (
       <div className="container page-container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Producteur introuvable</h1>

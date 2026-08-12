@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { productsData } from '../data/products';
+import { fetchProducts } from '../services/catalog';
 import { useCurrency } from '../context/CurrencyContext';
 import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck } from 'lucide-react';
 import './animations.css';
@@ -8,17 +8,26 @@ import './animations.css';
 const Catalogue = () => {
   const [searchParams] = useSearchParams();
   const { convert } = useCurrency();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
+    fetchProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
     const q = searchParams.get('q');
     if (q) setSearchQuery(q);
   }, [searchParams]);
 
-  const filteredProducts = productsData.filter(p => {
+  const filteredProducts = products.filter(p => {
     const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.seller.toLowerCase().includes(searchQuery.toLowerCase());
     const matchCategory = selectedCategory === 'all' || p.type === selectedCategory;
@@ -26,8 +35,8 @@ const Catalogue = () => {
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'price-asc') return parseFloat(a.price) - parseFloat(b.price);
-    if (sortBy === 'price-desc') return parseFloat(b.price) - parseFloat(a.price);
+    if (sortBy === 'price-asc') return a.priceEUR - b.priceEUR;
+    if (sortBy === 'price-desc') return b.priceEUR - a.priceEUR;
     if (sortBy === 'rating') return b.rating - a.rating;
     return 0;
   });
@@ -114,7 +123,15 @@ const Catalogue = () => {
         </div>
 
         {/* Products Grid */}
-        {sortedProducts.length === 0 ? (
+        {loading ? (
+          <div className="catalog-empty">
+            <div className="catalog-empty-icon">
+              <Search size={28} />
+            </div>
+            <h3>Chargement…</h3>
+            <p>Récupération des produits.</p>
+          </div>
+        ) : sortedProducts.length === 0 ? (
           <div className="catalog-empty">
             <div className="catalog-empty-icon">
               <Search size={28} />

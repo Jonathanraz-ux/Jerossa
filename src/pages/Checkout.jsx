@@ -1,30 +1,31 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CreditCard, Lock, Truck, ShieldCheck, MapPin, Check, ArrowLeft, ArrowRight, Package } from 'lucide-react';
-import { productsData } from '../data/products';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { CreditCard, Lock, Truck, MapPin, Check, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { createOrder } from '../services/orders';
 import './animations.css';
 
 const Checkout = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { items: cartItems, subtotal, currency } = useCart();
   const [step, setStep] = useState(1);
+  const [paymentFailed, setPaymentFailed] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '', phone: '',
     address: '', city: '', postalCode: '', country: 'MG'
   });
+  const [formError, setFormError] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [confirmed, setConfirmed] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const cartItems = [
-    { productId: 'prod-001', qty: 2 },
-    { productId: 'prod-003', qty: 1 }
-  ];
-
-  const subtotal = cartItems.reduce((sum, item) => {
-    const product = productsData.find(p => p.id === item.productId);
-    if (!product) return sum;
-    const price = parseFloat(product.price.replace(' € / kg', '').replace(',', '.'));
-    return sum + price * item.qty;
-  }, 0);
+  useEffect(() => {
+    if (searchParams.get('payment') === 'failed') {
+      setPaymentFailed(true);
+    }
+  }, [searchParams]);
 
   const shippingRates = { standard: 15, express: 35, free: 0 };
   const shippingCost = subtotal > 200 ? shippingRates.free : shippingRates[shippingMethod];
@@ -34,31 +35,69 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const goToShipping = () => {
+    const missing = !formData.firstName || !formData.lastName || !formData.email || !formData.address || !formData.city;
+    if (missing) {
+      setFormError('Merci de renseigner votre prénom, nom, email, adresse et ville.');
+      return;
+    }
+    setFormError('');
+    setStep(2);
+  };
+
+  const handleConfirm = async () => {
+    if (cartItems.length === 0) return;
+    setSubmitting(true);
+    setOrderError('');
+
+    const orderItems = cartItems.map(i => ({
+      product_code: i.productId,
+      title: i.title,
+      seller: i.seller,
+      unit: i.unit,
+      price_eur: i.priceEUR,
+      quantity: i.qty,
+      image_url: i.image,
+      currency,
+    }));
+
+    const { ok, data, error } = await createOrder({
+      items: orderItems,
+      subtotal,
+      shippingFee: shippingCost,
+      total,
+      currency,
+      paymentMethod,
+      address: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        country: formData.country,
+      },
+    });
+
+    setSubmitting(false);
+
+    if (!ok) {
+      console.error('[checkout]', error);
+      setOrderError("La commande n'a pas pu être enregistrée. Vérifiez la configuration Supabase puis réessayez.");
+      return;
+    }
+
+    // Phase 7 : la commande est créée en PENDING, le paiement s'effectue sur
+    // la page provider simulé (/payment). Le panier n'est vidé qu'après succès.
+    navigate(`/payment?order=${data.order_number}&method=${paymentMethod}`);
+  };
+
   const steps = [
     { num: 1, label: 'Adresse', icon: MapPin },
     { num: 2, label: 'Livraison', icon: Truck },
     { num: 3, label: 'Paiement', icon: CreditCard },
   ];
-
-  if (confirmed) {
-    return (
-      <div className="checkout-page">
-        <div className="container" style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '4rem 2rem' }}>
-          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'var(--success-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            <Check size={36} style={{ color: 'var(--success)' }} />
-          </div>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '0.75rem' }}>Commande confirmée !</h2>
-          <p style={{ color: 'var(--text-muted)', maxWidth: '400px', marginBottom: '2rem', lineHeight: '1.6' }}>
-            Votre commande a été enregistrée avec succès. Vous recevrez un email de confirmation sous quelques instants.
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link to="/order-confirmation" className="btn btn-primary">Voir le récapitulatif</Link>
-            <Link to="/boutique" className="btn btn-outline">Continuer mes achats</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="checkout-page">
@@ -91,6 +130,17 @@ const Checkout = () => {
             );
           })}
         </div>
+
+        {paymentFailed && (
+          <div className="checkout-pay-failed">
+            <AlertTriangle size={18} />
+            <div>
+              <strong>Le paiement a échoué.</strong>
+              <span>Votre panier est conservé — vous pouvez réessayer le paiement ou changer de mode de paiement.</span>
+            </div>
+            <button className="checkout-pay-failed-close" onClick={() => setPaymentFailed(false)} aria-label="Fermer">×</button>
+          </div>
+        )}
 
         <div className="checkout-content">
           {/* Form Panel */}
@@ -142,7 +192,12 @@ const Checkout = () => {
                     <option value="RE">La Réunion</option>
                   </select>
                 </div>
-                <button className="checkout-next-btn" onClick={() => setStep(2)}>
+                {formError && (
+                  <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                    {formError}
+                  </div>
+                )}
+                <button className="checkout-next-btn" onClick={goToShipping}>
                   Continuer <ArrowRight size={16} />
                 </button>
               </div>
@@ -230,12 +285,18 @@ const Checkout = () => {
                   </div>
                 </div>
 
+                {orderError && (
+                  <div style={{ marginBottom: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                    {orderError}
+                  </div>
+                )}
+
                 <div className="checkout-nav">
                   <button className="checkout-back-btn" onClick={() => setStep(2)}>
                     <ArrowLeft size={16} /> Retour
                   </button>
-                  <button className="checkout-confirm-btn" onClick={() => setConfirmed(true)}>
-                    <Lock size={16} /> Confirmer et payer
+                  <button className="checkout-confirm-btn" onClick={handleConfirm} disabled={submitting} style={{ opacity: submitting ? 0.7 : 1 }}>
+                    <Lock size={16} /> {submitting ? 'Enregistrement…' : 'Confirmer et payer'}
                   </button>
                 </div>
 
@@ -250,21 +311,16 @@ const Checkout = () => {
           {/* Summary Panel */}
           <div className="checkout-summary">
             <h3 className="checkout-summary-title">Récapitulatif</h3>
-            {cartItems.map(item => {
-              const product = productsData.find(p => p.id === item.productId);
-              if (!product) return null;
-              const price = parseFloat(product.price.replace(' € / kg', '').replace(',', '.'));
-              return (
-                <div key={item.productId} className="checkout-summary-item">
-                  <img src={product.images[0]} alt={product.title} />
-                  <div>
-                    <div className="checkout-summary-item-name">{product.title}</div>
-                    <div className="checkout-summary-item-qty">Qté: {item.qty}</div>
-                    <div className="checkout-summary-item-price">{(price * item.qty).toFixed(2)} €</div>
-                  </div>
+            {cartItems.map(item => (
+              <div key={item.productId} className="checkout-summary-item">
+                <img src={item.image} alt={item.title} />
+                <div>
+                  <div className="checkout-summary-item-name">{item.title}</div>
+                  <div className="checkout-summary-item-qty">Qté: {item.qty}</div>
+                  <div className="checkout-summary-item-price">{(item.priceEUR * item.qty).toFixed(2)} €</div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             <div className="checkout-summary-divider" />
             <div className="checkout-summary-line">
               <span>Sous-total</span>
@@ -340,6 +396,10 @@ const Checkout = () => {
         .checkout-summary-line { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); }
         .checkout-summary-total { display: flex; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-weight: 700; font-size: 1rem; color: var(--text-dark); }
         .checkout-summary-total span:last-child { color: var(--primary); }
+        .checkout-pay-failed { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); border-radius: var(--radius-md); font-size: 0.8125rem; }
+        .checkout-pay-failed strong { display: block; }
+        .checkout-pay-failed svg { flex-shrink: 0; }
+        .checkout-pay-failed-close { margin-left: auto; width: 28px; height: 28px; border: none; background: transparent; color: var(--danger); font-size: 1.25rem; line-height: 1; cursor: pointer; }
 
         @media (max-width: 1024px) {
           .checkout-content { grid-template-columns: 1fr; }

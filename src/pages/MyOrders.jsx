@@ -1,10 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ordersData } from '../data/orders';
-import { Package, ArrowRight } from 'lucide-react';
+import { Package, ArrowRight, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { fetchMyOrders } from '../services/orders';
 import './animations.css';
 
+const statusStyles = {
+  delivered: { background: 'var(--success-bg)', color: 'var(--success)' },
+  shipped: { background: '#eff6ff', color: '#1d4ed8' },
+  paid: { background: 'var(--success-bg)', color: 'var(--success)' },
+  confirmed: { background: 'var(--success-bg)', color: 'var(--success)' },
+  pending: { background: 'var(--warning-bg)', color: 'var(--warning)' },
+  cancelled: { background: 'var(--danger-bg)', color: 'var(--danger)' },
+  refunded: { background: 'var(--danger-bg)', color: 'var(--danger)' },
+};
+
+const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
+
 const MyOrders = () => {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    if (!user) {
+      setOrders(null);
+      setLoading(false);
+      return;
+    }
+    fetchMyOrders(user.id).then((data) => {
+      if (!active) return;
+      setOrders(data);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [user]);
+
+  const notConnected = !user;
+
   return (
     <div className="container" style={{ minHeight: '80vh' }}>
       {/* Premium Hero */}
@@ -24,11 +59,23 @@ const MyOrders = () => {
       </section>
 
       <div className="scroll-animate" style={{ marginBottom: '32px' }}>
-        {ordersData.length === 0 ? (
+        {loading ? (
+          <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Chargement…</h3>
+            <p style={{ color: 'var(--text-muted)' }}>Récupération de vos commandes.</p>
+          </div>
+        ) : notConnected ? (
+          <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <Lock size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
+            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Connectez-vous pour voir vos commandes</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Accédez à l'historique et au suivi de vos commandes après connexion.</p>
+            <Link to="/login" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Se connecter</Link>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
             <Package size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
             <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Aucune commande</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Vous n\'avez pas encore de commande.</p>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Vous n'avez pas encore de commande.</p>
             <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Découvrir le catalogue</Link>
           </div>
         ) : (
@@ -38,12 +85,12 @@ const MyOrders = () => {
                 <tr><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Commande</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Date</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Total</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Statut</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}></th></tr>
               </thead>
               <tbody>
-                {ordersData.map(order => (
+                {orders.map(order => (
                   <tr key={order.id}>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{order.id}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{order.date}</td>
-                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{order.total}</td>
-                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><span className="status-badge" style={{ display: 'inline-flex', padding: '4px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '20px', textTransform: 'uppercase', background: order.status === 'delivered' ? 'var(--success-bg)' : order.status === 'shipped' ? '#eff6ff' : order.status === 'pending' ? 'var(--warning-bg)' : 'var(--danger-bg)', color: order.status === 'delivered' ? 'var(--success)' : order.status === 'shipped' ? '#1d4ed8' : order.status === 'pending' ? 'var(--warning)' : 'var(--danger)' }}>{order.status}</span></td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{formatEUR(order.total)}</td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><span className="status-badge" style={{ display: 'inline-flex', padding: '4px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '20px', textTransform: 'uppercase', ...(statusStyles[order.status] || {}) }}>{order.statusLabel}</span></td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><Link to={`/order/${order.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Détails <ArrowRight size={12} /></Link></td>
                   </tr>
                 ))}

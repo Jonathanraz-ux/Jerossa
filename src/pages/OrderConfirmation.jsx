@@ -1,19 +1,36 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle, Package, Truck, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { CheckCircle, Package, ArrowLeft } from 'lucide-react';
+import { fetchOrderByNumber } from '../services/orders';
 import './animations.css';
 
+const MOCK_ORDER = {
+  id: 'CMD-2026-004',
+  date: '30/07/2026',
+  statusLabel: 'Confirmée',
+  total: 448.5,
+  items: [
+    { name: 'Gousses de Vanille Bourbon Gourmet - Grade A', qty: 2, price: '220,00 € / kg' },
+    { name: 'Fèves de Cacao Fermentées Bio - Sambirano', qty: 1, price: '8,50 € / kg' }
+  ]
+};
+
+const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
+
 const OrderConfirmation = () => {
-  const order = {
-    id: 'CMD-2026-004',
-    date: '2026-07-30',
-    status: 'confirmed',
-    total: '448,50 €',
-    items: [
-      { name: 'Gousses de Vanille Bourbon Gourmet - Grade A', qty: 2, price: '220,00 € / kg' },
-      { name: 'Fèves de Cacao Fermentées Bio - Sambirano', qty: 1, price: '8,50 € / kg' }
-    ]
-  };
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get('ref');
+  const [order, setOrder] = useState(ref ? null : MOCK_ORDER);
+
+  useEffect(() => {
+    if (!ref) return;
+    let active = true;
+    fetchOrderByNumber(ref).then((fetched) => {
+      if (!active) return;
+      setOrder(fetched || MOCK_ORDER);
+    });
+    return () => { active = false; };
+  }, [ref]);
 
   return (
     <div className="container page-container">
@@ -21,12 +38,12 @@ const OrderConfirmation = () => {
       <section className="page-hero" style={{ height: '300px' }}>
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
-  <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
-    <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-    <li style={{ color: '#fff', fontWeight: 500 }}>Confirmation</li>
-  </ol>
-</nav>
+            <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
+              <li style={{ color: '#fff', fontWeight: 500 }}>Confirmation</li>
+            </ol>
+          </nav>
           <span className="page-hero-surtitre anim-fade-up stagger-1">Confirmation</span>
           <h1 className="page-hero-title anim-fade-up stagger-2">Merci pour votre commande !</h1>
           <p className="page-hero-subtitle anim-fade-up stagger-3">Votre commande a été confirmée avec succès.</p>
@@ -45,28 +62,40 @@ const OrderConfirmation = () => {
         <div className="scroll-animate" style={{ background: 'var(--bg-cream)', borderRadius: '12px', padding: '24px', marginBottom: '32px', textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Numéro de commande</span>
-            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order.id}</span>
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order?.id}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Date</span>
-            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order.date}</span>
+            <span style={{ fontWeight: 600, fontSize: '14px' }}>{order?.date}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Statut</span>
-            <span className="status-badge" style={{ background: 'var(--success-bg)', color: 'var(--success)', padding: '4px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>Confirmée</span>
+            <span className="status-badge" style={{ background: 'var(--success-bg)', color: 'var(--success)', padding: '4px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>{order?.statusLabel}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Total</span>
-            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)' }}>{order.total}</span>
+            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)' }}>{order ? formatEUR(order.total) : '—'}</span>
           </div>
         </div>
+
+        {order && order.items && order.items.length > 0 && (
+          <div className="scroll-animate" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '32px', textAlign: 'left' }}>
+            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Vos articles</h3>
+            {order.items.map((item, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderBottom: i < order.items.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '14px' }}>
+                <span style={{ flex: 1 }}>{item.qty} × {item.name}</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{item.price || formatEUR(item.priceEUR * item.qty)}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="scroll-animate" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/my-orders" className="btn btn-primary premium-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
             <Package size={16} /> Mes commandes
           </Link>
           <Link to="/" className="btn btn-outline premium-btn" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
-            <ArrowLeft size={16} /> Retour à l\'accueil
+            <ArrowLeft size={16} /> Retour à l'accueil
           </Link>
         </div>
       </div>

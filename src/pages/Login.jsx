@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './animations.css';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const { error: authError } = await signIn(formData.email, formData.password);
+    setLoading(false);
+    if (authError) {
+      setError(authError.message);
+      return;
+    }
+    navigate('/my-account');
   };
 
   return (
@@ -40,7 +58,12 @@ const Login = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Retrouvez votre compte Jerossa</p>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); }}>
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
+                  {error}
+                </div>
+              )}
               <div className="form-group" style={{ marginBottom: '20px' }}>
                 <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Adresse email</label>
                 <div style={{ position: 'relative' }}>
@@ -67,7 +90,7 @@ const Login = () => {
                 <Link to="/forgot-password" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none', fontSize: '13px' }}>Mot de passe oublié ?</Link>
               </div>
 
-              <button type="submit" className="btn btn-primary premium-btn" style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>Se connecter</button>
+              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? 'Connexion…' : 'Se connecter'}</button>
             </form>
 
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)' }}>

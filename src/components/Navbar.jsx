@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User } from 'lucide-react';
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
-import { categoriesData } from '../data/categories';
+import { useCart } from '../context/CartContext';
+import { fetchCategories } from '../services/catalog';
 
 const Popover = ({ open, onClose, children, align = 'left' }) => {
   const ref = useRef(null);
@@ -123,6 +124,12 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const { count } = useCart();
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+  }, []);
 
   const openPublish = () => { setMenuOpen(false); setPublishOpen(true); };
 
@@ -185,7 +192,7 @@ const Navbar = () => {
                   <Link to="/boutique" className="nav-mega-all">Tout le catalogue <ArrowRight size={12} /></Link>
                 </div>
                 <div className="nav-mega-grid">
-                  {categoriesData.slice(0, 8).map((cat) => (
+                  {categories.slice(0, 8).map((cat) => (
                     <Link to={`/categories/${cat.slug}`} key={cat.id} className="nav-mega-item">
                       <span className="nav-mega-img">
                         <img src={cat.image} alt={cat.name} loading="lazy" />
@@ -214,7 +221,7 @@ const Navbar = () => {
 
             <Link to="/cart" className="nav-icon-btn nav-cart" aria-label="Panier">
               <ShoppingCart size={18} strokeWidth={1.6} />
-              <span className="cart-badge">3</span>
+              {count > 0 && <span className="cart-badge">{count}</span>}
             </Link>
 
             <button className="nav-publish-btn" onClick={openPublish}>

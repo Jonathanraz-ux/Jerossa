@@ -1,21 +1,43 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { X, Star, Truck, Package, ShieldCheck, ChevronRight } from 'lucide-react';
-import { productsData } from '../data/products';
+import { X, Star, Truck, Package, ShieldCheck, ChevronRight, Check } from 'lucide-react';
+import { fetchProductByIdentifier } from '../services/catalog';
+import { useCart } from '../context/CartContext';
 import './ProductQuickView.css';
 
 const ProductQuickView = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const productId = searchParams.get('product');
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const [product, setProduct] = useState(null);
+  const [added, setAdded] = useState(false);
 
-  const product = productsData.find(p => p.id === productId);
+  useEffect(() => {
+    if (productId) {
+      fetchProductByIdentifier(productId).then(setProduct);
+    } else {
+      setProduct(null);
+    }
+  }, [productId]);
 
   // Close modal handler
   const closeQuickView = () => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete('product');
     setSearchParams(newParams);
+  };
+
+  const handleAddToCart = () => {
+    addItem(product, 1);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handleBuyNow = () => {
+    addItem(product, 1);
+    closeQuickView();
+    navigate('/checkout');
   };
 
   // Close on Escape key
@@ -108,11 +130,11 @@ const ProductQuickView = () => {
             </div>
 
             <div className="quickview-actions">
-              <button className="btn btn-primary quickview-btn-buy">
+              <button className="btn btn-primary quickview-btn-buy" onClick={handleBuyNow}>
                 Acheter maintenant
               </button>
-              <button className="btn btn-outline quickview-btn-cart">
-                Ajouter au panier
+              <button className="btn btn-outline quickview-btn-cart" onClick={handleAddToCart}>
+                {added ? <><Check size={14} /> Ajouté</> : 'Ajouter au panier'}
               </button>
             </div>
             

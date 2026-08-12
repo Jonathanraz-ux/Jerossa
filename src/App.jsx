@@ -2,6 +2,8 @@ import './App.css';
 import ScrollAnimations from './components/ScrollAnimations';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -27,6 +29,11 @@ import ForgotPassword from './pages/ForgotPassword';
 import MyAccount from './pages/MyAccount';
 import MyOrders from './pages/MyOrders';
 import OrderDetails from './pages/OrderDetails';
+import MyQuotes from './pages/MyQuotes';
+import QuoteDetails from './pages/QuoteDetails';
+import MyRefunds from './pages/MyRefunds';
+import RefundDetails from './pages/RefundDetails';
+import RefundRequest from './pages/RefundRequest';
 import MyAddresses from './pages/MyAddresses';
 import MyFavorites from './pages/MyFavorites';
 import Settings from './pages/Settings';
@@ -74,6 +81,11 @@ function AppRoutes() {
           <Route path="/my-account" element={<MyAccount />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/order/:id" element={<OrderDetails />} />
+          <Route path="/my-quotes" element={<MyQuotes />} />
+          <Route path="/quote/:id" element={<QuoteDetails />} />
+          <Route path="/refund-request" element={<RefundRequest />} />
+          <Route path="/my-refunds" element={<MyRefunds />} />
+          <Route path="/refund/:id" element={<RefundDetails />} />
           <Route path="/my-addresses" element={<MyAddresses />} />
           <Route path="/my-favorites" element={<MyFavorites />} />
           <Route path="/settings" element={<Settings />} />
@@ -99,9 +111,13 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <CurrencyProvider>
-        <AppRoutes />
-      </CurrencyProvider>
+      <AuthProvider>
+        <CurrencyProvider>
+          <CartProvider>
+            <AppRoutes />
+          </CartProvider>
+        </CurrencyProvider>
+      </AuthProvider>
     </Router>
   );
 }

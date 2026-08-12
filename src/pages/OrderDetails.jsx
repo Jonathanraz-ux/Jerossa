@@ -1,12 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ordersData } from '../data/orders';
-import { ArrowLeft, Package, Truck, ShieldCheck, MapPin, CreditCard, Clock } from 'lucide-react';
+import { getOrderById } from '../data/orders';
+import { fetchOrderByNumber } from '../services/orders';
+import { ArrowLeft, Truck, MapPin, CreditCard, RotateCcw } from 'lucide-react';
 import './animations.css';
+
+const STATUS_LABELS = {
+  pending: 'En attente',
+  confirmed: 'Confirmée',
+  paid: 'Payée',
+  shipped: 'Expédiée',
+  delivered: 'Livrée',
+  cancelled: 'Annulée',
+  refunded: 'Remboursée',
+};
+
+const STATUS_COLORS = {
+  pending: { background: 'var(--warning-bg)', color: 'var(--warning)' },
+  confirmed: { background: 'var(--success-bg)', color: 'var(--success)' },
+  paid: { background: 'var(--success-bg)', color: 'var(--success)' },
+  shipped: { background: '#eff6ff', color: '#1d4ed8' },
+  delivered: { background: 'var(--success-bg)', color: 'var(--success)' },
+  cancelled: { background: 'var(--danger-bg)', color: 'var(--danger)' },
+  refunded: { background: 'var(--danger-bg)', color: 'var(--danger)' },
+};
+
+const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
 
 const OrderDetails = () => {
   const { id } = useParams();
-  const order = ordersData.find(o => o.id === id);
+  const [order, setOrder] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    setOrder(null);
+    fetchOrderByNumber(id).then((fetched) => {
+      if (!active) return;
+      setOrder(fetched || getOrderById(id) || null);
+    });
+    return () => { active = false; };
+  }, [id]);
 
   if (!order) {
     return (
@@ -32,6 +65,12 @@ const OrderDetails = () => {
       </div>
     );
   }
+
+  const statusColors = STATUS_COLORS[order.status] || { background: 'var(--danger-bg)', color: 'var(--danger)' };
+  const statusLabel = order.statusLabel || STATUS_LABELS[order.status] || order.status;
+  const items = order.items || [];
+  const address = order.address || {};
+  const hasRealAddress = address && address.address;
 
   return (
     <div className="container" style={{ minHeight: '80vh' }}>
@@ -61,19 +100,19 @@ const OrderDetails = () => {
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-dark)' }}>{order.id}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Commandée le {order.date}</p>
         </div>
-        <span className="status-badge" style={{ background: order.status === 'delivered' ? 'var(--success-bg)' : order.status === 'shipped' ? '#eff6ff' : order.status === 'pending' ? 'var(--warning-bg)' : 'var(--danger-bg)', color: order.status === 'delivered' ? 'var(--success)' : order.status === 'shipped' ? '#1d4ed8' : order.status === 'pending' ? 'var(--warning)' : 'var(--danger)', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{order.status}</span>
+        <span className="status-badge" style={{ background: statusColors.background, color: statusColors.color, padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{statusLabel}</span>
       </div>
 
       {/* Timeline */}
       <div className="order-tracking scroll-animate premium-card" style={{ marginBottom: '32px', padding: '20px', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--text-dark)' }}>Suivi de commande</h3>
         <div className="tracking-steps" style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-          {order.steps.map((step, i) => (
+          {(order.steps || []).map((step, i) => (
             <div key={i} className={`tracking-step ${step.completed ? 'active' : ''}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 3, width: '80px' }}>
               <div className="step-indicator" style={{ width: '30px', height: '30px', borderRadius: '50%', background: step.completed ? 'var(--success-bg)' : 'var(--bg-white)', border: `3px solid ${step.completed ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: step.completed ? 'var(--success)' : 'var(--text-muted)', fontSize: '11px', fontWeight: 700 }}>
                 {step.completed ? '✓' : i + 1}
               </div>
-              <div className="step-label" style={{ fontSize: '11px', fontWeight: 500, marginTop: '8px', textAlign: 'center', color: step.completed ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: step.completed ? 600 : 400 }}>{step.label}</div>
+              <div className="step-label" style={{ fontSize: '11px', fontWeight: step.completed ? 600 : 400, marginTop: '8px', textAlign: 'center', color: step.completed ? 'var(--text-dark)' : 'var(--text-muted)' }}>{step.label}</div>
               <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>{step.date}</div>
             </div>
           ))}
@@ -86,15 +125,38 @@ const OrderDetails = () => {
           <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
             <MapPin size={18} style={{ color: 'var(--primary)' }} /> Livraison
           </h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>12 Rue de la Vanille<br />75001 Paris, France</p>
+          {hasRealAddress ? (
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              {address.firstName} {address.lastName}<br />
+              {address.address}<br />
+              {address.postalCode} {address.city}, {address.country}
+            </p>
+          ) : (
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>12 Rue de la Vanille<br />75001 Paris, France</p>
+          )}
         </div>
         <div className="premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
           <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
             <CreditCard size={18} style={{ color: 'var(--primary)' }} /> Paiement
           </h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Carte bancaire •••• 4242</p>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            {order.paymentMethod === 'card' ? 'Carte bancaire •••• 4242' : order.paymentMethod === 'mobile' ? 'Mobile Money' : order.paymentMethod === 'transfer' ? 'Virement bancaire' : 'Paiement confirmé'}
+          </p>
         </div>
       </div>
+
+      {/* Refund CTA */}
+      {order.paymentStatus === 'paid' && ['paid', 'shipped', 'delivered'].includes(order.status) && (
+        <div className="scroll-animate" style={{ marginBottom: '32px', padding: '20px 24px', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '4px', color: 'var(--text-dark)' }}>Un problème avec cette commande ?</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>Vous pouvez demander un remboursement dans les conditions prévues par nos CGV.</p>
+          </div>
+          <Link to={`/refund-request?order=${order.id}`} className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', border: '1px solid var(--primary)', color: 'var(--primary)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <RotateCcw size={16} /> Demander un remboursement
+          </Link>
+        </div>
+      )}
 
       {/* Order Items Table */}
       <div className="scroll-animate premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
@@ -103,18 +165,18 @@ const OrderDetails = () => {
             <tr><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Produit</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Quantité</th><th style={{ background: 'var(--bg-cream)', padding: '12px 16px', fontWeight: 600, borderBottom: '1px solid var(--border)', color: 'var(--text-dark)' }}>Prix</th></tr>
           </thead>
           <tbody>
-            {order.items.map((item, i) => (
+            {items.map((item, i) => (
               <tr key={i}>
                 <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontWeight: 500 }}>{item.name}</td>
                 <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{item.qty}</td>
-                <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{item.price}</td>
+                <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{item.price || formatEUR(item.priceEUR)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '18px' }}>
           <span>Total</span>
-          <span style={{ color: 'var(--primary)' }}>{order.total}</span>
+          <span style={{ color: 'var(--primary)' }}>{typeof order.total === 'string' ? order.total : formatEUR(order.total)}</span>
         </div>
       </div>
 

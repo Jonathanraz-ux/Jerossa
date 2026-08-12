@@ -1,20 +1,29 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { productsData } from '../data/products';
+import { fetchProducts } from '../services/catalog';
 import { Search as SearchIcon, ArrowRight, Star, Filter } from 'lucide-react';
 import './animations.css';
 
 const Search = () => {
   const [query, setQuery] = useState('');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    });
+  }, []);
 
   const results = useMemo(() => {
-    if (!query.trim()) return productsData;
-    return productsData.filter(p =>
+    if (!query.trim()) return products;
+    return products.filter(p =>
       p.title.toLowerCase().includes(query.toLowerCase()) ||
       p.seller.toLowerCase().includes(query.toLowerCase()) ||
       p.description.toLowerCase().includes(query.toLowerCase())
     );
-  }, [query]);
+  }, [query, products]);
 
   return (
     <div className="search-page">
@@ -58,7 +67,11 @@ const Search = () => {
           <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{results.length} produit{results.length > 1 ? 's' : ''}</span>
         </div>
 
-        {results.length === 0 ? (
+        {loading ? (
+          <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+            Chargement des produits…
+          </div>
+        ) : results.length === 0 ? (
           <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                <SearchIcon size={28} style={{ color: 'var(--primary)' }} />

@@ -1,16 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { productsData } from '../data/products';
-import { categoriesData } from '../data/categories';
+import { fetchCategoryByIdentifier, fetchProductsByCategory } from '../services/catalog';
 import { ArrowRight, Star } from 'lucide-react';
 import './animations.css';
 
 const Category = () => {
   const { slug } = useParams();
-  const category = categoriesData.find(c => c.slug === slug);
-  const products = productsData.filter(p => category && category.products.includes(p.id));
+  const [category, setCategory] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!category) {
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    Promise.all([
+      fetchCategoryByIdentifier(slug),
+      fetchProductsByCategory(slug),
+    ]).then(([cat, prods]) => {
+      if (!active) return;
+      setCategory(cat);
+      setProducts(prods);
+      setNotFound(!cat);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="container page-container" style={{ textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Chargement…</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Récupération de la catégorie.</p>
+      </div>
+    );
+  }
+
+  if (notFound || !category) {
     return (
       <div className="container page-container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Catégorie introuvable</h1>

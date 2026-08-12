@@ -1,17 +1,90 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { productsData } from '../data/products';
-import { Star, Truck, Package, ShieldCheck, ArrowLeft, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { fetchProductByIdentifier, fetchRelatedProducts, fetchProducts } from '../services/catalog';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { createQuoteRequest } from '../services/quotes';
+import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X } from 'lucide-react';
 import './animations.css';
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const product = productsData.find(p => p.id === id);
+  const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { user } = useAuth();
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [addedToWishlist, setAddedToWishlist] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteQuantity, setQuoteQuantity] = useState(1);
+  const [quoteDelay, setQuoteDelay] = useState('');
+  const [quoteMessage, setQuoteMessage] = useState('');
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [quoteError, setQuoteError] = useState('');
+  const [quoteDone, setQuoteDone] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetchProductByIdentifier(id).then((p) => {
+      if (!active) return;
+      setProduct(p);
+      setLoading(false);
+      if (p) {
+        fetchRelatedProducts(p, 4).then((related) => {
+          if (!active) return;
+          if (related.length >= 4) {
+            setRelatedProducts(related);
+          } else {
+            fetchProducts().then((all) => {
+              if (!active) return;
+              setRelatedProducts(all.filter((x) => x.id !== p.id).slice(0, 4));
+            });
+          }
+        });
+      }
+    });
+    return () => { active = false; };
+  }, [id]);
+
+  const handleQuoteSubmit = async () => {
+    if (!product) return;
+    setQuoteSubmitting(true);
+    setQuoteError('');
+    const res = await createQuoteRequest({
+      productCode: product.id,
+      productTitle: product.title,
+      sellerId: product.sellerId,
+      sellerName: product.seller,
+      quantity: quoteQuantity,
+      unit: product.unit,
+      message: quoteMessage,
+      delayRequested: quoteDelay,
+      currency: 'EUR',
+    });
+    setQuoteSubmitting(false);
+    if (res.ok) {
+      setQuoteDone(res.data);
+    } else {
+      setQuoteError(res.error?.message || "Une erreur est survenue. Réessayez.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="pd-page">
+        <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)' }}>Chargement…</h2>
+          <p style={{ color: 'var(--text-muted)' }}>Récupération du produit.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -24,11 +97,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
-  const relatedProducts = productsData.filter(p => p.id !== product.id && p.type === product.type).slice(0, 4);
-  const fallbackRelated = relatedProducts.length < 4
-    ? productsData.filter(p => p.id !== product.id).slice(0, 4)
-    : relatedProducts;
 
   return (
     <div className="pd-page">
@@ -123,7 +191,7 @@ const ProductDetails = () => {
               </div>
               <div className="pd-log-item">
                 <MapPin size={15} />
-                <span><strong>Origine :</strong> Madagascar</span>
+                <span><strong>Origine :</strong> {product.origin}</span>
               </div>
             </div>
 
@@ -139,13 +207,13 @@ const ProductDetails = () => {
             <div className="pd-actions">
               <button
                 className="pd-add-cart"
-                onClick={() => { setAddedToCart(true); setTimeout(() => setAddedToCart(false), 2000); }}
+                onClick={() => { addItem(product, quantity); setAddedToCart(true); setTimeout(() => setAddedToCart(false), 2000); }}
               >
                 {addedToCart ? <><Check size={16} /> Ajouté au panier</> : <>Ajouter au panier</>}
               </button>
-              <Link to="/checkout" className="pd-buy-now">
+              <button className="pd-buy-now" onClick={() => { addItem(product, quantity); navigate('/checkout'); }}>
                 Acheter maintenant
-              </Link>
+              </button>
               <button
                 className="pd-wishlist-btn"
                 onClick={() => setAddedToWishlist(!addedToWishlist)}
@@ -154,6 +222,10 @@ const ProductDetails = () => {
                 <Heart size={18} fill={addedToWishlist ? '#c0392b' : 'none'} color={addedToWishlist ? '#c0392b' : 'var(--text-muted)'} />
               </button>
             </div>
+
+            <button className="pd-quote-btn" onClick={() => { setQuoteQuantity(1); setQuoteDelay(''); setQuoteMessage(''); setQuoteError(''); setQuoteDone(null); setQuoteOpen(true); }}>
+              <FileText size={16} /> Demander un devis
+            </button>
 
             <div className="pd-trust">
               <div className="pd-trust-item">
@@ -173,11 +245,11 @@ const ProductDetails = () => {
         </div>
 
         {/* Related Products */}
-        {fallbackRelated.length > 0 && (
+        {relatedProducts.length > 0 && (
           <div className="pd-related">
             <h2 className="pd-related-title">Produits similaires</h2>
             <div className="pd-related-grid">
-              {fallbackRelated.map((prod) => (
+              {relatedProducts.map((prod) => (
                 <Link key={prod.id} to={`/product/${prod.id}`} className="catalog-product-card">
                   <div className="catalog-product-image">
                     <img src={prod.images[0]} alt={prod.title} loading="lazy" />
@@ -196,6 +268,84 @@ const ProductDetails = () => {
           </div>
         )}
       </div>
+
+      {quoteOpen && (
+        <div className="j-modal-backdrop" onClick={() => setQuoteOpen(false)}>
+          <div className="j-modal-panel quote-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="quote-modal-header">
+              <div>
+                <h3>Demander un devis</h3>
+                <p>{product.title} — {product.seller}</p>
+              </div>
+              <button className="quote-modal-close" onClick={() => setQuoteOpen(false)} aria-label="Fermer">
+                <X size={18} />
+              </button>
+            </div>
+
+            {quoteDone ? (
+              <div className="quote-modal-body">
+                <div className="quote-modal-success">
+                  <div className="quote-modal-success-icon"><Check size={22} /></div>
+                  <h4>Demande envoyée</h4>
+                  <p>Votre référence de demande :</p>
+                  <div className="quote-modal-ref">{quoteDone.quote_number}</div>
+                  <p className="quote-modal-note">
+                    {user ? 'Vous pouvez suivre la réponse du vendeur dans « Mes devis ».'
+                      : 'Connectez-vous à votre compte pour retrouver cette demande dans « Mes devis », ou conservez votre référence.'}
+                  </p>
+                </div>
+                <div className="quote-modal-actions">
+                  <Link to={`/quote/${quoteDone.quote_number}`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
+                    Suivre ma demande
+                  </Link>
+                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>Fermer</button>
+                </div>
+              </div>
+            ) : (
+              <div className="quote-modal-body">
+                <div className="quote-modal-field">
+                  <label>Quantité souhaitée</label>
+                  <div className="quote-modal-qty">
+                    <button type="button" className="qty-btn" onClick={() => setQuoteQuantity(q => Math.max(1, q - 1))}><Minus size={13} /></button>
+                    <span className="qty-val">{quoteQuantity}</span>
+                    <button type="button" className="qty-btn" onClick={() => setQuoteQuantity(q => q + 1)}><Plus size={13} /></button>
+                    <span className="quote-modal-unit">/ {product.unit}</span>
+                  </div>
+                </div>
+                <div className="quote-modal-field">
+                  <label>Délai souhaité</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Ex. : sous 2 semaines"
+                    value={quoteDelay}
+                    onChange={(e) => setQuoteDelay(e.target.value)}
+                  />
+                </div>
+                <div className="quote-modal-field">
+                  <label>Détails de votre demande</label>
+                  <textarea
+                    className="form-textarea"
+                    rows="3"
+                    placeholder="Précisez vos besoins (quantité exacte, conditionnement, destination…)"
+                    value={quoteMessage}
+                    onChange={(e) => setQuoteMessage(e.target.value)}
+                  />
+                </div>
+
+                {quoteError && <div className="quote-modal-error">{quoteError}</div>}
+
+                <div className="quote-modal-actions">
+                  <button className="btn btn-primary" onClick={handleQuoteSubmit} disabled={quoteSubmitting}>
+                    {quoteSubmitting ? <><Loader2 size={16} className="spin" /> Envoi…</> : 'Envoyer ma demande'}
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>Annuler</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <style>{`
         .pd-page { background: var(--bg-white); min-height: 100vh; }
@@ -233,12 +383,37 @@ const ProductDetails = () => {
         .pd-qty-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
         .pd-qty-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-dark); }
         .pd-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
-        .pd-add-cart { flex: 1; padding: 0.875rem 1.5rem; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; }
+        .pd-add-cart { flex: 1; padding: 0.875rem 1.5rem; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; }
         .pd-add-cart:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(140,98,57,0.25); }
-        .pd-buy-now { flex: 1; padding: 0.875rem 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: transparent; color: var(--text-dark); text-decoration: none; transition: all 0.2s; }
+        .pd-buy-now { flex: 1; padding: 0.875rem 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: transparent; color: var(--text-dark); text-decoration: none; transition: all 0.2s; }
         .pd-buy-now:hover { border-color: var(--primary); color: var(--primary); }
-        .pd-wishlist-btn { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; flex-shrink: 0; }
+        .pd-wishlist-btn { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; flex-shrink: 0; font-family: inherit; }
         .pd-wishlist-btn:hover { border-color: var(--danger); background: var(--danger-bg); }
+        .pd-quote-btn { width: 100%; padding: 0.75rem 1.5rem; border: 1px dashed var(--primary); background: var(--primary-light); color: var(--primary); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; transition: all 0.2s; }
+        .pd-quote-btn:hover { background: var(--primary); color: #fff; border-style: solid; }
+        .quote-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); }
+        .quote-modal-header h3 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; margin-bottom: 2px; }
+        .quote-modal-header p { font-size: 0.8rem; color: var(--text-muted); }
+        .quote-modal-close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .quote-modal-close:hover { border-color: var(--danger); color: var(--danger); }
+        .quote-modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+        .quote-modal-field { display: flex; flex-direction: column; gap: 0.5rem; }
+        .quote-modal-field label { font-size: 0.8125rem; font-weight: 600; color: var(--text-dark); }
+        .quote-modal-qty { display: flex; align-items: center; gap: 0.75rem; }
+        .quote-modal-unit { font-size: 0.8125rem; color: var(--text-muted); }
+        .form-textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.875rem; color: var(--text-dark); background: var(--bg-white); resize: vertical; }
+        .form-textarea:focus { outline: none; border-color: var(--primary); }
+        .quote-modal-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .quote-modal-actions .btn { text-decoration: none; }
+        .quote-modal-error { padding: 0.75rem 1rem; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); border-radius: var(--radius-sm); font-size: 0.8125rem; }
+        .quote-modal-success { text-align: center; padding: 1rem 0 0.5rem; }
+        .quote-modal-success-icon { width: 52px; height: 52px; margin: 0 auto 0.75rem; border-radius: 50%; background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center; }
+        .quote-modal-success h4 { font-family: var(--font-serif); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .quote-modal-success p { font-size: 0.85rem; color: var(--text-muted); }
+        .quote-modal-ref { display: inline-block; margin: 0.5rem 0; padding: 0.5rem 1rem; background: var(--bg-cream); border: 1px dashed var(--border); border-radius: var(--radius-sm); font-family: var(--font-display); font-weight: 700; color: var(--primary); letter-spacing: 0.5px; }
+        .quote-modal-note { font-size: 0.75rem; color: var(--text-muted); }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .pd-trust { display: flex; gap: 1.5rem; flex-wrap: wrap; padding: 1rem 0; }
         .pd-trust-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted); }
         .pd-trust-item svg { color: var(--success); }
