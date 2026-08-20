@@ -48,6 +48,7 @@ import LegalNotice from './pages/LegalNotice';
 import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function AppRoutes() {
   const location = useLocation();
@@ -98,7 +99,7 @@ function AppRoutes() {
           <Route path="/cgv" element={<TermsConditions />} />
           <Route path="/legal" element={<LegalNotice />} />
           <Route path="/track/:id" element={<OrderTracking />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
