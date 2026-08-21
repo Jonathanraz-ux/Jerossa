@@ -4,6 +4,7 @@ import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCirc
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { fetchCategories } from '../services/catalog';
 
 const Popover = ({ open, onClose, children, align = 'left' }) => {
@@ -126,12 +127,18 @@ const Navbar = () => {
   const [catsOpen, setCatsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const { count } = useCart();
+  const { isAuthenticated, signOut } = useAuth();
 
   useEffect(() => {
     fetchCategories().then(setCategories);
   }, []);
 
   const openPublish = () => { setMenuOpen(false); setPublishOpen(true); };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <>
@@ -147,8 +154,21 @@ const Navbar = () => {
             <div className="nav-topbar-right">
               <Link to="/faq" className="nav-topbar-link"><HelpCircle size={13} strokeWidth={1.8} /> Aide</Link>
               <Link to="/about" className="nav-topbar-link">À propos</Link>
-              <Link to="/login" className="nav-topbar-link">Se connecter</Link>
-              <Link to="/register" className="nav-topbar-link nav-topbar-link--strong">Créer un compte</Link>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/my-account" className="nav-topbar-link nav-topbar-link--strong">
+                    <User size={13} strokeWidth={1.8} /> Mon compte
+                  </Link>
+                  <button type="button" className="nav-topbar-link" onClick={handleLogout}>
+                    Déconnexion
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="nav-topbar-link">Se connecter</Link>
+                  <Link to="/register" className="nav-topbar-link nav-topbar-link--strong">Créer un compte</Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -250,7 +270,7 @@ const Navbar = () => {
           <span className="mobile-bar-publish-ico"><PlusCircle size={22} strokeWidth={2} /></span>
           <span>Publier</span>
         </button>
-        <Link to="/account" className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
+        <Link to={isAuthenticated ? '/my-account' : '/account'} className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
       </div>
     </>
   );
