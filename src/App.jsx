@@ -26,6 +26,7 @@ import Wishlist from './pages/Wishlist';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MyAccount from './pages/MyAccount';
 import MyOrders from './pages/MyOrders';
 import OrderDetails from './pages/OrderDetails';
@@ -79,6 +80,7 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/my-account" element={<MyAccount />} />
           <Route path="/my-orders" element={<MyOrders />} />
           <Route path="/order/:id" element={<OrderDetails />} />

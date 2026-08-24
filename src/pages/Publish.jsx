@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   Package, Briefcase, CheckCircle2, ArrowRight, Upload, MapPin,
-  ChevronDown, Lock, Info, PlusCircle
+  ChevronDown, Lock, Info, PlusCircle, X
 } from 'lucide-react';
 import { categoriesData } from '../data/categories';
 import { serviceCategories } from '../data/services';
 import { useCurrency, CURRENCIES, CURRENCY_NOTE } from '../context/CurrencyContext';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import './Publish.css';
+
+const MAX_PHOTOS = 6;
+const MAX_SIZE_MB = 5;
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const Field = ({ label, required, children, hint }) => (
   <div className="pub-field">
@@ -25,6 +31,62 @@ const Publish = () => {
   const [type, setType] = useState(initialType);
   const [submitted, setSubmitted] = useState(false);
   const { currency, setCurrency } = useCurrency();
+  const { user, isAuthenticated } = useAuth();
+
+  const fileInputRef = useRef(null);
+  const [photos, setPhotos] = useState([]); // { file, previewUrl }
+  const [photoError, setPhotoError] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const addFiles = (fileList) => {
+    setPhotoError('');
+    const incoming = Array.from(fileList || []);
+    if (!incoming.length) return;
+    const rejected = [];
+    const accepted = [];
+    for (const f of incoming) {
+      if (!ACCEPTED_TYPES.includes(f.type)) { rejected.push(`${f.name} (format)`); continue; }
+      if (f.size > MAX_SIZE_MB * 1024 * 1024) { rejected.push(`${f.name} (> ${MAX_SIZE_MB} Mo)`); continue; }
+      accepted.push(f);
+    }
+    setPhotos(prev => {
+      const room = MAX_PHOTOS - prev.length;
+      const toAdd = accepted.slice(0, Math.max(0, room));
+      if (toAdd.length < accepted.length) rejected.push('limite de 6 photos atteinte');
+      return [...prev, ...toAdd.map(f => ({ file: f, previewUrl: URL.createObjectURL(f) }))];
+    });
+    if (rejected.length) setPhotoError(`Fichiers ignorés : ${rejected.join(', ')}.`);
+  };
+
+  const removePhoto = (index) => {
+    setPhotoError('');
+    setPhotos(prev => {
+      URL.revokeObjectURL(prev[index].previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const uploadPhotos = async () => {
+    if (!photos.length) return [];
+    setUploading(true);
+    try {
+      const uid = user.id;
+      const uploaded = [];
+      for (const { file } of photos) {
+        const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+        const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage
+          .from('product-images')
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (error) throw error;
+        const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+        uploaded.push(data.publicUrl);
+      }
+      return uploaded;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (submitted) {
     return (
@@ -34,9 +96,10 @@ const Publish = () => {
           <span className="pub-success-eyebrow">Offre préparée</span>
           <h1>Votre offre est prête à être publiée !</h1>
           <p>
-            Cette maquette simule la publication d'une offre. Dans la version finale,
-            vous pourrez ajouter des photos, choisir vos options de mise en avant et
-            gérer vos offres depuis votre tableau de bord.
+            {photos.length > 0 && isAuthenticated ? (
+              <>Vos {photos.length} photo{photos.length > 1 ? 's ont' : ' a'} été téléversée{photos.length > 1 ? 's' : ''} sur Jerossa. </>
+            ) : null}
+            La mise en ligne complète des offres sera disponible une fois votre profil vendeur validé.
           </p>
           <div className="pub-success-actions">
             <Link to="/" className="j-pill-btn j-pill-btn--green">Retour à l'accueil</Link>
@@ -78,7 +141,18 @@ const Publish = () => {
 
       <div className="container pub-body">
         <div className="pub-layout">
-          <form className="pub-form" onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}>
+          <form className="pub-form" onSubmit={async (e) => {
+            e.preventDefault();
+            if (isAuthenticated && photos.length) {
+              try {
+                await uploadPhotos();
+              } catch (err) {
+                setPhotoError(`Échec de l'envoi des photos : ${err.message}`);
+                return;
+              }
+            }
+            setSubmitted(true);
+          }}>
             {/* Produit */}
             {type === 'produit' && (
               <>
@@ -147,11 +221,59 @@ const Publish = () => {
                 <div className="pub-section">
                   <h2 className="pub-section-title">Photos & localisation</h2>
                   <Field label="Photos du produit">
-                    <button type="button" className="pub-upload">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={ACCEPTED_TYPES.join(',')}
+                      multiple
+                      hidden
+                      onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
+                    />
+                    <button
+                      type="button"
+                      className="pub-upload"
+                      disabled={photos.length >= MAX_PHOTOS}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Upload size={20} />
                       <span><strong>Ajouter des photos</strong></span>
-                      <span className="pub-upload-hint">JPG, PNG — jusqu'à 6 photos</span>
+                      <span className="pub-upload-hint">JPG, PNG, WebP — max {MAX_SIZE_MB} Mo — jusqu'à {MAX_PHOTOS} photos</span>
                     </button>
+                    {!isAuthenticated && (
+                      <span className="pub-hint">
+                        <Link to="/login">Connectez-vous</Link> pour téléverser vos photos lors de la publication.
+                      </span>
+                    )}
+                    {photoError && (
+                      <span className="pub-hint" style={{ color: 'var(--danger)' }}>{photoError}</span>
+                    )}
+                    {photos.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+                        {photos.map((p, i) => (
+                          <div key={p.previewUrl} style={{ position: 'relative' }}>
+                            <img
+                              src={p.previewUrl}
+                              alt={`Aperçu ${i + 1}`}
+                              style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border, #e5e5e5)', display: 'block' }}
+                            />
+                            <button
+                              type="button"
+                              aria-label="Retirer cette photo"
+                              onClick={() => removePhoto(i)}
+                              style={{
+                                position: 'absolute', top: -6, right: -6,
+                                width: 22, height: 22, borderRadius: '50%',
+                                background: '#111', color: '#fff',
+                                border: 'none', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0
+                              }}
+                            >
+                              <X size={13} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </Field>
                   <Field label="Origine" required hint="Madagascar, Maurice, région…">
                     <div className="pub-select-wrap">
@@ -258,10 +380,15 @@ const Publish = () => {
                 <div className="pub-section">
                   <h2 className="pub-section-title">Photos ou réalisations</h2>
                   <Field label="Présentez vos réalisations">
-                    <button type="button" className="pub-upload">
+                    <button
+                      type="button"
+                      className="pub-upload"
+                      disabled={photos.length >= MAX_PHOTOS}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Upload size={20} />
                       <span><strong>Ajouter des photos ou réalisations</strong></span>
-                      <span className="pub-upload-hint">JPG, PNG — jusqu'à 6 photos</span>
+                      <span className="pub-upload-hint">JPG, PNG, WebP — max {MAX_SIZE_MB} Mo — jusqu'à {MAX_PHOTOS} photos</span>
                     </button>
                   </Field>
                   <Field label="Coordonnées ou contact" hint="Vos échanges passent par la messagerie Jerossa : vous n'exposez vos coordonnées que si vous le souhaitez.">
@@ -275,10 +402,10 @@ const Publish = () => {
             )}
 
             <div className="pub-submit-row">
-              <button type="submit" className="pub-submit">
+              <button type="submit" className="pub-submit" disabled={uploading}>
                 <PlusCircle size={17} />
-                {type === 'service' ? 'Publier mon service' : 'Publier mon produit'}
-                <ArrowRight size={16} />
+                {uploading ? 'Envoi des photos…' : type === 'service' ? 'Publier mon service' : 'Publier mon produit'}
+                {!uploading && <ArrowRight size={16} />}
               </button>
               <p className="pub-submit-note">
                 <Lock size={13} /> En publiant, vous acceptez les conditions d'utilisation de Jerossa.
