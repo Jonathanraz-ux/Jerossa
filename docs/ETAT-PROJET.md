@@ -1,6 +1,6 @@
 # JEROSSA — État du projet
 
-> Mise à jour : 21 août 2026
+> Mise à jour : 24 août 2026
 > Déploiement : Vercel (https://jerossa.vercel.app) · Base : Supabase (fsdfieofbbopmzuforck)
 
 ---
@@ -35,6 +35,10 @@
 - Compte admin réparé et connexion vérifiée fonctionnelle (HTTP 200).
 - Migration `20260820000002_seed_admin.sql` réécrite : idempotente, identité créée, colonnes texte jamais NULL.
 
+### Session du 21 août (compte admin client)
+- **cboyjoo22@gmail.com** promu admin : compte créé manuellement via SQL (insert `auth.users` + `auth.identities` + `public.profiles` rôle `admin`, mot de passe communiqué au client — même recette que `seed_admin.sql`).
+- Piège rencontré : créer le user via l'onglet Authentication ne garantit pas la ligne dans `profiles` (trigger `handle_new_user` non déclenché) → toujours vérifier avec un join `auth.users ↔ profiles`.
+
 ---
 
 ## 2. Ce qui reste à faire
@@ -42,16 +46,16 @@
 ### Bloquant (avant mise en production)
 - [ ] **Provider de paiement MG/MU** — choix client (Orange Money/MVola/carte ; MCB/SBM) puis intégration réelle via Edge Functions (`createPayment`, `verifyPayment`, webhook). Actuellement simulé.
 - [ ] **Emails transactionnels** — Edge Function `emailService` + Resend (15 templates prévus au MVP, §9 du document de conception). Rien n'est branché aujourd'hui.
-- [ ] **Storage Supabase** — images produits (Publish.jsx est une maquette) + pièces justificatives vendeurs (bucket privé).
+- [x] ~~**Storage Supabase**~~ — **fait le 24 août** : buckets `product-images` (public) + `seller-documents` (privé) créés via migration `20260824000001`, policies RLS par dossier `{uid}`, upload réel branché dans `Publish.jsx`. Reste : brancher les pièces justificatives dans l'onboarding vendeur.
 
 ### Fonctionnel
 - [ ] Onboarding vendeur complet : demande « Devenir vendeur », upload pièces, validation/refus/suspension par l'admin.
 - [ ] Espace vendeur : commandes reçues, devis reçus, profil boutique, KPIs (CA/commission/net).
 - [ ] Espace admin : remboursements (traitement), paiements, devis, activité/logs, paramètres plateforme (livraison, commission).
-- [ ] Réinitialisation de mot de passe (page existe, vérifier le flux email Supabase).
+- [x] ~~**Réinitialisation de mot de passe**~~ — **fait le 24 août** : `ForgotPassword.jsx` branché sur `resetPasswordForEmail` + nouvelle page `/reset-password` (`ResetPassword.jsx`, `updateUser({password})`). Redirections autorisées côté Supabase : `jerossa.vercel.app/**` + `localhost:5173/**`. À tester en réel après déploiement Vercel.
 
 ### Technique / hygiène
-- [ ] **Synchroniser l'historique des migrations** : elles ont été appliquées à la main (SQL Editor) ; `supabase_migrations.schema_migrations` est vide → faire `supabase migration repair` avant tout `db push`, sinon ré-exécution complète = erreurs.
+- [x] ~~**Synchroniser l'historique des migrations**~~ — **fait le 24 août** : CLI liée au projet (`supabase link`), `migration repair` exécuté sur les 10 migrations historiques, `db push` opérationnel.
 - [ ] README toujours sur le template Vite par défaut — à remplacer.
 - [ ] Commiter la migration seed_admin corrigée (en cours, non commitée).
 
