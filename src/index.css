@@ -189,6 +189,11 @@ main {
   flex: 1;
 }
 
+/* Ancres (#section) : atterrir juste sous la navbar collante, pas dessous */
+main [id] {
+  scroll-margin-top: 88px;
+}
+
 ::selection {
   background: rgba(140, 98, 57, 0.15);
   color: var(--text-dark);

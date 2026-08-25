@@ -1,5 +1,6 @@
 import './App.css';
 import ScrollAnimations from './components/ScrollAnimations';
+import ScrollManager from './components/ScrollManager';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { CurrencyProvider } from './context/CurrencyContext';
 import { AuthProvider } from './context/AuthContext';
@@ -58,6 +59,7 @@ function AppRoutes() {
 
   return (
     <>
+      <ScrollManager />
       <ScrollAnimations />
       {!isAdmin && <Navbar />}
       <main>
