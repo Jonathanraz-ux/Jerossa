@@ -1,40 +1,21 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { CURRENCIES, MARKETS } from '../config/currencies.js';
+import { formatFromEUR } from '../lib/currency.js';
 
-export const CURRENCIES = [
-  { code: 'MGA', label: 'Ariary malgache', short: 'Ariary', symbol: 'Ar', rate: 4900, locales: ['mg-MG'] },
-  { code: 'MUR', label: 'Roupie mauricienne', short: 'Roupie', symbol: 'Rs', rate: 52, locales: ['en-MU'] },
-  { code: 'EUR', label: 'Euro', short: 'Euro', symbol: '€', rate: 1, locales: ['fr-FR'] },
-];
-
-export const MARKETS = [
-  { code: 'MG', label: 'Madagascar', flag: '🇲🇬', currency: 'MGA' },
-  { code: 'MU', label: 'Maurice', flag: '🇲🇺', currency: 'MUR' },
-  { code: 'INT', label: 'International', flag: '🌍', currency: 'EUR' },
-];
+// Réexports pour compatibilité : les consommateurs (Navbar, Publish, Home,
+// ServiceDetails) continuent d'importer ces constantes depuis ce module.
+export { CURRENCIES, MARKETS } from '../config/currencies.js';
 
 export const CURRENCY_NOTE = 'Montants indicatifs selon le taux de conversion en vigueur.';
 
-const getCurrency = (code) => CURRENCIES.find((c) => c.code === code) || CURRENCIES[0];
+// Fallback hérité : un code inconnu résout vers la première devise (MGA).
+const getCurrency = (code) =>
+  CURRENCIES.find((c) => c.code === code) || CURRENCIES[0];
 
-const roundTo = (value, step) => {
-  if (!step) return Math.round(value);
-  return Math.round(value / step) * step;
-};
-
-export const formatAmount = (amountEUR, currencyCode) => {
-  const cur = getCurrency(currencyCode);
-  const raw = (amountEUR || 0) * cur.rate;
-  let value = raw;
-  if (cur.code === 'MGA') value = roundTo(raw, 100);
-  if (cur.code === 'MUR') value = roundTo(raw, 1);
-  if (cur.code === 'EUR') value = roundTo(raw, 0.01);
-  const digits = cur.code === 'EUR' ? 2 : 0;
-  const formatted = new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: cur.code === 'EUR' ? 2 : 0,
-  }).format(value);
-  return `${formatted} ${cur.symbol}`;
-};
+// Délégation aux utilitaires purs — sortie identique à l'ancienne
+// implémentation locale (prouvée par matrice d'équivalence L4a/L4b).
+export const formatAmount = (amountEUR, currencyCode) =>
+  formatFromEUR(amountEUR, currencyCode);
 
 const CurrencyContext = createContext(null);
 
