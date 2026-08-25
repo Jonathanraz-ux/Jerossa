@@ -128,6 +128,7 @@ const mapAdminOrder = (row) => ({
     qty: it.quantity,
     price: Number(it.price_eur),
     unit: it.unit,
+    imageUrl: it.image_url || null,
   })),
 });
 
