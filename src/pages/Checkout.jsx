@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CreditCard, Lock, Truck, MapPin, Check, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder } from '../services/orders';
+import { STANDARD_SHIPPING_FEE_EUR, EXPRESS_SHIPPING_FEE_EUR, FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 import './animations.css';
 
 const Checkout = () => {
@@ -27,8 +28,8 @@ const Checkout = () => {
     }
   }, [searchParams]);
 
-  const shippingRates = { standard: 15, express: 35, free: 0 };
-  const shippingCost = subtotal > 200 ? shippingRates.free : shippingRates[shippingMethod];
+  const shippingRates = { standard: STANDARD_SHIPPING_FEE_EUR, express: EXPRESS_SHIPPING_FEE_EUR, free: 0 };
+  const shippingCost = subtotal > FREE_SHIPPING_THRESHOLD_EUR ? shippingRates.free : shippingRates[shippingMethod];
   const total = subtotal + shippingCost;
 
   const handleChange = (e) => {
@@ -230,7 +231,7 @@ const Checkout = () => {
                       <span className="shipping-option-price">35,00 €</span>
                     </div>
                   </label>
-                  {subtotal > 200 && (
+                  {subtotal > FREE_SHIPPING_THRESHOLD_EUR && (
                     <div className="shipping-free-badge">Livraison offerte !</div>
                   )}
                 </div>

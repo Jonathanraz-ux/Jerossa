@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ArrowLeft, ShoppingBag, Plus, Minus, ShieldCheck, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import EmptyState from '../components/common/EmptyState';
@@ -109,7 +110,7 @@ const Cart = () => {
           </div>
           {shipping === 0 && (
             <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ShieldCheck size={14} /> Livraison gratuite pour les commandes de plus de 200€
+              <ShieldCheck size={14} /> Livraison gratuite pour les commandes de plus de {FREE_SHIPPING_THRESHOLD_EUR}€
             </div>
           )}
           <div className="cart-summary-total" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontSize: '18px', fontWeight: 700, color: 'var(--text-dark)', borderTop: '1px dashed var(--border)', paddingTop: '12px' }}>

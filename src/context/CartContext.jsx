@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { STANDARD_SHIPPING_FEE_EUR, FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 
 const CART_STORAGE_KEY = 'jerossa_cart_v1';
 
@@ -10,9 +11,6 @@ export const CURRENCY_LABELS = {
 
 export const CART_RULE_MESSAGE =
   'Les produits de ce panier doivent être dans la même devise pour poursuivre la commande.';
-
-const SHIPPING_FEE_EUR = 15;
-const FREE_SHIPPING_THRESHOLD_EUR = 200;
 
 const currencyForMarket = (market) => CURRENCY_LABELS[market] || 'EUR';
 
@@ -97,7 +95,7 @@ export const CartProvider = ({ children }) => {
   const value = useMemo(() => {
     const count = items.reduce((sum, i) => sum + i.qty, 0);
     const subtotal = items.reduce((sum, i) => sum + i.priceEUR * i.qty, 0);
-    const shipping = items.length === 0 || subtotal > FREE_SHIPPING_THRESHOLD_EUR ? 0 : SHIPPING_FEE_EUR;
+    const shipping = items.length === 0 || subtotal > FREE_SHIPPING_THRESHOLD_EUR ? 0 : STANDARD_SHIPPING_FEE_EUR;
     const total = subtotal + shipping;
     const market = items[0]?.market || null;
     const currency = currencyForMarket(market);
