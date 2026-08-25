@@ -53,22 +53,6 @@ export const clientLabel = (order) => {
   return name || a.email || null;
 };
 
-// Couleur d'avatar déterministe à partir d'une chaîne
-const AVATAR_TONES = [
-  ['#8c6239', 'rgba(140, 98, 57, 0.1)'],
-  ['#33714f', 'rgba(51, 113, 79, 0.1)'],
-  ['#46688c', 'rgba(70, 104, 140, 0.1)'],
-  ['#a07b28', 'rgba(160, 123, 40, 0.12)'],
-  ['#7c5a8c', 'rgba(124, 90, 140, 0.1)'],
-  ['#a63d35', 'rgba(166, 61, 53, 0.08)'],
-];
-
-export const avatarTone = (seedStr = '') => {
-  let h = 0;
-  for (let i = 0; i < seedStr.length; i++) h = (h * 31 + seedStr.charCodeAt(i)) | 0;
-  return AVATAR_TONES[Math.abs(h) % AVATAR_TONES.length];
-};
-
 export const ROLE_LABELS = {
   admin: 'Administrateur',
   seller: 'Vendeur',

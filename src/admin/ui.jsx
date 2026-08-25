@@ -124,36 +124,6 @@ export const Avatar = ({ name, seed, size = 34 }) => (
   </span>
 );
 
-// ── Skeletons ──────────────────────────────────────────────
-
-export const SkeletonPage = () => (
-  <div aria-hidden="true">
-    <div style={{ marginBottom: 26 }}>
-      <div className="adm-sk" style={{ width: 110, height: 11, marginBottom: 12 }} />
-      <div className="adm-sk" style={{ width: 260, height: 24, marginBottom: 8 }} />
-      <div className="adm-sk" style={{ width: 180, height: 13 }} />
-    </div>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="adm-panel" style={{ padding: 20 }}>
-          <div className="adm-sk" style={{ width: '55%', height: 11, marginBottom: 14 }} />
-          <div className="adm-sk" style={{ width: '70%', height: 22 }} />
-        </div>
-      ))}
-    </div>
-    <div className="adm-panel" style={{ padding: 20 }}>
-      {[...Array(6)].map((_, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '11px 0' }}>
-          <div className="adm-sk" style={{ width: 42, height: 42, borderRadius: 9 }} />
-          <div className="adm-sk" style={{ flex: 1, height: 12 }} />
-          <div className="adm-sk" style={{ width: 80, height: 12 }} />
-          <div className="adm-sk" style={{ width: 64, height: 20, borderRadius: 999 }} />
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 // ── Modale générique ───────────────────────────────────────
 
 export const Modal = ({ title, subtitle, onClose, children, footer, maxWidth = 620 }) => (

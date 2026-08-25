@@ -120,5 +120,3 @@ export const categoriesData = [
     products: []
   }
 ];
-
-export const getCategoryBySlug = (slug) => categoriesData.find(c => c.slug === slug);

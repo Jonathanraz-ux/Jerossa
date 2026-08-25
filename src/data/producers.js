@@ -112,5 +112,3 @@ export const producersData = [
     responseTime: '< 3h'
   }
 ];
-
-export const getProducerById = (id) => producersData.find(p => p.id === id);

@@ -45,7 +45,3 @@ export const getBlogPostBySlug = (slug) => {
   const post = blogPosts.find(p => p.title.toLowerCase().replace(/\s+/g, '-') === slug);
   return post || null;
 };
-
-export const getBlogPostsByCategory = (category) => {
-  return blogPosts.filter(p => p.category === category);
-};
