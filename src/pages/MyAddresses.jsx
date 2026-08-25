@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Plus, ArrowRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import './animations.css';
 
 const MyAddresses = () => {

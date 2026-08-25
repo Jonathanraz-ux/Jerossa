@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, Store, ArrowRight, ShieldCheck, TrendingUp, Package, Heart, Settings, LogOut, MapPin, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
-import { ordersData } from '../data/orders';
+import { User, Store, ArrowRight, ShieldCheck, TrendingUp } from 'lucide-react';
 import './animations.css';
 
 const Account = () => {
-  const [activeTab, setActiveTab] = useState('login');
 
   return (
     <div className="account-page" style={{ padding: '0 0 80px', minHeight: '80vh', background: 'var(--bg-cream)' }}>

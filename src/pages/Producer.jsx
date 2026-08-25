@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchProducers } from '../services/catalog';
-import { Star, MapPin, Award, Clock } from 'lucide-react';
+import { Star, MapPin } from 'lucide-react';
 import './animations.css';
 
 const Producer = () => {

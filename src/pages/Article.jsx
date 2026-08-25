@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { blogPosts } from '../data/blog';
-import { ArrowLeft, Calendar, User, Folder } from 'lucide-react';
+import { Calendar, User, Folder } from 'lucide-react';
 import './animations.css';
 
 const Article = () => {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchProducts } from '../services/catalog';
-import { Search as SearchIcon, ArrowRight, Star, Filter } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, Star } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import { ProductGridSkeleton } from '../components/common/Skeletons';

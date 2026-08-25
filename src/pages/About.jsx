@@ -1,6 +1,6 @@
 import React from 'react';
 import './animations.css';
-import { Shield, Award, Leaf, Globe, Users, Clock, MapPin, Heart } from 'lucide-react';
+import { Shield, Award, Leaf, Globe, Users, Clock, Heart } from 'lucide-react';
 
 const About = () => {
   return (

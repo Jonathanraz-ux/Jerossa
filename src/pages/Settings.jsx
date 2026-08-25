@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Bell, Globe, Lock, Store, Truck } from 'lucide-react';
+import { Save, Bell, Globe, Lock } from 'lucide-react';
 import './animations.css';
 
 const Settings = () => {

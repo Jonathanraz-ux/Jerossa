@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProducerByIdentifier, fetchProductsByProducer } from '../services/catalog';
-import { Star, MapPin, Award, Truck, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Star, MapPin, Award, ArrowLeft, ArrowRight } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 
