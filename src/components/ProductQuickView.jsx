@@ -5,6 +5,7 @@ import { fetchProductByIdentifier } from '../services/catalog';
 import { useCart } from '../context/CartContext';
 import './ProductQuickView.css';
 import SmartImg from './common/SmartImg';
+import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const ProductQuickView = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,7 +99,7 @@ const ProductQuickView = () => {
               <span className="reviews-count">{product.rating} ({product.reviews} avis)</span>
             </div>
 
-            <div className="quickview-price">{product.price}</div>
+            <div className="quickview-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, 'EUR')}</div>
 
             <p className="quickview-description">{product.description}</p>
 

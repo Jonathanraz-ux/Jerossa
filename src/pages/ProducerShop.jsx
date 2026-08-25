@@ -4,6 +4,7 @@ import { fetchProducerByIdentifier, fetchProductsByProducer } from '../services/
 import { Star, MapPin, Award, ArrowLeft, ArrowRight } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
+import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const ProducerShop = () => {
   const { id } = useParams();
@@ -138,7 +139,7 @@ const ProducerShop = () => {
                       <span>({prod.reviews})</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{prod.price}</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
                       <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>Voir <ArrowRight size={12} /></span>
                     </div>
                   </div>

@@ -7,6 +7,7 @@ import { createQuoteRequest } from '../services/quotes';
 import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
+import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -152,7 +153,7 @@ const ProductDetails = () => {
             <div className="pd-divider" />
 
             <div className="pd-price-row">
-              <span className="pd-price">{product.price}</span>
+              <span className="pd-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, 'EUR')}</span>
               <span className="pd-stock">
                 <Check size={14} /> {product.stock}
               </span>
@@ -260,7 +261,7 @@ const ProductDetails = () => {
                     <span className="catalog-product-seller">{prod.seller}</span>
                     <h3 className="catalog-product-name">{prod.title}</h3>
                     <div className="catalog-product-footer">
-                      <span className="catalog-product-price">{prod.price}</span>
+                      <span className="catalog-product-price">{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
                     </div>
                   </div>
                 </Link>

@@ -5,6 +5,7 @@ import { Heart, ArrowRight, Star } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import EmptyState from '../components/common/EmptyState';
+import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const MyFavorites = () => {
   const favorites = productsData.slice(0, 3);
@@ -57,7 +58,7 @@ const MyFavorites = () => {
                     <span>({prod.reviews})</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{prod.price}</span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
                     <Link to={`/product/${prod.id}`} style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Voir <ArrowRight size={12} /></Link>
                   </div>
                 </div>
