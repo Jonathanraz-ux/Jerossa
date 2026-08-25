@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Trash2, ArrowLeft, ShoppingBag, Plus, Minus, ShieldCheck, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import EmptyState from '../components/common/EmptyState';
 
 const Cart = () => {
   const { items, subtotal, shipping, total, updateQty, removeItem, notice, dismissNotice } = useCart();
@@ -27,12 +29,14 @@ const Cart = () => {
             <p className="page-hero-subtitle anim-fade-up stagger-3">Gérez vos articles et finalisez votre commande.</p>
           </div>
         </section>
-        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-          <ShoppingBag size={36} style={{ color: 'var(--primary)' }} />
-        </div>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '8px' }}>Votre panier est vide</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '32px', maxWidth: '400px' }}>Découvrez nos produits et ajoutez-les à votre panier pour commencer votre commande.</p>
-        <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px' }}>Découvrir le catalogue</Link>
+        <EmptyState
+          icon={ShoppingBag}
+          title="Votre panier est vide"
+          text="Découvrez nos produits d'exception et ajoutez-les à votre panier pour commencer votre commande."
+          action={
+            <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px' }}>Découvrir le catalogue</Link>
+          }
+        />
       </div>
     );
   }
@@ -70,7 +74,7 @@ const Cart = () => {
             return (
               <div key={item.productId} className="cart-item premium-card" style={{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '12px' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#fdfbf7', border: '1px solid var(--border)' }}>
-                  <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <SmartImg src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div className="cart-item-details" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 className="cart-item-name" style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, color: 'var(--text-dark)', margin: '0 0 4px' }}>{item.title}</h3>

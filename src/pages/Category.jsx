@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchCategoryByIdentifier, fetchProductsByCategory } from '../services/catalog';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, PackageSearch } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import { ProductGridSkeleton } from '../components/common/Skeletons';
+import EmptyState from '../components/common/EmptyState';
 
 const Category = () => {
   const { slug } = useParams();
@@ -29,9 +32,8 @@ const Category = () => {
 
   if (loading) {
     return (
-      <div className="container page-container" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Chargement…</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Récupération de la catégorie.</p>
+      <div className="container page-container">
+        <ProductGridSkeleton count={8} />
       </div>
     );
   }
@@ -71,16 +73,21 @@ const Category = () => {
         </div>
 
         {products.length === 0 ? (
-          <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-            <p>Aucun produit dans cette catégorie pour le moment.</p>
-          </div>
+          <EmptyState
+            icon={PackageSearch}
+            title="Cette catégorie est encore vide"
+            text="Les produits seront publiés ici dès que les producteurs auront ajouté leurs offres."
+            action={
+              <Link to="/boutique" className="btn btn-outline">Explorer tout le catalogue</Link>
+            }
+          />
         ) : (
           <div className="product-grid">
             {products.map((prod, i) => (
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                   <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
-                    <img src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                    <SmartImg src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     {prod.tag && <span className="product-badge" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(30, 61, 47, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>{prod.tag}</span>}
                   </div>
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

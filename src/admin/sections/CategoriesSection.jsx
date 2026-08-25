@@ -5,6 +5,7 @@ import {
 } from '../../services/admin';
 import { formatInt } from '../format';
 import { PageHead, EmptyState, Modal } from '../ui';
+import { useToast, useConfirm } from '../../components/common/Feedback';
 
 const EMPTY_FORM = { name: '', slug: '', short: '', description: '', imageUrl: '' };
 
@@ -14,6 +15,8 @@ const CategoriesSection = () => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const loadCategories = useCallback(async () => {
     setLoadingData(true);
@@ -58,6 +61,9 @@ const CategoriesSection = () => {
         setCategories((prev) =>
           prev.map((c) => (c.id === editing.id ? { ...c, ...form, imageUrl: form.imageUrl } : c))
         );
+        toast('Catégorie mise à jour.', { type: 'success' });
+      } else {
+        toast('La mise à jour a échoué.', { type: 'error' });
       }
     } else {
       const res = await createCategory(form);
@@ -72,16 +78,29 @@ const CategoriesSection = () => {
             createdAt: res.data.created_at,
           },
         ]);
+        toast('Catégorie créée.', { type: 'success' });
+      } else {
+        toast('La création a échoué.', { type: 'error' });
       }
     }
     setShowModal(false);
   };
 
   const handleDelete = async (id) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm('Supprimer cette catégorie ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer cette catégorie ?',
+      message: 'Cette action est définitive. Les produits associés resteront dans le catalogue.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    });
+    if (!ok) return;
     const res = await deleteCategory(id);
-    if (res.ok) setCategories((prev) => prev.filter((c) => c.id !== id));
+    if (res.ok) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      toast('Catégorie supprimée.', { type: 'success' });
+    } else {
+      toast('La suppression a échoué.', { type: 'error' });
+    }
   };
 
   if (loadingData) return <CatSkeleton />;

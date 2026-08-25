@@ -4,14 +4,9 @@ import { RotateCcw, ArrowRight, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchMyRefunds } from '../services/refunds';
 import './animations.css';
-
-const statusStyles = {
-  requested: { background: 'var(--warning-bg)', color: 'var(--warning)' },
-  under_review: { background: '#eff6ff', color: '#1d4ed8' },
-  approved: { background: 'var(--success-bg)', color: 'var(--success)' },
-  rejected: { background: 'var(--danger-bg)', color: 'var(--danger)' },
-  processed: { background: 'var(--success-bg)', color: 'var(--success)' },
-};
+import StatusBadge from '../components/common/StatusBadge';
+import EmptyState from '../components/common/EmptyState';
+import { RowsSkeleton } from '../components/common/Skeletons';
 
 const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
 
@@ -58,24 +53,25 @@ const MyRefunds = () => {
 
       <div className="scroll-animate" style={{ marginBottom: '32px' }}>
         {loading ? (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Chargement…</h3>
-            <p style={{ color: 'var(--text-muted)' }}>Récupération de vos demandes de remboursement.</p>
-          </div>
+          <RowsSkeleton rows={4} />
         ) : notConnected ? (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-            <Lock size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Connectez-vous pour voir vos remboursements</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Retrouvez vos demandes de remboursement et leur statut après connexion.</p>
-            <Link to="/login" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Se connecter</Link>
-          </div>
+          <EmptyState
+            icon={Lock}
+            title="Connectez-vous pour voir vos remboursements"
+            text="Retrouvez vos demandes de remboursement et leur statut après connexion."
+            action={
+              <Link to="/login" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Se connecter</Link>
+            }
+          />
         ) : refunds.length === 0 ? (
-          <div className="empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-            <RotateCcw size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Aucun remboursement</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Vous n'avez pas encore demandé de remboursement. Rendez-vous sur le détail d'une commande payée.</p>
-            <Link to="/my-orders" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Mes commandes</Link>
-          </div>
+          <EmptyState
+            icon={RotateCcw}
+            title="Aucun remboursement demandé"
+            text="Vous n'avez pas encore demandé de remboursement. Rendez-vous sur le détail d'une commande payée pour en faire la demande."
+            action={
+              <Link to="/my-orders" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Mes commandes</Link>
+            }
+          />
         ) : (
           <div className="data-table-wrapper scroll-animate" style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px', background: '#fff' }}>
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
@@ -89,7 +85,7 @@ const MyRefunds = () => {
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{refund.orderNumber}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{refund.date}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{formatEUR(refund.amountRequested)}</td>
-                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><span className="status-badge" style={{ display: 'inline-flex', padding: '4px 8px', fontSize: '11px', fontWeight: 600, borderRadius: '20px', textTransform: 'uppercase', ...(statusStyles[refund.status] || {}) }}>{refund.statusLabel}</span></td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><StatusBadge status={refund.status} label={refund.statusLabel} /></td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><Link to={`/refund/${refund.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>Détails <ArrowRight size={12} /></Link></td>
                   </tr>
                 ))}

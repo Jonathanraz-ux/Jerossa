@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { productsData } from '../data/products';
 import { Heart, ArrowRight, Star, ShoppingBag } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import EmptyState from '../components/common/EmptyState';
 
 const Wishlist = () => {
   const favorites = productsData.slice(0, 3);
@@ -27,16 +29,16 @@ const Wishlist = () => {
 
       <div className="container page-container">
         {favorites.length === 0 ? (
-          <div className="scroll-animate" style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Heart size={36} style={{ color: 'var(--primary)', opacity: 0.5 }} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '8px' }}>Aucun favori</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '400px', margin: '0 auto 24px' }}>Ajoutez des produits à vos favoris pour les retrouver facilement.</p>
-            <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
-              Découvrir le catalogue
-            </Link>
-          </div>
+          <EmptyState
+            icon={Heart}
+            title="Aucun favori pour l'instant"
+            text="Ajoutez des produits à vos favoris pour les retrouver facilement et les comparer plus tard."
+            action={
+              <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+                Découvrir le catalogue
+              </Link>
+            }
+          />
         ) : (
           <>
             <div className="scroll-animate" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
@@ -53,7 +55,7 @@ const Wishlist = () => {
               {favorites.map((prod, i) => (
                 <div key={prod.id || i} className="scroll-animate premium-card" style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                   <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
-                    <img src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                    <SmartImg src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     {prod.tag && <span className="product-badge" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(30, 61, 47, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>{prod.tag}</span>}
                   </div>
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

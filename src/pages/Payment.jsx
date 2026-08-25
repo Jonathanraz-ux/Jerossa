@@ -85,9 +85,16 @@ const Payment = () => {
 
       <div style={{ maxWidth: '640px', margin: '0 auto', paddingBottom: '3rem' }}>
         {loading ? (
-          <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0' }}>
-            <Loader2 size={32} className="spin" style={{ color: 'var(--primary)' }} />
-            <p style={{ color: 'var(--text-muted)', marginTop: '16px' }}>Chargement de la commande…</p>
+          <div aria-hidden="true">
+            <div className="jr-skel-rows" style={{ marginBottom: 16 }}>
+              {[...Array(3)].map((_, i) => (
+                <div className="jr-skel-row" key={i}>
+                  <span className="jr-skel" style={{ width: '30%', height: 12 }} />
+                  <span className="jr-skel" style={{ flex: 1, height: 12 }} />
+                </div>
+              ))}
+            </div>
+            <span className="jr-skel" style={{ display: 'block', width: '100%', height: 180, borderRadius: 12 }} />
           </div>
         ) : notFound ? (
           <div className="scroll-animate empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>

@@ -3,12 +3,15 @@ import { Search, Eye, EyeOff, Trash2, PackageSearch } from 'lucide-react';
 import { fetchAdminProducts, toggleProductActive, deleteProduct } from '../../services/admin';
 import { formatEUR, formatInt } from '../format';
 import { PageHead, EmptyState, Thumb } from '../ui';
+import { useToast, useConfirm } from '../../components/common/Feedback';
 
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const loadProducts = useCallback(async () => {
     setLoadingData(true);
@@ -25,14 +28,30 @@ const ProductsSection = () => {
     const res = await toggleProductActive(id, !currentActive);
     if (res.ok) {
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, active: !currentActive } : p)));
+      toast(
+        !currentActive ? 'Produit activé — il est de nouveau visible sur la boutique.' : 'Produit désactivé — il n\'apparaît plus sur la boutique.',
+        { type: 'success' }
+      );
+    } else {
+      toast('L\'opération n\'a pas pu être effectuée. Réessayez.', { type: 'error' });
     }
   };
 
   const handleDelete = async (id) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm('Supprimer ce produit ?')) return;
+    const ok = await confirm({
+      title: 'Supprimer ce produit ?',
+      message: 'Cette action est définitive : le produit sera retiré du catalogue et ne pourra pas être restauré.',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    });
+    if (!ok) return;
     const res = await deleteProduct(id);
-    if (res.ok) setProducts((prev) => prev.filter((p) => p.id !== id));
+    if (res.ok) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast('Produit supprimé du catalogue.', { type: 'success' });
+    } else {
+      toast('La suppression a échoué.', { type: 'error' });
+    }
   };
 
   const filtered = products.filter((p) => {

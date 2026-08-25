@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { productsData } from '../data/products';
 import { Heart, ArrowRight, Star } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import EmptyState from '../components/common/EmptyState';
 
 const MyFavorites = () => {
   const favorites = productsData.slice(0, 3);
@@ -27,18 +29,20 @@ const MyFavorites = () => {
 
       <div style={{ marginBottom: '32px' }}>
         {favorites.length === 0 ? (
-          <div className="empty-state scroll-animate" style={{ textAlign: 'center', padding: '60px 0' }}>
-            <Heart size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px', opacity: 0.3 }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px' }}>Aucun favori</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Ajoutez des produits à vos favoris pour les retrouver facilement.</p>
-            <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px' }}>Découvrir le catalogue</Link>
-          </div>
+          <EmptyState
+            icon={Heart}
+            title="Aucun favori pour l'instant"
+            text="Ajoutez des produits à vos favoris pour les retrouver facilement et les comparer plus tard."
+            action={
+              <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px' }}>Découvrir le catalogue</Link>
+            }
+          />
         ) : (
           <div className="product-grid scroll-animate">
             {favorites.map((prod, i) => (
               <div key={prod.id || i} className="scroll-animate premium-card" style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                 <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
-                  <img src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                  <SmartImg src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   {prod.tag && <span className="product-badge" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(30, 61, 47, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>{prod.tag}</span>}
                 </div>
                 <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

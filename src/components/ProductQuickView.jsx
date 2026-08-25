@@ -4,6 +4,7 @@ import { X, Star, Truck, Package, ShieldCheck, ChevronRight, Check } from 'lucid
 import { fetchProductByIdentifier } from '../services/catalog';
 import { useCart } from '../context/CartContext';
 import './ProductQuickView.css';
+import SmartImg from './common/SmartImg';
 
 const ProductQuickView = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,7 +76,7 @@ const ProductQuickView = () => {
 
         <div className="quickview-content">
           <div className="quickview-image-container">
-            <img src={product.images[0]} alt={product.title} className="quickview-main-image" />
+            <SmartImg src={product.images[0]} alt={product.title} className="quickview-main-image" />
             <div className="quickview-tag">{product.tag}</div>
           </div>
           

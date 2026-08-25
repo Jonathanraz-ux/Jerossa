@@ -4,6 +4,9 @@ import { fetchProducts } from '../services/catalog';
 import { useCurrency } from '../context/CurrencyContext';
 import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import { ProductGridSkeleton } from '../components/common/Skeletons';
+import EmptyState from '../components/common/EmptyState';
 
 const Catalogue = () => {
   const [searchParams] = useSearchParams();
@@ -124,30 +127,24 @@ const Catalogue = () => {
 
         {/* Products Grid */}
         {loading ? (
-          <div className="catalog-empty">
-            <div className="catalog-empty-icon">
-              <Search size={28} />
-            </div>
-            <h3>Chargement…</h3>
-            <p>Récupération des produits.</p>
-          </div>
+          <ProductGridSkeleton count={8} />
         ) : sortedProducts.length === 0 ? (
-          <div className="catalog-empty">
-            <div className="catalog-empty-icon">
-              <Search size={28} />
-            </div>
-            <h3>Aucun résultat</h3>
-            <p>Essayez avec d'autres mots-clés ou modifiez vos filtres.</p>
-            <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-outline">
-              Réinitialiser les filtres
-            </button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Aucun résultat"
+            text="Essayez avec d'autres mots-clés ou modifiez vos filtres pour élargir votre recherche."
+            action={
+              <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-outline">
+                Réinitialiser les filtres
+              </button>
+            }
+          />
         ) : (
           <div className="catalog-grid">
             {sortedProducts.map((prod) => (
               <Link key={prod.id} to={`/product/${prod.id}`} className="catalog-product-card">
                 <div className="catalog-product-image">
-                  <img src={prod.images[0]} alt={prod.title} loading="lazy" />
+                  <SmartImg src={prod.images[0]} alt={prod.title} />
                   {prod.tag && <span className="catalog-product-badge">{prod.tag}</span>}
                   <span className="catalog-product-type">{prod.type}</span>
                 </div>

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchProducerByIdentifier, fetchProductsByProducer } from '../services/catalog';
 import { Star, MapPin, Award, Truck, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
 
 const ProducerShop = () => {
   const { id } = useParams();
@@ -73,7 +74,7 @@ const ProducerShop = () => {
         <div className="scroll-animate" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', marginBottom: '48px' }}>
           <div className="producer-profile-grid">
             <div style={{ aspectRatio: '1', overflow: 'hidden', background: '#fafafa' }}>
-              <img src={producer.image} alt={producer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <SmartImg src={producer.image} alt={producer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div style={{ padding: '32px' }}>
               <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)' }}>{producer.name}</h1>
@@ -122,7 +123,7 @@ const ProducerShop = () => {
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                   <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
-                    <img src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                    <SmartImg src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     {prod.tag && <span className="product-badge" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(30, 61, 47, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>{prod.tag}</span>}
                   </div>
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

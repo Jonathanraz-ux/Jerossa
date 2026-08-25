@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { fetchProducts } from '../services/catalog';
 import { Search as SearchIcon, ArrowRight, Star, Filter } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
+import { ProductGridSkeleton } from '../components/common/Skeletons';
+import EmptyState from '../components/common/EmptyState';
 
 const Search = () => {
   const [query, setQuery] = useState('');
@@ -68,25 +71,25 @@ const Search = () => {
         </div>
 
         {loading ? (
-          <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-            Chargement des produits…
-          </div>
+          <ProductGridSkeleton count={8} />
         ) : results.length === 0 ? (
-          <div className="scroll-animate" style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-               <SearchIcon size={28} style={{ color: 'var(--primary)' }} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px' }}>Aucun résultat</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Essayez avec d\'autres mots-clés ou explorez notre catalogue.</p>
-            <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>Voir le catalogue</Link>
-          </div>
+          <EmptyState
+            icon={SearchIcon}
+            title="Aucun résultat"
+            text="Essayez avec d'autres mots-clés ou explorez notre catalogue complet."
+            action={
+              <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>
+                Voir le catalogue
+              </Link>
+            }
+          />
         ) : (
           <div className="product-grid">
             {results.map((prod, i) => (
               <Link key={prod.id || i} to={`/product/${prod.id}`} className="scroll-animate" style={{ textDecoration: 'none', color: 'inherit', animationDelay: `${i * 0.05}s` }}>
                 <div className="premium-card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
                   <div className="img-zoom" style={{ position: 'relative', aspectRatio: '1', background: '#fafafa', overflow: 'hidden', borderRadius: '12px 12px 0 0' }}>
-                    <img src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                    <SmartImg src={prod.images[0]} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     {prod.tag && <span className="product-badge" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(30, 61, 47, 0.9)', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>{prod.tag}</span>}
                   </div>
                   <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>

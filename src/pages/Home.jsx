@@ -10,6 +10,7 @@ import {
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { fetchProducts, fetchCategories } from '../services/catalog';
 import { useCurrency, CURRENCY_NOTE } from '../context/CurrencyContext';
+import SmartImg from '../components/common/SmartImg';
 
 const FAQ_ITEMS = [
   { q: "Comment fonctionne la plateforme Jerossa ?", a: "Jerossa met en relation les producteurs et fournisseurs de Madagascar et de Maurice avec des acheteurs et des entreprises. Vous parcourez le catalogue de produits, comparez les offres et contactez directement le vendeur." },
@@ -303,7 +304,7 @@ const Home = () => {
                 onClick={() => openQuickView(prod.id)}
               >
                 <div className="product-card-image">
-                  <img src={prod.images[0]} alt={prod.title} loading="lazy" />
+                  <SmartImg src={prod.images[0]} alt={prod.title} />
                   {prod.tag && <span className="product-card-tag">{prod.tag}</span>}
                   <button className="product-card-wishlist" aria-label="Ajouter aux favoris" onClick={(e) => e.stopPropagation()}>
                     <Heart size={15} strokeWidth={1.5} />

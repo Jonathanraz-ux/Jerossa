@@ -50,6 +50,7 @@ import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import { FeedbackProvider } from './components/common/Feedback';
 
 function AppRoutes() {
   const location = useLocation();
@@ -114,13 +115,15 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <CurrencyProvider>
-          <CartProvider>
-            <AppRoutes />
-          </CartProvider>
-        </CurrencyProvider>
-      </AuthProvider>
+      <FeedbackProvider>
+        <AuthProvider>
+          <CurrencyProvider>
+            <CartProvider>
+              <AppRoutes />
+            </CartProvider>
+          </CurrencyProvider>
+        </AuthProvider>
+      </FeedbackProvider>
     </Router>
   );
 }

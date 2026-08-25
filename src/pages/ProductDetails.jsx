@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { createQuoteRequest } from '../services/quotes';
 import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X } from 'lucide-react';
 import './animations.css';
+import SmartImg from '../components/common/SmartImg';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -116,7 +117,7 @@ const ProductDetails = () => {
           {/* Gallery */}
           <div className="pd-gallery">
             <div className="pd-main-image">
-              <img src={product.images[selectedImage]} alt={product.title} />
+              <SmartImg src={product.images[selectedImage]} alt={product.title} />
               {product.tag && <span className="pd-badge">{product.tag}</span>}
             </div>
             {product.images.length > 1 && (
@@ -127,7 +128,7 @@ const ProductDetails = () => {
                     className={`pd-thumb ${i === selectedImage ? 'pd-thumb--active' : ''}`}
                     onClick={() => setSelectedImage(i)}
                   >
-                    <img src={img} alt="" />
+                    <SmartImg src={img} alt="" />
                   </button>
                 ))}
               </div>
@@ -252,7 +253,7 @@ const ProductDetails = () => {
               {relatedProducts.map((prod) => (
                 <Link key={prod.id} to={`/product/${prod.id}`} className="catalog-product-card">
                   <div className="catalog-product-image">
-                    <img src={prod.images[0]} alt={prod.title} loading="lazy" />
+                    <SmartImg src={prod.images[0]} alt={prod.title} />
                     {prod.tag && <span className="catalog-product-badge">{prod.tag}</span>}
                   </div>
                   <div className="catalog-product-body">
