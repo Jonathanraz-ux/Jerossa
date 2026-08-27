@@ -10,15 +10,11 @@ const Footer = () => {
         <div className="container footer-grid">
           <div className="footer-block footer-block--brand">
             <div className="footer-logo-mark">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ marginBottom: '0.5rem' }}>
-                <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" fill="#3a6b4f" opacity="0.25"/>
-                <path d="M16 6c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S21.523 6 16 6z" fill="none" stroke="#d4a373" strokeWidth="1.5"/>
-                <path d="M12 16c0 0 1.5-3 4-3s4 3 4 3" stroke="#d4a373" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 16l-1 2M18 16l1 2" stroke="#d4a373" strokeWidth="1.2" strokeLinecap="round"/>
-                <path d="M16 13v-2M16 19v2" stroke="#d4a373" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-              <span className="footer-logo-title">Jerossa</span>
-              <span className="footer-logo-sub">Madagascar · Maurice</span>
+              <img
+                src="/logo-jerossa.jpeg"
+                alt="Jerossa — Madagascar · Maurice"
+                className="footer-brand-logo"
+              />
             </div>
             <p className="footer-desc">
               La marketplace de référence entre Madagascar et Maurice : produits authentiques,

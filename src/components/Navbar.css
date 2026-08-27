@@ -184,31 +184,20 @@
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
   flex-shrink: 0;
+  transition: opacity 0.2s ease;
 }
 
-.nav-brand-text {
-  display: flex;
-  flex-direction: column;
+.nav-brand:hover {
+  opacity: 0.85;
 }
 
-.nav-brand-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--color-text-main);
-  letter-spacing: 0.5px;
-}
-
-.nav-brand-subtitle {
-  font-size: 0.48rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--brand-green);
-  margin-top: 3px;
-  font-weight: 600;
+.nav-brand-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
 }
 
 .nav-links {
@@ -721,8 +710,7 @@
 @media (max-width: 768px) {
   .nav-topbar { display: none; }
   .navbar { height: 60px; }
-  .nav-brand-title { font-size: 1.1rem; }
-  .nav-brand-icon svg { width: 26px; height: 26px; }
+  .nav-brand-logo { height: 38px; }
   .mobile-bar { display: flex; }
   .nav-search-trigger { display: none; }
 

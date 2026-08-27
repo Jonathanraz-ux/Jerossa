@@ -176,19 +176,11 @@ const Navbar = () => {
         {/* ===== MAIN NAVIGATION ===== */}
         <nav className="navbar container">
           <Link to="/" className="nav-brand" onClick={() => setMenuOpen(false)}>
-            <div className="nav-brand-icon">
-              <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-                <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" fill="#3a6b4f" opacity="0.16"/>
-                <path d="M16 6c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S21.523 6 16 6z" fill="none" stroke="#3a6b4f" strokeWidth="1.5"/>
-                <path d="M12 16c0 0 1.5-3 4-3s4 3 4 3" stroke="#8c6239" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M14 16l-1 2M18 16l1 2" stroke="#8c6239" strokeWidth="1.2" strokeLinecap="round"/>
-                <path d="M16 13v-2M16 19v2" stroke="#8c6239" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <div className="nav-brand-text">
-              <span className="nav-brand-title">Jerossa</span>
-              <span className="nav-brand-subtitle">Madagascar · Maurice</span>
-            </div>
+            <img
+              src="/logo-jerossa.jpeg"
+              alt="Jerossa — Madagascar · Maurice"
+              className="nav-brand-logo"
+            />
           </Link>
 
           <div className={`nav-links${menuOpen ? ' nav-links--open' : ''}`}>
