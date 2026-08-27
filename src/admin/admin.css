@@ -1294,6 +1294,13 @@ textarea.adm-input { height: auto; min-height: 84px; padding: 10px 13px; resize:
 }
 .adm-meta-value { font-size: 13px; font-weight: 600; color: var(--adm-ink); }
 
+.adm-quote-response {
+  padding: 14px 16px;
+  background: var(--adm-surface-subtle);
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-md);
+}
+
 .adm-order-item {
   display: flex;
   align-items: center;

@@ -6,10 +6,11 @@ import OverviewSection from '../admin/sections/OverviewSection';
 import ProductsSection from '../admin/sections/ProductsSection';
 import CategoriesSection from '../admin/sections/CategoriesSection';
 import OrdersSection from '../admin/sections/OrdersSection';
+import RefundsSection from '../admin/sections/RefundsSection';
+import QuotesSection from '../admin/sections/QuotesSection';
 import UsersSection from '../admin/sections/UsersSection';
 import ClientsSection from '../admin/sections/ClientsSection';
 import SellersSection from '../admin/sections/SellersSection';
-import RefundsSection from '../admin/sections/RefundsSection';
 import MessagesSection from '../admin/sections/MessagesSection';
 import SettingsSection from '../admin/sections/SettingsSection';
 
@@ -157,6 +158,8 @@ const AdminContent = ({ section, setActiveSection }) => {
       return <CategoriesSection />;
     case 'orders':
       return <OrdersSection />;
+    case 'quotes':
+      return <QuotesSection />;
     case 'refunds':
       return <RefundsSection />;
     case 'users':
