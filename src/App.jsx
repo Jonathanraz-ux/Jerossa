@@ -11,6 +11,16 @@ import Home from './pages/Home';
 import Services from './pages/Services';
 import ServiceDetails from './pages/ServiceDetails';
 import Publish from './pages/Publish';
+import BecomeSeller from './pages/BecomeSeller';
+import SellerStatus from './pages/SellerStatus';
+import ProtectedSellerRoute from './components/ProtectedSellerRoute';
+import SellerLayout from './seller/SellerLayout';
+import SellerDashboard from './seller/SellerDashboard';
+import SellerProducts from './seller/SellerProducts';
+import SellerProductEdit from './seller/SellerProductEdit';
+import SellerOrders from './seller/SellerOrders';
+import SellerQuotes from './seller/SellerQuotes';
+import SellerShop from './seller/SellerShop';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Account from './pages/Account';
@@ -69,6 +79,23 @@ function AppRoutes() {
           <Route path="/services" element={<Services />} />
           <Route path="/services/:id" element={<ServiceDetails />} />
           <Route path="/publier" element={<Publish />} />
+          <Route path="/vendeur/devenir" element={<BecomeSeller />} />
+          <Route path="/vendeur/statut" element={<SellerStatus />} />
+          <Route
+            path="/espace-vendeur"
+            element={(
+              <ProtectedSellerRoute>
+                <SellerLayout />
+              </ProtectedSellerRoute>
+            )}
+          >
+            <Route index element={<SellerDashboard />} />
+            <Route path="produits" element={<SellerProducts />} />
+            <Route path="produits/:id" element={<SellerProductEdit />} />
+            <Route path="commandes" element={<SellerOrders />} />
+            <Route path="devis" element={<SellerQuotes />} />
+            <Route path="boutique" element={<SellerShop />} />
+          </Route>
           <Route path="/search" element={<Search />} />
           <Route path="/categories/:slug" element={<Category />} />
           <Route path="/producteurs" element={<Producer />} />

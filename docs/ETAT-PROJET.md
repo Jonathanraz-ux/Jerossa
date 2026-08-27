@@ -1,6 +1,6 @@
 # JEROSSA — État du projet
 
-> Mise à jour : 24 août 2026
+> Mise à jour : 27 août 2026
 > Déploiement : Vercel (https://jerossa.vercel.app) · Base : Supabase (fsdfieofbbopmzuforck)
 
 ---
@@ -12,11 +12,12 @@
 - **Auth** : Connexion, Inscription, Mot de passe oublié **+ réinitialisation complète** (`/forgot-password` → email → `/reset-password`) — branchées sur Supabase Auth (`AuthContext`).
 - **Espace client** : Mes commandes (+ détail, suivi), Mes devis (+ détail), Mes remboursements (+ demande, détail), Mes adresses, Favoris/Wishlist, Paramètres.
 - **Panier → Checkout → Paiement → Confirmation** avec règle de panier homogène en devise (MGA/MUR) via `CurrencyContext`.
-- **Espace vendeur (partiel)** : page Publier une offre — formulaire complet avec **upload réel des photos** vers Storage (aperçus, validation type/taille/nombre, suppression).
+- **Espace vendeur (partiel)** : page Publier une offre — formulaire complet avec upload réel des photos vers Storage (aperçus, validation type/taille/nombre, suppression).
+- **Espace vendeur (espace complet)** : après validation de la boutique (10 août), l'espace `/espace-vendeur` (protégé par `ProtectedSellerRoute`) donne accès à : tableau de bord (KPIs CA/commission/net + dernières commandes), produits (liste, activation, édition), commandes reçues, devis reçus (avec réponse), et fiche boutique. Backend via `src/services/seller.js` (RPC `fetch_my_orders`, `respond_to_quote`, `update_my_shop`, politiques RLS par `my_producer_id()`).
 - **Dashboard admin** : KPIs, gestion produits/catégories/commandes/utilisateurs, route protégée par rôle (`ProtectedAdminRoute`).
 - Responsive mobile/tablette soigné ; animations au scroll ; rewrite SPA configuré sur Vercel.
 
-### Backend Supabase (11 migrations)
+### Backend Supabase (13 migrations)
 1. `core_tables` — profiles, producers, categories, products…
 2. `auth_rls` — trigger `handle_new_user`, RLS profils/produits…
 3. `catalog_public_ids` + `seed_catalog` — catalogue de départ.
@@ -26,6 +27,8 @@
 7. `refunds_email` — RPC `request_refund`, table refunds, base `email_logs`.
 8. `admin_rls` + `seed_admin` — accès admin, compte administrateur.
 9. `storage_buckets` (24 août) — buckets `product-images` (public, 5 Mo) et `seller-documents` (privé, 10 Mo), policies RLS par dossier `{uid}` + accès admin.
+10. `seller_onboarding` (26 août) — colonnes vendeur + RLS candidature/approuvé (cf. § 26 août).
+11. `seller_space` (26 août) — espace vendeur : RPC `fetch_my_orders`, `update_my_shop`, `respond_to_quote`. RLS commandes/devis remontés au vendeur.
 
 ### Session debug du 21 août (auth 500)
 - Diagnostic complet du 500 sur `/auth/v1/token?grant_type=password`.
@@ -45,8 +48,27 @@
 - **Historique migrations resynchronisé** : les 10 migrations appliquées à la main au SQL Editor ont été marquées via `migration repair` ; `db push` désormais fiable.
 - **Reset mot de passe livré** : `ForgotPassword.jsx` branché + page `/reset-password` créée + route ajoutée. Redirections autorisées via Management API (`uri_allow_list`) : `https://jerossa.vercel.app/**` et `http://localhost:5173/**`.
 - **Storage opérationnel** : migration `20260824000001_storage_buckets.sql` poussée en prod (buckets + 8 policies). `Publish.jsx` téléverse réellement les photos (dossier `{uid}/`, aperçus, max 6 × 5 Mo, JPG/PNG/WebP). Vérifié en prod : MIME non autorisé rejeté.
-- **Limite actuelle** : la publication ne crée pas encore de ligne `products` — en attente de l'onboarding vendeur (profil `producers`). Les photos sont bien stockées mais l'offre reste simulée.
+- **Limite actuelle** : la publication ne crée une ligne `products` que pour les vendeurs approuvés (depuis le 26 août) — sinon l'offre reste un aperçu simulé.
 - Déployé sur Vercel (commits `e585767` + `3475981`). À tester : réception du mail de recovery en conditions réelles.
+
+### Session du 26 août (onboarding vendeur)- **Migration `20260826000001_seller_onboarding.sql`** poussée via CLI (`db push`) :
+  - `producers` : colonnes `user_id` (unique, lien auth ↔ vendeur), `status` (`pending/approved/rejected/suspended`, défaut `approved` pour préserver le seed), `contact_email`, `phone`, `payment_info` (jsonb), `documents` (jsonb), `review_note`, `submitted_at`, `reviewed_at`.
+  - Helper `my_producer_id()` (security definer) : id du producteur approuvé de l'utilisateur courant.
+  - RLS : candidature par l'utilisateur (`producers_insert_own`, toujours `pending`), re-soumission possible après refus (`producers_update_own` — le `with check status='pending'` empêche TOUTE auto-validation), visibilité publique limitée aux boutiques `approved` (+ sa propre fiche + admin).
+  - RLS produits côté vendeur : insert/update/delete sur ses propres produits si `seller_id = my_producer_id()`, avec `verified=false` imposé (seule l'admin vérifie). Limitation MVP : un produit déjà vérifié n'est plus éditable par son vendeur.
+- **Front** : pages `/vendeur/devenir` (`BecomeSeller.jsx` — formulaire complet + upload des pièces vers `seller-documents`, min. 1 pièce requise) et `/vendeur/statut` (`SellerStatus.jsx` — suivi temps réel par statut). CSS partagée `SellerOnboarding.css`. Lien « Devenir vendeur » ajouté au footer. Lint + build OK.
+- **Section admin « Vendeurs »** (`SellersSection.jsx`, nav Communauté) : liste des boutiques liées à des comptes, filtres par statut, recherche, modale d'examen complète (infos, paiement, description), consultation des pièces via URLs signées 10 min sur le bucket privé, actions Valider / Refuser / Suspendre / Réactiver avec motif. Services `fetchSellerApplications` / `updateProducerStatus` / `getDocumentSignedUrl`.
+- **Publication réelle dans `Publish.jsx`** : si l'utilisateur a une boutique approuvée, le formulaire produit insère réellement dans `products` (`product_code` auto, slug unique, catégorie résolue par slug, market MGA→MG / MUR→MU, `verified=false`). Bandeau de statut vendeur sinon (aperçu simulé conservé). Écran de succès dédié avec liens produit/boutique.
+- **RLS testée en conditions réelles** via Management API (contexte `authenticated` simulé par JWT factice, transaction rollback) : insertion produit par vendeur approuvé OK ; insertion vers un `seller_id` inconnu bloquée ; auto-approbation d'une candidature bloquée ; lecture de sa propre candidature OK. Aucune donnée de test résiduelle.
+
+### Session du 27 août (fin de l'espace vendeur + audit global)
+- **Espace vendeur complété et corrigé** : le dossier `src/seller/` (écrit pendant l'audit) a été entièrement vérifié puis commité. Correctifs appliqués :
+  - `fetchMyOrders` (`seller.js`) réécrit pour appeler l'RPC `fetch_my_orders` (les `select` directs étaient bloqués par RLS → commandes vides).
+  - `SellerLayout` : état de chargement distinct + erreur « Réessayer » (évitait un spinner infini si `producer` null).
+  - `SellerProducts` : activation désactivée pour les produits vérifiés (RLS impose `verified=false`).
+  - Bug majeur : `fetchMyQuotes` traitait `quote_responses` (tableau embarqué) comme un objet → **NaN** affiché dans `SellerQuotes`. Corrigé avec accès `[0]` (même shape que `quotes.js`).
+- **Bugs admin corrigés** : `fetchAdminQuotes` (même bug d'embed `[0]`, latent) ; `updatePlatformSetting` (`.upsert().eq()` invalide en PostgREST → `onConflict: 'key'`).
+- **Audit complet** (build + lint verts) : écrans clients, pages publiques, câblage admin (9 onglets ↔ 9 sections), Auth (trigger `on_auth_user_created` → `profiles`), publish/insert produits — aucun autre bug prouvé.
 
 ---
 
@@ -58,9 +80,9 @@
 - [x] ~~**Storage Supabase**~~ — **fait le 24 août** : buckets `product-images` (public) + `seller-documents` (privé) créés via migration `20260824000001`, policies RLS par dossier `{uid}`, upload réel branché dans `Publish.jsx`. Reste : brancher les pièces justificatives dans l'onboarding vendeur.
 
 ### Fonctionnel
-- [ ] Onboarding vendeur complet : demande « Devenir vendeur », upload pièces (bucket `seller-documents` déjà prêt), validation/refus/suspension par l'admin. **Débloque la création réelle de produits dans `Publish.jsx`.**
-- [ ] Espace vendeur : commandes reçues, devis reçus, profil boutique, KPIs (CA/commission/net).
-- [ ] Espace admin : remboursements (traitement), paiements, devis, activité/logs, paramètres plateforme (livraison, commission). Tables + RPC déjà en place — pur front.
+- [x] ~~**Onboarding vendeur**~~ — **fait le 26 août** : demande « Devenir vendeur » (`/vendeur/devenir`) avec upload pièces vers `seller-documents`, page statut (`/vendeur/statut`), migration RLS complète, **section admin de validation/refus/suspension**, **création réelle de produits dans `Publish.jsx`** (backend + front branchés, RLS testée).
+- [x] ~~**Espace vendeur**~~ — **fait le 27 août** : commandes reçues, devis reçus (avec réponse), profil boutique, KPIs (CA/commission/net) dans `/espace-vendeur` (tableau de bord, produits, commandes, devis, fiche boutique). Backend RLS + RPC (`fetch_my_orders`, `respond_to_quote`, `update_my_shop`).
+- [ ] Espace admin : remboursements (traitement), paiements, devis, activité/logs, paramètres plateforme (livraison, commission). Tables + RPC déjà en place (`fetchAdminRefunds`/`processRefund`/`fetchAdminQuotes` existent mais aucun onglet/ui ne les consomme) — pur front.
 - [x] ~~**Réinitialisation de mot de passe**~~ — **fait le 24 août** : `ForgotPassword.jsx` branché sur `resetPasswordForEmail` + nouvelle page `/reset-password` (`ResetPassword.jsx`, `updateUser({password})`). Redirections autorisées côté Supabase : `jerossa.vercel.app/**` + `localhost:5173/**`. À tester en réel après déploiement Vercel.
 
 ### Technique / hygiène

@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tags, ShoppingCart, Users, UserCheck,
-  MessageSquare, Settings,
+  MessageSquare, Settings, Store,
 } from 'lucide-react';
 
 // Définition centralisée de la navigation administration
@@ -25,6 +25,7 @@ export const NAV_SECTIONS = [
     items: [
       { id: 'users', label: 'Utilisateurs', icon: Users },
       { id: 'clients', label: 'Clients', icon: UserCheck },
+      { id: 'sellers', label: 'Vendeurs', icon: Store },
       { id: 'messages', label: 'Messages', icon: MessageSquare },
     ],
   },

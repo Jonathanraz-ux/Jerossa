@@ -336,6 +336,35 @@
   flex-wrap: wrap;
 }
 
+/* ===== BANDEAU STATUT VENDEUR ===== */
+.pub-seller-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #fdf6ec;
+  border: 1px solid rgba(212, 163, 115, 0.45);
+  border-radius: 14px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-dark);
+}
+
+.pub-seller-status svg {
+  color: #b07b3e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pub-seller-status a { color: inherit; font-weight: 600; }
+
+.pub-seller-status--ok {
+  background: rgba(46, 125, 50, 0.08);
+  border-color: rgba(46, 125, 50, 0.35);
+}
+
+.pub-seller-status--ok svg { color: #2e7d32; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .pub-layout { grid-template-columns: 1fr; }

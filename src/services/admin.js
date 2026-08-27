@@ -262,25 +262,30 @@ export const fetchAdminQuotes = async () => {
     console.error('[admin] fetchAdminQuotes', error);
     return [];
   }
-  return (data || []).map((row) => ({
-    id: row.id,
-    quoteNumber: row.quote_number,
-    userId: row.user_id,
-    productTitle: row.product_title,
-    sellerName: row.seller_name,
-    quantity: row.quantity,
-    unit: row.unit,
-    message: row.message,
-    status: row.status,
-    orderNumber: row.order_number,
-    createdAt: row.created_at,
-    response: row.quote_responses ? {
-      priceEur: Number(row.quote_responses.price_eur),
-      unit: row.quote_responses.unit,
-      delay: row.quote_responses.delay,
-      message: row.quote_responses.message,
-    } : null,
-  }));
+  return (data || []).map((row) => {
+    const resp = Array.isArray(row.quote_responses) && row.quote_responses.length
+      ? row.quote_responses[0]
+      : null;
+    return {
+      id: row.id,
+      quoteNumber: row.quote_number,
+      userId: row.user_id,
+      productTitle: row.product_title,
+      sellerName: row.seller_name,
+      quantity: row.quantity,
+      unit: row.unit,
+      message: row.message,
+      status: row.status,
+      orderNumber: row.order_number,
+      createdAt: row.created_at,
+      response: resp ? {
+        priceEur: Number(resp.price_eur),
+        unit: resp.unit,
+        delay: resp.delay,
+        message: resp.message,
+      } : null,
+    };
+  });
 };
 
 // ─── REFUNDS (admin read + process) ──────────────────────
@@ -383,15 +388,14 @@ export const fetchPlatformSettings = async () => {
 };
 
 export const updatePlatformSetting = async (key, value) => {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('platform_settings')
-    .upsert({ key, value, updated_at: new Date().toISOString() })
-    .eq('key', key);
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) {
     console.error('[admin] updatePlatformSetting', error);
     return { ok: false, error };
   }
-  return { ok: true };
+  return { ok: true, data };
 };
 
 // ─── PRODUCERS (admin) ───────────────────────────────────
@@ -406,4 +410,74 @@ export const fetchAdminProducers = async () => {
     return [];
   }
   return data || [];
+};
+
+// Candidatures vendeurs : uniquement les boutiques liées à un compte utilisateur.
+// Merge manuel avec profiles (pas de FK directe producers.user_id ↔ profiles.id).
+export const fetchSellerApplications = async () => {
+  const { data, error } = await supabase
+    .from('producers')
+    .select('*')
+    .not('user_id', 'is', null)
+    .order('submitted_at', { ascending: false });
+  if (error) {
+    console.error('[admin] fetchSellerApplications', error);
+    return [];
+  }
+  const userIds = [...new Set((data || []).map((p) => p.user_id).filter(Boolean))];
+  let profilesById = {};
+  if (userIds.length) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', userIds);
+    profilesById = Object.fromEntries(
+      (profiles || []).map((pr) => [pr.id, { fullName: pr.full_name }])
+    );
+  }
+  return (data || []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    status: row.status,
+    location: row.location,
+    description: row.description,
+    established: row.established,
+    contactEmail: row.contact_email,
+    phone: row.phone,
+    paymentInfo: row.payment_info || {},
+    documents: Array.isArray(row.documents) ? row.documents : [],
+    reviewNote: row.review_note,
+    submittedAt: row.submitted_at,
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+    ownerName: profilesById[row.user_id]?.fullName || null,
+  }));
+};
+
+export const updateProducerStatus = async (producerId, status, reviewNote = '') => {
+  const updates = { status };
+  if (reviewNote !== undefined && reviewNote !== null) updates.review_note = reviewNote;
+  if (status !== 'pending') updates.reviewed_at = new Date().toISOString();
+  const { error } = await supabase
+    .from('producers')
+    .update(updates)
+    .eq('id', producerId);
+  if (error) {
+    console.error('[admin] updateProducerStatus', error);
+    return { ok: false, error };
+  }
+  return { ok: true };
+};
+
+// URL signée (10 min) pour consulter une pièce du bucket privé seller-documents
+export const getDocumentSignedUrl = async (path) => {
+  const { data, error } = await supabase.storage
+    .from('seller-documents')
+    .createSignedUrl(path, 600);
+  if (error) {
+    console.error('[admin] getDocumentSignedUrl', error);
+    return null;
+  }
+  return data?.signedUrl || null;
 };

@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   Package, Briefcase, CheckCircle2, ArrowRight, Upload, MapPin,
-  ChevronDown, Lock, Info, PlusCircle, X
+  ChevronDown, Lock, Info, PlusCircle, X, Store, Clock, XCircle, Ban
 } from 'lucide-react';
 import { categoriesData } from '../data/categories';
 import { serviceCategories } from '../data/services';
@@ -25,6 +25,15 @@ const Field = ({ label, required, children, hint }) => (
   </div>
 );
 
+const slugifyProduct = (value) =>
+  (value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .slice(0, 48) || 'produit';
+
 const Publish = () => {
   const [searchParams] = useSearchParams();
   const initialType = searchParams.get('type') === 'service' ? 'service' : 'produit';
@@ -37,6 +46,42 @@ const Publish = () => {
   const [photos, setPhotos] = useState([]); // { file, previewUrl }
   const [photoError, setPhotoError] = useState('');
   const [uploading, setUploading] = useState(false);
+
+  const [producer, setProducer] = useState(null);
+  const [producerChecked, setProducerChecked] = useState(false);
+  const [publishError, setPublishError] = useState('');
+  const [publishedProduct, setPublishedProduct] = useState(null);
+
+  const [pTitle, setPTitle] = useState('');
+  const [pCategoryName, setPCategoryName] = useState(categoriesData[0]?.name || '');
+  const [pDescription, setPDescription] = useState('');
+  const [pPrice, setPPrice] = useState('');
+  const [pUnit, setPUnit] = useState('kg');
+  const [pAvailability, setPAvailability] = useState('En stock');
+  const [pOrigin, setPOrigin] = useState('Madagascar');
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setProducer(null);
+      setProducerChecked(true);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from('producers')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (alive) {
+        setProducer(data || null);
+        setProducerChecked(true);
+      }
+    })();
+    return () => { alive = false; };
+  }, [isAuthenticated, user]);
+
+  const isApprovedSeller = !!(producer && producer.status === 'approved');
 
   const addFiles = (fileList) => {
     setPhotoError('');
@@ -88,24 +133,83 @@ const Publish = () => {
     }
   };
 
+  const createProduct = async (imageUrls) => {
+    const catEntry = categoriesData.find((c) => c.name === pCategoryName);
+    let categoryId = null;
+    if (catEntry?.slug) {
+      const { data: catRow } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('slug', catEntry.slug)
+        .maybeSingle();
+      categoryId = catRow?.id || null;
+    }
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          product_code: `PROD-${Date.now().toString(36).toUpperCase()}`,
+          slug: `${slugifyProduct(pTitle)}-${Math.random().toString(36).slice(2, 6)}`,
+          title: pTitle.trim(),
+          description: pDescription.trim(),
+          seller_id: producer.id,
+          category_id: categoryId,
+          price_eur: Number(pPrice),
+          unit: pUnit,
+          origin: pOrigin,
+          market: currency === 'MUR' ? 'MU' : 'MG',
+          availability: pAvailability,
+          images: imageUrls,
+          active: true,
+          verified: false
+        })
+        .select()
+        .single();
+      if (!error) return data;
+      lastError = error;
+      if (error.code !== '23505') break;
+    }
+    throw lastError;
+  };
+
   if (submitted) {
+    const isLive = !!publishedProduct;
     return (
       <div className="pub-page">
         <div className="pub-success">
           <div className="pub-success-ico"><CheckCircle2 size={40} /></div>
-          <span className="pub-success-eyebrow">Offre préparée</span>
-          <h1>Votre offre est prête à être publiée !</h1>
+          <span className="pub-success-eyebrow">{isLive ? 'Produit en ligne' : 'Offre préparée'}</span>
+          <h1>{isLive ? 'Votre produit est en ligne !' : 'Votre offre est prête à être publiée !'}</h1>
           <p>
-            {photos.length > 0 && isAuthenticated ? (
-              <>Vos {photos.length} photo{photos.length > 1 ? 's ont' : ' a'} été téléversée{photos.length > 1 ? 's' : ''} sur Jerossa. </>
-            ) : null}
-            La mise en ligne complète des offres sera disponible une fois votre profil vendeur validé.
+            {isLive ? (
+              <>
+                «&nbsp;{publishedProduct.title}&nbsp;» est désormais visible dans votre boutique.
+                Il sera estampillé « Produit contrôlé » après vérification par notre équipe.
+              </>
+            ) : (
+              <>
+                {photos.length > 0 && isAuthenticated ? (
+                  <>Vos {photos.length} photo{photos.length > 1 ? 's ont' : ' a'} été téléversée{photos.length > 1 ? 's' : ''} sur Jerossa. </>
+                ) : null}
+                La mise en ligne complète des offres sera disponible une fois votre profil vendeur validé.
+              </>
+            )}
           </p>
           <div className="pub-success-actions">
-            <Link to="/" className="j-pill-btn j-pill-btn--green">Retour à l'accueil</Link>
-            <Link to={type === 'service' ? '/services' : '/boutique'} className="j-pill-btn j-pill-btn--outline-dark">
-              Voir {type === 'service' ? 'les services' : 'les produits'}
-            </Link>
+            {isLive ? (
+              <>
+                <Link to={`/product/${publishedProduct.slug}`} className="j-pill-btn j-pill-btn--green">Voir mon produit</Link>
+                <Link to={`/producteur/${producer.slug}`} className="j-pill-btn j-pill-btn--outline-dark">Ma boutique</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/" className="j-pill-btn j-pill-btn--green">Retour à l'accueil</Link>
+                <Link to={type === 'service' ? '/services' : '/boutique'} className="j-pill-btn j-pill-btn--outline-dark">
+                  Voir {type === 'service' ? 'les services' : 'les produits'}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -141,13 +245,60 @@ const Publish = () => {
 
       <div className="container pub-body">
         <div className="pub-layout">
-          <form className="pub-form" onSubmit={async (e) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {type === 'produit' && isAuthenticated && producerChecked && !isApprovedSeller && (
+              <div className="pub-seller-status">
+                {(!producer || producer.status === 'pending') && (
+                  <>
+                    <Clock size={17} />
+                    <span>
+                      {!producer ? (
+                        <>Pour publier une offre réelle, créez d'abord votre boutique : <Link to="/vendeur/devenir">devenir vendeur</Link>.</>
+                      ) : (
+                        <>Votre boutique « {producer.name} » est en cours de validation — <Link to="/vendeur/statut">suivre ma demande</Link>. Votre offre est conservée en aperçu.</>
+                      )}
+                    </span>
+                  </>
+                )}
+                {producer && producer.status === 'rejected' && (
+                  <>
+                    <XCircle size={17} />
+                    <span>Votre dossier boutique a été refusé{producer.review_note ? ` (${producer.review_note})` : ''} — <Link to="/vendeur/devenir">corriger mon dossier</Link>.</span>
+                  </>
+                )}
+                {producer && producer.status === 'suspended' && (
+                  <>
+                    <Ban size={17} />
+                    <span>Votre boutique est suspendue. Contactez le support pour la réactiver.</span>
+                  </>
+                )}
+              </div>
+            )}
+            {isApprovedSeller && type === 'produit' && (
+              <div className="pub-seller-status pub-seller-status--ok">
+                <Store size={17} />
+                <span>Boutique «&nbsp;{producer.name}&nbsp;» validée — vos offres seront publiées réellement.</span>
+              </div>
+            )}
+
+            <form className="pub-form" onSubmit={async (e) => {
             e.preventDefault();
+            setPublishError('');
+            let imageUrls = [];
             if (isAuthenticated && photos.length) {
               try {
-                await uploadPhotos();
+                imageUrls = await uploadPhotos();
               } catch (err) {
                 setPhotoError(`Échec de l'envoi des photos : ${err.message}`);
+                return;
+              }
+            }
+            if (type === 'produit' && isAuthenticated && isApprovedSeller) {
+              try {
+                const created = await createProduct(imageUrls);
+                setPublishedProduct(created);
+              } catch (err) {
+                setPublishError(`Échec de la publication : ${err.message}`);
                 return;
               }
             }
@@ -159,18 +310,18 @@ const Publish = () => {
                 <div className="pub-section">
                   <h2 className="pub-section-title">Informations sur le produit</h2>
                   <Field label="Titre du produit" required hint="Ex. : Gousses de vanille Bourbon Grade A — 18 cm">
-                    <input className="pub-input" placeholder="Nom de votre produit" required />
+                    <input className="pub-input" placeholder="Nom de votre produit" value={pTitle} onChange={(e) => setPTitle(e.target.value)} required />
                   </Field>
                   <Field label="Catégorie" required>
                     <div className="pub-select-wrap">
-                      <select className="pub-input pub-select">
+                      <select className="pub-input pub-select" value={pCategoryName} onChange={(e) => setPCategoryName(e.target.value)}>
                         {categoriesData.map((c) => <option key={c.id}>{c.name}</option>)}
                       </select>
                       <ChevronDown size={15} />
                     </div>
                   </Field>
                   <Field label="Description" required hint="Décrivez l'origine, la qualité et les caractéristiques de votre produit.">
-                    <textarea className="pub-input pub-textarea" rows={4} placeholder="Description détaillée de votre produit…" required />
+                    <textarea className="pub-input pub-textarea" rows={4} placeholder="Description détaillée de votre produit…" value={pDescription} onChange={(e) => setPDescription(e.target.value)} required />
                   </Field>
                 </div>
 
@@ -178,11 +329,11 @@ const Publish = () => {
                   <h2 className="pub-section-title">Prix & disponibilité</h2>
                   <div className="pub-grid-2">
                     <Field label="Prix" required>
-                      <input className="pub-input" type="number" step="0.01" min="0" placeholder="0,00" required />
+                      <input className="pub-input" type="number" step="0.01" min="0" placeholder="0,00" value={pPrice} onChange={(e) => setPPrice(e.target.value)} required />
                     </Field>
                     <Field label="Unité de vente" required>
                       <div className="pub-select-wrap">
-                        <select className="pub-input pub-select">
+                        <select className="pub-input pub-select" value={pUnit} onChange={(e) => setPUnit(e.target.value)}>
                           <option>kg</option>
                           <option>g</option>
                           <option>L</option>
@@ -207,7 +358,7 @@ const Publish = () => {
                   </Field>
                   <Field label="Disponibilité" required>
                     <div className="pub-select-wrap">
-                      <select className="pub-input pub-select">
+                      <select className="pub-input pub-select" value={pAvailability} onChange={(e) => setPAvailability(e.target.value)}>
                         <option>En stock</option>
                         <option>Sur commande</option>
                         <option>Disponible en gros</option>
@@ -277,7 +428,7 @@ const Publish = () => {
                   </Field>
                   <Field label="Origine" required hint="Madagascar, Maurice, région…">
                     <div className="pub-select-wrap">
-                      <select className="pub-input pub-select">
+                      <select className="pub-input pub-select" value={pOrigin} onChange={(e) => setPOrigin(e.target.value)}>
                         <option>Madagascar</option>
                         <option>Maurice</option>
                         <option>Autre</option>
@@ -407,11 +558,15 @@ const Publish = () => {
                 {uploading ? 'Envoi des photos…' : type === 'service' ? 'Publier mon service' : 'Publier mon produit'}
                 {!uploading && <ArrowRight size={16} />}
               </button>
+              {publishError && (
+                <p className="pub-submit-note" style={{ color: 'var(--danger)' }}>{publishError}</p>
+              )}
               <p className="pub-submit-note">
                 <Lock size={13} /> En publiant, vous acceptez les conditions d'utilisation de Jerossa.
               </p>
             </div>
           </form>
+          </div>
 
           <aside className="pub-aside">
             <div className="pub-aside-card">
