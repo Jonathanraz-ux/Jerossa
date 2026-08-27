@@ -9,6 +9,7 @@ import OrdersSection from '../admin/sections/OrdersSection';
 import UsersSection from '../admin/sections/UsersSection';
 import ClientsSection from '../admin/sections/ClientsSection';
 import SellersSection from '../admin/sections/SellersSection';
+import RefundsSection from '../admin/sections/RefundsSection';
 import MessagesSection from '../admin/sections/MessagesSection';
 import SettingsSection from '../admin/sections/SettingsSection';
 
@@ -156,6 +157,8 @@ const AdminContent = ({ section, setActiveSection }) => {
       return <CategoriesSection />;
     case 'orders':
       return <OrdersSection />;
+    case 'refunds':
+      return <RefundsSection />;
     case 'users':
       return <UsersSection />;
     case 'clients':

@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Package, Tags, ShoppingCart, Users, UserCheck,
+  LayoutDashboard, Package, Tags, ShoppingCart, Wallet, Users, UserCheck,
   MessageSquare, Settings, Store,
 } from 'lucide-react';
 
@@ -18,7 +18,10 @@ export const NAV_SECTIONS = [
   },
   {
     label: 'Ventes',
-    items: [{ id: 'orders', label: 'Commandes', icon: ShoppingCart }],
+    items: [
+      { id: 'orders', label: 'Commandes', icon: ShoppingCart },
+      { id: 'refunds', label: 'Remboursements', icon: Wallet },
+    ],
   },
   {
     label: 'Communauté',
