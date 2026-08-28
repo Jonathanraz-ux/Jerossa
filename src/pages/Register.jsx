@@ -9,7 +9,7 @@ const Register = () => {
   const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', type: 'client' });
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ const Register = () => {
       email: formData.email,
       password: formData.password,
       fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-      role: formData.type === 'seller' ? 'seller' : 'customer',
+      role: 'customer',
     });
     setLoading(false);
     if (authError) {
@@ -108,18 +108,15 @@ const Register = () => {
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Type de compte</label>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', background: formData.type === 'client' ? 'var(--primary-light)' : 'transparent', fontSize: '14px', transition: 'all 0.2s' }}>
-                    <input type="radio" name="type" value="client" checked={formData.type === 'client'} onChange={handleChange} style={{ accentColor: 'var(--primary)' }} />
-                    <User size={16} /> Client
-                  </label>
-                  <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', background: formData.type === 'seller' ? 'var(--primary-light)' : 'transparent', fontSize: '14px', transition: 'all 0.2s' }}>
-                    <input type="radio" name="type" value="seller" checked={formData.type === 'seller'} onChange={handleChange} style={{ accentColor: 'var(--primary)' }} />
-                    <Store size={16} /> Vendeur
-                  </label>
-                </div>
+              <div className="form-group" style={{ marginBottom: '16px', padding: '12px 14px', borderRadius: '10px', background: 'var(--brand-green-light)', border: '1px solid rgba(58, 107, 79, 0.25)' }}>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--brand-green)', marginBottom: '3px' }}>
+                  <Store size={15} /> Vous souhaitez vendre sur JEROSSA ?
+                </strong>
+                <span style={{ display: 'block', fontSize: '12px', lineHeight: 1.5, color: 'var(--text-dark)' }}>
+                  Créez d'abord votre compte client, puis passez par{' '}
+                  <Link to="/vendeur/devenir" style={{ color: 'var(--brand-green)', fontWeight: 600, textDecoration: 'underline' }}>Devenir vendeur</Link> —
+                  une seule adresse email suffit et l'équipe validera votre candidature.
+                </span>
               </div>
 
               <div className="form-group" style={{ marginBottom: '16px' }}>

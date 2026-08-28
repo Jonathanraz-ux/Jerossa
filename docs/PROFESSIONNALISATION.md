@@ -6,6 +6,25 @@
 
 ---
 
+## 0. Fix parcours vendeur & emails (démo) — ✅ appliqué
+
+But : débloquer l'inscription en démo (aucun email réellement envoyé) et rendre le
+parcours « Devenir vendeur » visible/utilisable. Décision produit validée.
+
+| Correctif | Détail |
+|---|---|
+| **Emails/inscription** | `mailer_autoconfirm=true` activé côté projet Supabase (Management API, champ en **minuscules** : le `PATCH /v1/projects/{ref}/config/auth` avec clé majuscule répond 200 mais ignore le champ). Compte créé → confirmé + session immédiate sans email (vérifié empiriquement : `email_confirmed_at` renseigné). Pas de SMTP/`hook_send_email` → aucun email réellement délivré (ni client ni vendeur). |
+| **« Devenir vendeur » visible** | Lien à la place du radio « Vendeur » dans `Navbar.jsx` (desktop) + barre basse mobile (icône Store) + style accent dans `Navbar.css`. |
+| **Inscription** | `Register.jsx` : suppression du radio « Compte Vendeur » (trompeur/impossible : email unique Supabase) → encart « Vous souhaitez vendre sur JEROSSA ? » avec lien vers `/vendeur/devenir`. `signUp` force `role: 'customer'`. |
+
+Parcours vendeur réel : compte client → `/vendeur/devenir` (candidature) →
+approbation admin → `/espace-vendeur` (exige `producer.status === 'approved'`).
+
+**À surveiller en produit** : SMTP transactionnel toujours inactif → préparer un
+provider (ex. Resend) le jour où l'on veut de vraies confirmations/récupérations de mot de passe.
+
+---
+
 ## 1. Refactorisation technique — en cours
 
 ### ✅ Terminé

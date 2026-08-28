@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User, Store } from 'lucide-react';
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
@@ -219,6 +219,7 @@ const Navbar = () => {
               </div>
             </div>
             <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>Fournisseurs</Link>
+            <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Devenir vendeur</Link>
             <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>Comment ça marche</Link>
           </div>
 
@@ -262,6 +263,7 @@ const Navbar = () => {
           <span className="mobile-bar-publish-ico"><PlusCircle size={22} strokeWidth={2} /></span>
           <span>Publier</span>
         </button>
+        <Link to="/vendeur/devenir" className="mobile-bar-item mobile-bar-seller"><Store size={19} strokeWidth={1.8} /><span>Vendeur</span></Link>
         <Link to={isAuthenticated ? '/my-account' : '/account'} className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
       </div>
     </>

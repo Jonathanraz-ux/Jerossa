@@ -237,6 +237,28 @@
   width: 100%;
 }
 
+/* Link « Devenir vendeur » — mis en avant */
+.nav-link--seller {
+  color: var(--brand-green);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-link--seller:hover,
+.nav-link--seller.is-open {
+  color: var(--brand-green-dark);
+}
+
+.nav-link--seller::after {
+  background: var(--brand-green);
+}
+
+.mobile-bar-seller {
+  color: var(--brand-green);
+}
+
 /* Dropdown trigger (Catégories) */
 .nav-link--dd {
   display: inline-flex;
