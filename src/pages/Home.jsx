@@ -10,7 +10,9 @@ import {
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { fetchProducts, fetchCategories } from '../services/catalog';
 import { useCurrency, CURRENCY_NOTE } from '../context/CurrencyContext';
+import { useLang } from '../context/LangContext';
 import SmartImg from '../components/common/SmartImg';
+import HeroCards from '../components/home/HeroCards';
 
 const FAQ_ITEMS = [
   { q: "Comment fonctionne la plateforme Jerossa ?", a: "Jerossa met en relation les producteurs et fournisseurs de Madagascar et de Maurice avec des acheteurs et des entreprises. Vous parcourez le catalogue de produits, comparez les offres et contactez directement le vendeur." },
@@ -33,6 +35,7 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { convert, currency } = useCurrency();
+  const { t } = useLang();
   const [openFaq, setOpenFaq] = useState(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [howTab, setHowTab] = useState('acheter');
@@ -76,76 +79,79 @@ const Home = () => {
     <div className="home-page">
       {/* ===== HERO SECTION ===== */}
       <section className="hero-section" id="accueil">
-        <div className="hero-bg-img">
-          <img
-            src="/hero-bg.jpg"
-            alt=""
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-          />
+        <div className="hero-bg-media">
+          <picture>
+            <source media="(max-width: 768px)" srcSet="/hero-bg-mobile.jpg" />
+            <img
+              src="/hero-bg-desktop.jpg"
+              alt="Jerossa — Terroirs & Échanges Madagascar - Maurice"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="hero-bg-img"
+              width="2560"
+              height="1440"
+            />
+          </picture>
         </div>
-        <div className="hero-bg-overlay"></div>
-        <div className="hero-deco-circle hero-deco-1"></div>
-        <div className="hero-deco-circle hero-deco-2"></div>
+        <div className="hero-bg-gradient-vignette" aria-hidden="true"></div>
+
         <div className="container hero-container">
           <div className="hero-content">
-            <div className="hero-badge">
-              <Sprout size={14} strokeWidth={1.5} />
-              <span>La marketplace entre Madagascar & Maurice</span>
+            <div className="hero-badge" id="hero-badge">
+              <Sprout size={14} strokeWidth={1.75} className="hero-badge-icon" />
+              <span>{t('hero.badge')}</span>
             </div>
+
             <h1 className="hero-title">
-              Les richesses de Madagascar,<br />
-              <span className="hero-title-accent">les opportunités de Maurice.</span>
+              {t('hero.title.line1')}<br />
+              <span className="hero-title-accent">{t('hero.title.accent')}</span>
             </h1>
+
             <p className="hero-description">
-              Découvrez des produits authentiques et trouvez des fournisseurs fiables
-              sur une plateforme conçue pour rapprocher Madagascar et Maurice.
+              {t('hero.desc')}
             </p>
+
             <div className="hero-actions">
-              <Link to="/boutique" className="btn-primary-luxury">
-                Explorer les produits
+              <Link to="/boutique" className="btn-hero-primary" id="hero-btn-explore">
+                <span>{t('hero.cta.primary')}</span>
                 <ArrowRight size={16} />
               </Link>
-              <Link to="/publier" className="btn-ghost-luxury">
+              <Link to="/publier" className="btn-hero-secondary" id="hero-btn-publish">
                 <PlusCircle size={15} />
-                Publier une offre
+                <span>{t('hero.cta.secondary')}</span>
               </Link>
             </div>
 
-            <div className="hero-trust-row">
+            <div className="hero-trust-row" aria-label="Engagements de confiance">
               <div className="hero-trust-item">
-                <BadgeCheck size={14} strokeWidth={1.5} />
-                <span>Profils vérifiés</span>
+                <BadgeCheck size={15} strokeWidth={1.75} />
+                <span>{t('hero.trust.profiles')}</span>
               </div>
               <div className="hero-trust-item">
-                <Truck size={14} strokeWidth={1.5} />
-                <span>Échanges Madagascar ↔ Maurice</span>
+                <Truck size={15} strokeWidth={1.75} />
+                <span>{t('hero.trust.shipping')}</span>
               </div>
               <div className="hero-trust-item">
-                <Shield size={14} strokeWidth={1.5} />
-                <span>Échanges sécurisés</span>
+                <Shield size={15} strokeWidth={1.75} />
+                <span>{t('hero.trust.security')}</span>
               </div>
               <div className="hero-trust-item">
-                <Heart size={14} strokeWidth={1.5} />
-                <span>Commerce équitable</span>
+                <Heart size={15} strokeWidth={1.75} />
+                <span>{t('hero.trust.direct')}</span>
               </div>
             </div>
           </div>
 
-          <div className="hero-visual">
-            <div className="hero-gemini-card hero-gemini-card-1">
-              <img src="/Gemini_Generated_Image_8431gg8431gg8431.png" alt="Épices et produits de Madagascar" loading="lazy" />
-            </div>
-            <div className="hero-gemini-card hero-gemini-card-2">
-              <img src="/hero-certif.png" alt="Produits de Madagascar" loading="lazy" />
-            </div>
+          <div className="hero-visual-zone">
+            <HeroCards />
           </div>
         </div>
-        <div className="hero-scroll-indicator">
-          <span>Découvrir</span>
-          <ChevronDown size={14} strokeWidth={1.5} />
-        </div>
+
+        <a href="#recherche" className="hero-scroll-indicator" aria-label={t('hero.scroll')}>
+          <span className="hero-scroll-text">{t('hero.scroll')}</span>
+          <ChevronDown size={14} strokeWidth={2} className="hero-scroll-chevron" />
+        </a>
       </section>
 
       {/* ===== ADVANCED SEARCH ===== */}
