@@ -46,17 +46,23 @@ const mapCategory = (row) => ({
 
 const mapProducer = (row) => ({
   id: row.seller_code,
+  rawId: row.id,
   slug: row.slug,
   name: row.name,
   location: row.location,
   description: row.description,
   image: row.image_url,
+  logoUrl: row.logo_url || '',
+  isVerified: !!row.is_verified,
   rating: Number(row.rating),
   reviews: row.reviews_count,
   established: row.established,
   certifications: row.certifications || [],
   responseRate: row.response_rate,
   responseTime: row.response_time,
+  contactEmail: row.contact_email || '',
+  phone: row.phone || '',
+  userId: row.user_id || '',
 });
 
 export const fetchProducts = async () => {

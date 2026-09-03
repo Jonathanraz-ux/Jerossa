@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, ShoppingCart, FileText, Store, ExternalLink, RefreshCw,
+  LayoutDashboard, Package, ShoppingCart, FileText, Store, ExternalLink, RefreshCw, MessageSquare,
 } from 'lucide-react';
 import { fetchMyProducer } from '../services/seller';
 import './seller.css';
@@ -11,6 +11,7 @@ const TABS = [
   { to: '/espace-vendeur/produits', label: 'Produits', icon: Package },
   { to: '/espace-vendeur/commandes', label: 'Commandes', icon: ShoppingCart },
   { to: '/espace-vendeur/devis', label: 'Devis', icon: FileText },
+  { to: '/espace-vendeur/messages', label: 'Messages', icon: MessageSquare },
   { to: '/espace-vendeur/boutique', label: 'Ma boutique', icon: Store },
 ];
 

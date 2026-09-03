@@ -19,7 +19,7 @@ export const fetchMyProducer = async () => {
 
 export const saveMyShop = async ({
   name, location, description, established,
-  contactEmail, phone, paymentInfo, imageUrl,
+  contactEmail, phone, paymentInfo, imageUrl, logoUrl,
 }) => {
   const { error } = await supabase.rpc('update_my_shop', {
     p_name: name,
@@ -30,6 +30,7 @@ export const saveMyShop = async ({
     p_phone: phone || null,
     p_payment_info: paymentInfo || {},
     p_image_url: imageUrl || null,
+    p_logo_url: logoUrl || null,
   });
   if (error) {
     console.error('[seller] saveMyShop', error);
@@ -47,6 +48,18 @@ export const uploadShopImage = async (file) => {
     .upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw error;
   const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return data.publicUrl;
+};
+
+export const uploadSellerLogo = async (file) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const ext = file.name.split('.').pop().toLowerCase() || 'png';
+  const path = `${user.id}/logo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage
+    .from('seller-logos')
+    .upload(path, file, { contentType: file.type, upsert: true });
+  if (error) throw error;
+  const { data } = supabase.storage.from('seller-logos').getPublicUrl(path);
   return data.publicUrl;
 };
 

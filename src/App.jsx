@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { CurrencyProvider } from './context/CurrencyContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { LangProvider } from './context/LangContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -21,6 +22,7 @@ import SellerProductEdit from './seller/SellerProductEdit';
 import SellerOrders from './seller/SellerOrders';
 import SellerQuotes from './seller/SellerQuotes';
 import SellerShop from './seller/SellerShop';
+import SellerMessages from './seller/SellerMessages';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Account from './pages/Account';
@@ -30,6 +32,7 @@ import Search from './pages/Search';
 import Category from './pages/Category';
 import Producer from './pages/Producer';
 import ProducerShop from './pages/ProducerShop';
+import MessagesPage from './pages/MessagesPage';
 import Checkout from './pages/Checkout';
 import Payment from './pages/Payment';
 import OrderConfirmation from './pages/OrderConfirmation';
@@ -94,6 +97,7 @@ function AppRoutes() {
             <Route path="produits/:id" element={<SellerProductEdit />} />
             <Route path="commandes" element={<SellerOrders />} />
             <Route path="devis" element={<SellerQuotes />} />
+            <Route path="messages" element={<SellerMessages />} />
             <Route path="boutique" element={<SellerShop />} />
           </Route>
           <Route path="/search" element={<Search />} />
@@ -121,6 +125,8 @@ function AppRoutes() {
           <Route path="/refund/:id" element={<RefundDetails />} />
           <Route path="/my-addresses" element={<MyAddresses />} />
           <Route path="/my-favorites" element={<MyFavorites />} />
+          <Route path="/my-messages" element={<MessagesPage />} />
+          <Route path="/my-messages/:id" element={<MessagesPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<Faq />} />
@@ -145,13 +151,15 @@ function App() {
   return (
     <Router>
       <FeedbackProvider>
-        <AuthProvider>
-          <CurrencyProvider>
-            <CartProvider>
-              <AppRoutes />
-            </CartProvider>
-          </CurrencyProvider>
-        </AuthProvider>
+        <LangProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <CartProvider>
+                <AppRoutes />
+              </CartProvider>
+            </CurrencyProvider>
+          </AuthProvider>
+        </LangProvider>
       </FeedbackProvider>
     </Router>
   );
