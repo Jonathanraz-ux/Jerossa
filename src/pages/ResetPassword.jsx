@@ -31,7 +31,7 @@ const ResetPassword = () => {
       return;
     }
     setLoading(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await supabase.auth.updateUser({ password: formData.password });
     setLoading(false);
     if (updateError) {
       setError(updateError.message);

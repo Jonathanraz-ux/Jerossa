@@ -9,7 +9,7 @@ import './animations.css';
 
 const MyAccount = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [orders, setOrders] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -123,6 +123,7 @@ const MyAccount = () => {
                 return;
               }
               setSaved(true);
+              refreshProfile(user.id);
               setTimeout(() => setSaved(false), 3000);
             }} disabled={saving}>
               {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
@@ -216,20 +217,11 @@ const MyAccount = () => {
               <MapPin size={20} />
               <h2>Mes adresses</h2>
             </div>
-            <div className="address-card">
-              <div className="address-card-header">
-                <div>
-                  <div className="address-card-name">Adresse principale</div>
-                  <div className="address-card-details">Lot IVT 123, Ambohijatovo, Antananarivo 101, Madagascar</div>
-                </div>
-                <span className="status-badge success">Par défaut</span>
-              </div>
-              <div className="address-card-actions">
-                <button className="btn-ghost" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>Modifier</button>
-                <button className="btn-ghost" style={{ fontSize: '0.8rem', padding: '4px 8px', color: 'var(--danger)' }}>Supprimer</button>
-              </div>
+            <div className="account-empty">
+              <MapPin size={32} />
+              <p>Aucune adresse enregistrée.</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Les adresses seront disponibles lors du prochain checkout.</p>
             </div>
-            <button className="btn btn-outline" style={{ width: '100%', marginTop: '1rem' }}>Ajouter une adresse</button>
           </div>
         );
       case 'favorites':

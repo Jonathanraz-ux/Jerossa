@@ -5,13 +5,20 @@ import { supabase } from '../lib/supabase';
 import './animations.css';
 
 const Settings = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwError, setPwError] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -96,6 +103,7 @@ const Settings = () => {
                 return;
               }
               setSaved(true);
+              refreshProfile(user.id);
               setTimeout(() => setSaved(false), 3000);
             }} disabled={saving} style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Save size={16} /> {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
@@ -138,20 +146,67 @@ const Settings = () => {
         {activeTab === 'security' && (
           <div>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-dark)' }}>Sécurité</h2>
+            {pwError && (
+              <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
+                {pwError}
+              </div>
+            )}
+            {pwSaved && (
+              <div style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', background: 'var(--success-bg)', color: 'var(--success)', fontSize: '13px', fontWeight: 500 }}>
+                Mot de passe mis à jour avec succès.
+              </div>
+            )}
             <div className="form-group" style={{ marginBottom: '16px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Mot de passe actuel</label>
-              <input type="password" className="form-input" placeholder="••••••••" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+              <input type="password" className="form-input" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
             </div>
             <div className="form-group" style={{ marginBottom: '16px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Nouveau mot de passe</label>
-              <input type="password" className="form-input" placeholder="Min. 8 caractères" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+              <input type="password" className="form-input" placeholder="Min. 8 caractères" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
             </div>
             <div className="form-group" style={{ marginBottom: '24px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Confirmer le nouveau mot de passe</label>
-              <input type="password" className="form-input" placeholder="Confirmer" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+              <input type="password" className="form-input" placeholder="Confirmer" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
             </div>
-            <button className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Lock size={16} /> Mettre à jour le mot de passe
+            <button className="btn btn-primary" onClick={async () => {
+              if (!user) return;
+              setPwError('');
+              setPwSaved(false);
+              if (newPassword.length < 8) {
+                setPwError('Le nouveau mot de passe doit contenir au moins 8 caractères.');
+                return;
+              }
+              if (newPassword !== confirmPassword) {
+                setPwError('Les mots de passe ne correspondent pas.');
+                return;
+              }
+              if (!currentPassword) {
+                setPwError('Veuillez saisir votre mot de passe actuel.');
+                return;
+              }
+              setPwLoading(true);
+              const { error: reauthError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: currentPassword,
+              });
+              if (reauthError) {
+                setPwLoading(false);
+                setPwError('Mot de passe actuel incorrect.');
+                return;
+              }
+              const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+              setPwLoading(false);
+              if (updateError) {
+                setPwError(updateError.message);
+                return;
+              }
+              setPwSaved(true);
+              setCurrentPassword('');
+              setNewPassword('');
+              setConfirmPassword('');
+              setTimeout(() => setPwSaved(false), 3000);
+            }} disabled={pwLoading} style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: pwLoading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Lock size={16} /> {pwLoading ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
             </button>
           </div>
         )}

@@ -15,6 +15,7 @@ import Publish from './pages/Publish';
 import BecomeSeller from './pages/BecomeSeller';
 import SellerStatus from './pages/SellerStatus';
 import ProtectedSellerRoute from './components/ProtectedSellerRoute';
+import ProtectedClientRoute from './components/ProtectedClientRoute';
 import SellerLayout from './seller/SellerLayout';
 import SellerDashboard from './seller/SellerDashboard';
 import SellerProducts from './seller/SellerProducts';
@@ -121,19 +122,19 @@ function AppRoutes() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/my-account" element={<MyAccount />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-          <Route path="/order/:id" element={<OrderDetails />} />
-          <Route path="/my-quotes" element={<MyQuotes />} />
-          <Route path="/quote/:id" element={<QuoteDetails />} />
-          <Route path="/refund-request" element={<RefundRequest />} />
-          <Route path="/my-refunds" element={<MyRefunds />} />
-          <Route path="/refund/:id" element={<RefundDetails />} />
-          <Route path="/my-addresses" element={<MyAddresses />} />
-          <Route path="/my-favorites" element={<MyFavorites />} />
-          <Route path="/my-messages" element={<MessagesPage />} />
-          <Route path="/my-messages/:id" element={<MessagesPage />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/my-account" element={<ProtectedClientRoute><MyAccount /></ProtectedClientRoute>} />
+          <Route path="/my-orders" element={<ProtectedClientRoute><MyOrders /></ProtectedClientRoute>} />
+          <Route path="/order/:id" element={<ProtectedClientRoute><OrderDetails /></ProtectedClientRoute>} />
+          <Route path="/my-quotes" element={<ProtectedClientRoute><MyQuotes /></ProtectedClientRoute>} />
+          <Route path="/quote/:id" element={<ProtectedClientRoute><QuoteDetails /></ProtectedClientRoute>} />
+          <Route path="/refund-request" element={<ProtectedClientRoute><RefundRequest /></ProtectedClientRoute>} />
+          <Route path="/my-refunds" element={<ProtectedClientRoute><MyRefunds /></ProtectedClientRoute>} />
+          <Route path="/refund/:id" element={<ProtectedClientRoute><RefundDetails /></ProtectedClientRoute>} />
+          <Route path="/my-addresses" element={<ProtectedClientRoute><MyAddresses /></ProtectedClientRoute>} />
+          <Route path="/my-favorites" element={<ProtectedClientRoute><MyFavorites /></ProtectedClientRoute>} />
+          <Route path="/my-messages" element={<ProtectedClientRoute><MessagesPage /></ProtectedClientRoute>} />
+          <Route path="/my-messages/:id" element={<ProtectedClientRoute><MessagesPage /></ProtectedClientRoute>} />
+          <Route path="/settings" element={<ProtectedClientRoute><Settings /></ProtectedClientRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/about" element={<About />} />

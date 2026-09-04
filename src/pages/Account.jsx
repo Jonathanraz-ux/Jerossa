@@ -61,8 +61,8 @@ const Account = () => {
             </ul>
 
             <div className="account-forms" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <button className="btn" style={{ width: '100%', padding: '14px', borderRadius: '8px', fontWeight: 600, background: 'var(--bg-cream)', color: 'var(--text-dark)', border: '1px solid var(--border)' }}>Accès Partenaire</button>
-              <Link to="/register" className="btn btn-outline" style={{ width: '100%', padding: '14px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}>Devenir Vendeur</Link>
+              <Link to="/vendeur/devenir" className="btn btn-primary" style={{ width: '100%', padding: '14px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none', color: '#fff' }}>Devenir Vendeur</Link>
+              <Link to="/login" className="btn btn-outline" style={{ width: '100%', padding: '14px', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}>Se connecter (vendeur)</Link>
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@ import {
   Package, Briefcase, CheckCircle2, ArrowRight, Upload, MapPin,
   ChevronDown, Lock, Info, PlusCircle, X, Store, Clock, XCircle, Ban
 } from 'lucide-react';
-import { categoriesData } from '../data/categories';
+import { fetchCategoriesForSelect } from '../services/seller';
 import { serviceCategories } from '../data/services';
 import { useCurrency, CURRENCIES, CURRENCY_NOTE } from '../context/CurrencyContext';
 import { supabase } from '../lib/supabase';
@@ -51,9 +51,10 @@ const Publish = () => {
   const [producerChecked, setProducerChecked] = useState(false);
   const [publishError, setPublishError] = useState('');
   const [publishedProduct, setPublishedProduct] = useState(null);
+  const [categoriesData, setCategoriesData] = useState([]);
 
   const [pTitle, setPTitle] = useState('');
-  const [pCategoryName, setPCategoryName] = useState(categoriesData[0]?.name || '');
+  const [pCategoryName, setPCategoryName] = useState('');
   const [pDescription, setPDescription] = useState('');
   const [pPrice, setPPrice] = useState('');
   const [pUnit, setPUnit] = useState('kg');
@@ -80,6 +81,21 @@ const Publish = () => {
     })();
     return () => { alive = false; };
   }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const cats = await fetchCategoriesForSelect();
+      if (alive) {
+        setCategoriesData(cats);
+        if (cats.length && !pCategoryName) {
+          setPCategoryName(cats[0].name);
+        }
+      }
+    })();
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isApprovedSeller = !!(producer && producer.status === 'approved');
 
