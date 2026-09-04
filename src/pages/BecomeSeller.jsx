@@ -1,16 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Store, CheckCircle2, Clock, XCircle, Ban, Upload, ChevronDown,
-  FileText, X, LogIn, Loader2
+  FileText, X, LogIn, Loader2, ShieldCheck, Info
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import './SellerOnboarding.css';
 
-const MAX_DOCS = 3;
 const MAX_SIZE_MB = 10;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+const ACCEPTED_EXT = '.jpg,.jpeg,.png,.pdf';
 
 const PAYMENT_METHODS = [
   'MVola',
@@ -19,6 +19,12 @@ const PAYMENT_METHODS = [
   'Virement bancaire (MCB / SBM)',
   'Juice / MauCas (Maurice)',
   'Autre'
+];
+
+const SELLER_TYPES = [
+  { value: 'individual', label: 'Particulier / artisan / producteur individuel' },
+  { value: 'company',    label: 'Entreprise / société' },
+  { value: 'cooperative', label: 'Coopérative / association' }
 ];
 
 const Field = ({ label, required, children, hint }) => (
@@ -31,19 +37,33 @@ const Field = ({ label, required, children, hint }) => (
   </div>
 );
 
-const slugify = (value) =>
-  (value || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .slice(0, 48) || 'boutique';
-
 const formatSize = (bytes) => {
   if (!bytes) return '';
   const kb = bytes / 1024;
   return kb > 1024 ? `${(kb / 1024).toFixed(1)} Mo` : `${Math.round(kb)} Ko`;
+};
+
+const DOCUMENT_SLOTS = {
+  individual: [
+    { key: 'identity',        label: 'Pièce d\'identité en cours de validité',      required: true,  description: 'Carte nationale d\'identité ou passeport. Le nom doit correspondre aux informations renseignées dans votre dossier.' },
+    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Capture ou document récent indiquant votre nom et le numéro Mobile Money ou le compte bancaire choisi. Masquez le solde et les transactions : seuls le nom du titulaire et le numéro du compte sont nécessaires.' },
+    { key: 'activity_proof',  label: 'Justificatif d\'activité',                    required: false, description: 'Carte fiscale, carte professionnelle, attestation de producteur, document d\'enregistrement ou autre preuve officielle de votre activité, si vous en disposez.' }
+  ],
+  company: [
+    { key: 'registration',    label: 'Document d\'immatriculation',                 required: true,  description: 'Extrait RCS ou document officiel équivalent attestant l\'existence de l\'entreprise.' },
+    { key: 'tax_id',          label: 'Identification fiscale',                      required: true,  description: 'NIF, carte fiscale ou document fiscal officiel équivalent.' },
+    { key: 'representative_id', label: 'Pièce d\'identité du représentant légal',   required: true,  description: 'Carte nationale d\'identité ou passeport en cours de validité du représentant déclaré.' },
+    { key: 'company_docs',    label: 'Document complémentaire de l\'entreprise',     required: false, description: 'Carte STAT, statuts, mandat du représentant ou autre justificatif officiel utile à la vérification.' },
+    { key: 'activity_auth',   label: 'Autorisation d\'activité',                    required: false, conditional: true, description: 'Licence, agrément, certificat ou autorisation administrative lorsque les produits vendus appartiennent à une activité réglementée.' },
+    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Le compte de paiement doit appartenir à l\'entreprise ou à un représentant autorisé. Masquez le solde et les transactions.' }
+  ],
+  cooperative: [
+    { key: 'registration',    label: 'Document d\'enregistrement',                  required: true,  description: 'Récépissé, agrément, certificat ou autre document officiel attestant l\'existence de l\'organisation.' },
+    { key: 'representative_id', label: 'Pièce d\'identité du responsable',           required: true,  description: 'Carte nationale d\'identité ou passeport en cours de validité du responsable déclaré.' },
+    { key: 'mandate',         label: 'Statuts ou mandat du responsable',            required: false, description: 'Document permettant de confirmer que la personne inscrite peut représenter l\'organisation.' },
+    { key: 'activity_auth',   label: 'Autorisation d\'activité',                    required: false, conditional: true, description: 'Licence, agrément ou certificat lorsque l\'activité ou les produits proposés sont réglementés.' },
+    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Le compte de paiement doit appartenir à l\'organisation ou au responsable autorisé. Masquez le solde et les transactions.' }
+  ]
 };
 
 const BecomeSeller = () => {
@@ -62,9 +82,11 @@ const BecomeSeller = () => {
   const [payMethod, setPayMethod] = useState(PAYMENT_METHODS[0]);
   const [payDetail, setPayDetail] = useState('');
 
-  const fileInputRef = useRef(null);
-  const [docs, setDocs] = useState([]);
-  const [docError, setDocError] = useState('');
+  const [sellerType, setSellerType] = useState('');
+  const [docSlots, setDocSlots] = useState({});
+  const [slotErrors, setSlotErrors] = useState({});
+  const [consentGiven, setConsentGiven] = useState(false);
+
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -92,6 +114,18 @@ const BecomeSeller = () => {
         setPhone(data.phone || '');
         setPayMethod(data.payment_info?.method || PAYMENT_METHODS[0]);
         setPayDetail(data.payment_info?.detail || '');
+        setSellerType(data.seller_type || '');
+        const prevDocs = Array.isArray(data.documents) ? data.documents : [];
+        if (prevDocs.length && data.seller_type) {
+          const slots = {};
+          const slotsDef = DOCUMENT_SLOTS[data.seller_type] || [];
+          prevDocs.forEach((doc, i) => {
+            if (slotsDef[i]) {
+              slots[slotsDef[i].key] = { file: null, existing: doc };
+            }
+          });
+          setDocSlots(slots);
+        }
       } else if (!data) {
         setEmail(user.email || '');
       }
@@ -100,44 +134,70 @@ const BecomeSeller = () => {
     return () => { alive = false; };
   }, [isAuthenticated, user]);
 
-  const addFiles = (fileList) => {
-    setDocError('');
-    const incoming = Array.from(fileList || []);
-    if (!incoming.length) return;
-    const rejected = [];
-    const accepted = [];
-    for (const f of incoming) {
-      if (!ACCEPTED_TYPES.includes(f.type)) { rejected.push(`${f.name} (format)`); continue; }
-      if (f.size > MAX_SIZE_MB * 1024 * 1024) { rejected.push(`${f.name} (> ${MAX_SIZE_MB} Mo)`); continue; }
-      accepted.push(f);
+  const handleSellerTypeChange = (e) => {
+    const newType = e.target.value;
+    setSellerType(newType);
+    setDocSlots({});
+    setSlotErrors({});
+  };
+
+  const handleSlotFile = (slotKey, fileList) => {
+    setSlotErrors(prev => ({ ...prev, [slotKey]: '' }));
+    const file = fileList?.[0];
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setSlotErrors(prev => ({ ...prev, [slotKey]: 'Format non accepté. Utilisez JPG, PNG ou PDF.' }));
+      return;
     }
-    setDocs(prev => {
-      const room = MAX_DOCS - prev.length;
-      const toAdd = accepted.slice(0, Math.max(0, room));
-      if (toAdd.length < accepted.length) rejected.push(`limite de ${MAX_DOCS} fichiers atteinte`);
-      return [...prev, ...toAdd];
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setSlotErrors(prev => ({ ...prev, [slotKey]: `Fichier trop volumineux (max ${MAX_SIZE_MB} Mo).` }));
+      return;
+    }
+    setDocSlots(prev => ({ ...prev, [slotKey]: { file, existing: null } }));
+  };
+
+  const removeSlotFile = (slotKey) => {
+    setDocSlots(prev => {
+      const next = { ...prev };
+      delete next[slotKey];
+      return next;
     });
-    if (rejected.length) setDocError(`Fichiers ignorés : ${rejected.join(', ')}.`);
+    setSlotErrors(prev => {
+      const next = { ...prev };
+      delete next[slotKey];
+      return next;
+    });
   };
 
-  const removeDoc = (index) => {
-    setDocError('');
-    setDocs(prev => prev.filter((_, i) => i !== index));
+  const clearSlotError = (slotKey) => {
+    setSlotErrors(prev => {
+      const next = { ...prev };
+      delete next[slotKey];
+      return next;
+    });
   };
 
-  const uploadDocuments = async () => {
-    if (!docs.length) return [];
+  const uploadNewDocuments = async () => {
+    const entries = Object.entries(docSlots).filter(([, v]) => v.file);
+    if (!entries.length) return [];
     setUploading(true);
     try {
       const uploaded = [];
-      for (const file of docs) {
+      for (const [slotKey, { file }] of entries) {
         const ext = file.name.split('.').pop().toLowerCase() || 'dat';
-        const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const rand = Math.random().toString(36).slice(2, 10);
+        const path = `${user.id}/${slotKey}/${Date.now()}-${rand}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from('seller-documents')
           .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
-        uploaded.push({ path, name: file.name, size: file.size, type: file.type });
+        uploaded.push({
+          slot: slotKey,
+          path,
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
       }
       return uploaded;
     } finally {
@@ -145,17 +205,33 @@ const BecomeSeller = () => {
     }
   };
 
+  const allRequiredUploaded = DOCUMENT_SLOTS[sellerType]?.every(slot => {
+    if (!slot.required) return true;
+    const val = docSlots[slot.key];
+    return val && (val.file || val.existing);
+  }) ?? false;
+
+  const canSubmit = allRequiredUploaded && consentGiven && !saving && !uploading;
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!isAuthenticated) return;
-    if (!docs.length && !(existing && Array.isArray(existing.documents) && existing.documents.length)) {
-      setDocError('Ajoutez au moins une pièce justificative (CNI / passeport ou registre de commerce).');
+    if (!sellerType) {
+      setError('Veuillez sélectionner votre type de vendeur.');
+      return;
+    }
+    if (!allRequiredUploaded) {
+      setError('Veuillez fournir tous les documents obligatoires pour votre profil.');
+      return;
+    }
+    if (!consentGiven) {
+      setError('Vous devez accepter les conditions d\'utilisation de vos documents.');
       return;
     }
     setSaving(true);
     try {
-      const newDocs = await uploadDocuments();
+      const newDocs = await uploadNewDocuments();
       const previousDocs = existing && Array.isArray(existing.documents) ? existing.documents : [];
       const payload = {
         name: name.trim(),
@@ -165,6 +241,7 @@ const BecomeSeller = () => {
         contact_email: email.trim(),
         phone: phone.trim() || null,
         payment_info: { method: payMethod, detail: payDetail.trim() },
+        seller_type: sellerType,
         documents: [...previousDocs, ...newDocs],
         status: 'pending',
         submitted_at: new Date().toISOString()
@@ -181,7 +258,7 @@ const BecomeSeller = () => {
           const { error: insErr } = await supabase.from('producers').insert({
             ...payload,
             user_id: user.id,
-            slug: `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`
+            slug: `${(name || 'boutique').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 48) || 'boutique'}-${Math.random().toString(36).slice(2, 6)}`
           });
           if (!insErr) { lastError = null; break; }
           lastError = insErr;
@@ -195,6 +272,61 @@ const BecomeSeller = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const renderDocSlot = (slot) => {
+    const val = docSlots[slot.key];
+    const uploaded = val && (val.file || val.existing);
+    const isExisting = val?.existing;
+    const slotError = slotErrors[slot.key];
+    const badgeClass = slot.required
+      ? 'sl-doc-badge sl-doc-badge--required'
+      : 'sl-doc-badge sl-doc-badge--optional';
+
+    return (
+      <div key={slot.key} className={`sl-doc-slot${uploaded ? ' sl-doc-slot--filled' : ''}${slotError ? ' sl-doc-slot--error' : ''}`}>
+        <div className="sl-doc-slot-header">
+          <span className={badgeClass}>
+            {slot.required ? 'Obligatoire' : slot.conditional ? 'Selon votre activité' : 'Facultatif'}
+          </span>
+          <span className="sl-doc-slot-label">{slot.label}</span>
+        </div>
+        <p className="sl-doc-slot-desc">{slot.description}</p>
+
+        {uploaded ? (
+          <div className="sl-doc-slot-file">
+            <FileText size={16} />
+            <span className="sl-doc-slot-filename">
+              {isExisting ? existing?.name || 'Document transmis' : val.file.name}
+            </span>
+            {!isExisting && <span className="sl-doc-slot-size">{formatSize(val.file.size)}</span>}
+            {isExisting && <span className="sl-doc-slot-existing">Déjà transmis</span>}
+            <button type="button" className="sl-doc-slot-remove" aria-label="Retirer ce fichier" onClick={() => removeSlotFile(slot.key)}>
+              <X size={13} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <label className="sl-doc-slot-upload">
+              <Upload size={16} />
+              <span>Choisir un fichier</span>
+              <input
+                type="file"
+                accept={ACCEPTED_EXT}
+                hidden
+                onChange={(e) => { handleSlotFile(slot.key, e.target.files); e.target.value = ''; }}
+              />
+            </label>
+          </>
+        )}
+
+        {slotError && (
+          <span className="sl-doc-slot-error" onClick={() => clearSlotError(slot.key)}>
+            {slotError}
+          </span>
+        )}
+      </div>
+    );
   };
 
   if (checking) {
@@ -287,7 +419,7 @@ const BecomeSeller = () => {
   }
 
   const isResubmission = existing && existing.status === 'rejected';
-  const previousDocsCount = isResubmission && Array.isArray(existing.documents) ? existing.documents.length : 0;
+  const currentSlots = sellerType ? DOCUMENT_SLOTS[sellerType] : [];
 
   return (
     <div className="sl-page">
@@ -363,50 +495,75 @@ const BecomeSeller = () => {
             </div>
 
             <div className="sl-section">
-              <h2 className="sl-section-title">Pièces justificatives</h2>
-              <Field hint="Ces documents ne sont consultables que par l'équipe Jerossa.">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={ACCEPTED_TYPES.join(',')}
-                  multiple
-                  hidden
-                  onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
-                />
-                <button
-                  type="button"
-                  className="sl-upload"
-                  disabled={docs.length >= MAX_DOCS}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload size={20} />
-                  <span><strong>Ajouter des pièces</strong></span>
-                  <span className="sl-upload-hint">JPG, PNG, PDF — max {MAX_SIZE_MB} Mo — jusqu'à {MAX_DOCS} fichiers</span>
-                </button>
-                {docError && (
-                  <span className="sl-hint" style={{ color: 'var(--danger)' }}>{docError}</span>
-                )}
-                {(docs.length > 0 || previousDocsCount > 0) && (
-                  <ul className="sl-doc-list">
-                    {Array.from({ length: previousDocsCount }).map((_, i) => (
-                      <li key={`prev-${i}`} className="sl-doc-item sl-doc-item--readonly">
-                        <FileText size={16} />
-                        <span>Pièce déjà transmise #{i + 1}</span>
-                      </li>
-                    ))}
-                    {docs.map((f, i) => (
-                      <li key={`${f.name}-${i}`} className="sl-doc-item">
-                        <FileText size={16} />
-                        <span>{f.name}</span>
-                        <em>{formatSize(f.size)}</em>
-                        <button type="button" aria-label="Retirer ce fichier" onClick={() => removeDoc(i)}>
-                          <X size={13} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <Field label="Type de vendeur" required>
+                <div className="sl-select-wrap">
+                  <select className="sl-input sl-select" value={sellerType} onChange={handleSellerTypeChange} required>
+                    <option value="">— Sélectionnez votre profil —</option>
+                    {SELLER_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                  <ChevronDown size={15} />
+                </div>
               </Field>
+            </div>
+
+            <div className="sl-section">
+              <h2 className="sl-section-title">Vérification de votre identité et de votre activité</h2>
+
+              <p className="sl-doc-intro">
+                Ces documents permettent à Jerossa de confirmer votre identité, l'existence de votre activité
+                et la correspondance de vos informations de paiement. Ils contribuent à protéger les acheteurs
+                et les vendeurs contre les comptes frauduleux.
+              </p>
+
+              <div className="sl-doc-privacy">
+                <ShieldCheck size={18} />
+                <div>
+                  <strong>Confidentialité</strong>
+                  <p>
+                    Vos documents restent confidentiels. Ils sont uniquement accessibles aux administrateurs
+                    autorisés de Jerossa et ne sont jamais affichés sur votre profil public.
+                  </p>
+                </div>
+              </div>
+
+              <div className="sl-doc-info">
+                <Info size={15} />
+                <p>
+                  Jerossa demande uniquement les documents nécessaires à l'examen de votre dossier.
+                  Des justificatifs complémentaires peuvent être demandés si votre activité ou vos produits
+                  sont soumis à une autorisation particulière.
+                </p>
+              </div>
+
+              {!sellerType && (
+                <p className="sl-doc-placeholder">
+                  Sélectionnez votre type de vendeur ci-dessus pour afficher les justificatifs correspondants.
+                </p>
+              )}
+
+              {currentSlots.map(slot => renderDocSlot(slot))}
+            </div>
+
+            <div className="sl-section sl-consent-section">
+              <label className="sl-consent">
+                <input
+                  type="checkbox"
+                  checked={consentGiven}
+                  onChange={(e) => setConsentGiven(e.target.checked)}
+                  className="sl-consent-checkbox"
+                />
+                <span className="sl-consent-text">
+                  Je confirme que les informations et documents transmis sont exacts et j'accepte qu'ils
+                  soient utilisés par Jerossa pour vérifier mon identité, mon activité et mes informations
+                  de paiement.
+                </span>
+              </label>
+              <p className="sl-consent-legal">
+                Vous pouvez demander la rectification ou la suppression de vos données, sous réserve des
+                obligations légales applicables.
+                {' '}
+                <Link to="/privacy">Politique de confidentialité</Link>
+              </p>
             </div>
           </div>
 
@@ -420,8 +577,18 @@ const BecomeSeller = () => {
                 <li>Une fois validé, publiez vos offres et recevez des commandes.</li>
               </ol>
               {error && <p className="sl-error">{error}</p>}
-              <button type="submit" className="j-pill-btn j-pill-btn--green sl-submit" disabled={saving}>
-                {saving ? (<><Loader2 size={15} className="sl-spin" /> Envoi en cours…</>) : (<>Envoyer ma candidature{uploading ? ' (téléversement…)' : ''}</>)}
+              <button
+                type="submit"
+                className="j-pill-btn j-pill-btn--green sl-submit"
+                disabled={!canSubmit}
+              >
+                {saving ? (
+                  <><Loader2 size={15} className="sl-spin" /> Envoi en cours…</>
+                ) : uploading ? (
+                  <><Loader2 size={15} className="sl-spin" /> Téléversement…</>
+                ) : (
+                  <>Envoyer ma candidature</>
+                )}
               </button>
               <p className="sl-side-note">
                 En envoyant ce formulaire, vous acceptez les <Link to="/cgv">CGV</Link> et la{' '}

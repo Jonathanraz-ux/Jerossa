@@ -446,6 +446,7 @@ export const fetchSellerApplications = async () => {
     contactEmail: row.contact_email,
     phone: row.phone,
     paymentInfo: row.payment_info || {},
+    sellerType: row.seller_type || null,
     documents: Array.isArray(row.documents) ? row.documents : [],
     reviewNote: row.review_note,
     submittedAt: row.submitted_at,

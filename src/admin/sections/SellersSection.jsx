@@ -13,6 +13,12 @@ const SELLER_STATUS = {
   suspended: { label: 'Suspendue', tone: 'neutral' },
 };
 
+const SELLER_TYPE_LABELS = {
+  individual: 'Particulier / artisan',
+  company: 'Entreprise / société',
+  cooperative: 'Coopérative / association',
+};
+
 const SellerBadge = ({ status }) => (
   <span className={`adm-badge adm-badge--${SELLER_STATUS[status]?.tone || 'neutral'}`}>
     {SELLER_STATUS[status]?.label || status}
@@ -263,6 +269,10 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
             <div>
               <div className="adm-meta-label">Année de création</div>
               <div className="adm-meta-value">{seller.established || '—'}</div>
+            </div>
+            <div>
+              <div className="adm-meta-label">Type de vendeur</div>
+              <div className="adm-meta-value">{SELLER_TYPE_LABELS[seller.sellerType] || '—'}</div>
             </div>
             <div>
               <div className="adm-meta-label">Paiement souhaité</div>
