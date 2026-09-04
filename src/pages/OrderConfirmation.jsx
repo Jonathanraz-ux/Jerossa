@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Package, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Package, ArrowLeft, Loader2 } from 'lucide-react';
 import { fetchOrderByNumber } from '../services/orders';
 import './animations.css';
-
-const MOCK_ORDER = {
-  id: 'CMD-2026-004',
-  date: '30/07/2026',
-  statusLabel: 'Confirmée',
-  total: 448.5,
-  items: [
-    { name: 'Gousses de Vanille Bourbon Gourmet - Grade A', qty: 2, price: '220,00 € / kg' },
-    { name: 'Fèves de Cacao Fermentées Bio - Sambirano', qty: 1, price: '8,50 € / kg' }
-  ]
-};
 
 const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
 
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const ref = searchParams.get('ref');
-  const [order, setOrder] = useState(ref ? null : MOCK_ORDER);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(!!ref);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!ref) return;
+    if (!ref) { setLoading(false); return; }
     let active = true;
     fetchOrderByNumber(ref).then((fetched) => {
       if (!active) return;
-      setOrder(fetched || MOCK_ORDER);
+      if (fetched) {
+        setOrder(fetched);
+      } else {
+        setError(true);
+      }
+      setLoading(false);
+    }).catch(() => {
+      if (active) { setError(true); setLoading(false); }
     });
     return () => { active = false; };
   }, [ref]);
@@ -51,6 +49,23 @@ const OrderConfirmation = () => {
       </section>
 
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Chargement de la commande…</p>
+          </div>
+        ) : error || !order ? (
+          <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+            <h2 style={{ fontFamily: 'var(--font-serif)', marginBottom: '0.5rem' }}>Commande introuvable</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              {ref ? `Aucune commande trouvée pour la référence ${ref}.` : 'Aucune référence de commande fournie.'}
+            </p>
+            <Link to="/my-orders" className="btn btn-primary" style={{ textDecoration: 'none', padding: '12px 24px', borderRadius: '8px' }}>
+              Voir mes commandes
+            </Link>
+          </div>
+        ) : (
+          <>
         <div className="scroll-animate" style={{ textAlign: 'center', padding: '40px 0' }}>
           <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--success-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
             <CheckCircle size={48} style={{ color: 'var(--success)' }} />
@@ -98,6 +113,8 @@ const OrderConfirmation = () => {
             <ArrowLeft size={16} /> Retour à l'accueil
           </Link>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

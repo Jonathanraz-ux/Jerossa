@@ -20,7 +20,7 @@ const MessagesPage = () => {
   const loadConversations = useCallback(async () => {
     setLoading(true);
     const data = await fetchMyConversations();
-    setConversations(data);
+    setConversations(data || []);
     setLoading(false);
   }, []);
 
@@ -34,12 +34,13 @@ const MessagesPage = () => {
     if (!convoId) return;
     setLoadingMessages(true);
     const data = await fetchConversationMessages(convoId);
-    setMessages(data);
+    setMessages(data || []);
     setLoadingMessages(false);
     await markConversationRead(convoId);
     // Refresh conversation list to update unread counts
-    loadConversations();
-  }, [loadConversations]);
+    const updated = await fetchMyConversations();
+    setConversations(updated || []);
+  }, []);
 
   useEffect(() => {
     if (selectedConvo) loadMessages(selectedConvo);
@@ -87,10 +88,10 @@ const MessagesPage = () => {
             <span style={{ color: 'var(--border)' }}>/</span>
             <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>Messages</span>
           </nav>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>Messages</h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>Mes messages</h1>
         </div>
 
-        <div className="msg-layout">
+        <div className={`msg-layout ${selectedConvo ? 'msg-layout--convo-active' : ''}`}>
           {/* Conversation list */}
           <div className="msg-list">
             {loading ? (
@@ -98,10 +99,15 @@ const MessagesPage = () => {
                 <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : conversations.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                <MessageSquare size={32} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                <p style={{ fontWeight: 600 }}>Aucune conversation</p>
-                <p style={{ fontSize: '0.8rem' }}>Vous n'avez pas encore de messages.</p>
+              <div style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--text-muted)' }}>
+                <MessageSquare size={36} style={{ opacity: 0.3, marginBottom: '0.75rem' }} />
+                <p style={{ fontWeight: 600, color: 'var(--text-dark)' }}>Aucune conversation</p>
+                <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
+                  Vous n'avez encore aucun échange. Contactez un vendeur depuis la fiche d'un produit.
+                </p>
+                <Link to="/boutique" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>
+                  Explorer le catalogue
+                </Link>
               </div>
             ) : (
               conversations.map((convo) => (
@@ -115,20 +121,20 @@ const MessagesPage = () => {
                       <img src={convo.sellerLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10, padding: '2px' }} />
                     ) : (
                       <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>
-                        {(convo.sellerName || '?').charAt(0)}
+                        {(convo.sellerName || '?').charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="msg-item-content">
                     <div className="msg-item-header">
-                      <span className="msg-item-name">{convo.sellerName}</span>
+                      <span className="msg-item-name">{convo.sellerName || 'Vendeur'}</span>
                       <span className="msg-item-time">{formatTime(convo.lastMessageAt)}</span>
                     </div>
                     {convo.productTitle && (
                       <div className="msg-item-product">{convo.productTitle}</div>
                     )}
                     <div className="msg-item-preview">
-                      {convo.lastMessage?.slice(0, 60) || convo.subject}
+                      {convo.lastMessage || convo.subject || 'Nouveau message'}
                     </div>
                   </div>
                   {convo.unreadCount > 0 && (
@@ -148,24 +154,26 @@ const MessagesPage = () => {
               }}>
                 <MessageSquare size={40} style={{ opacity: 0.2, marginBottom: '1rem' }} />
                 <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Sélectionnez une conversation</p>
-                <p style={{ fontSize: '0.85rem' }}>Choisissez une conversation dans la liste pour afficher les messages.</p>
+                <p style={{ fontSize: '0.85rem' }}>Choisissez un échange dans la liste pour afficher les messages.</p>
               </div>
             ) : loadingMessages ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--accent)' }} />
+                <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
               </div>
             ) : (
               <>
                 {/* Chat header */}
                 <div className="msg-chat-header">
-                  <button className="msg-back-btn" onClick={() => setSelectedConvo(null)}>
+                  <button type="button" className="msg-back-btn" onClick={() => setSelectedConvo(null)} title="Retour">
                     <ArrowLeft size={18} />
                   </button>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{selectedConvoData?.sellerName}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-dark)' }}>
+                      {selectedConvoData?.sellerName || 'Vendeur'}
+                    </div>
                     {selectedConvoData?.productTitle && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {selectedConvoData.productTitle}
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        Produit : {selectedConvoData.productTitle}
                       </div>
                     )}
                   </div>
@@ -195,6 +203,7 @@ const MessagesPage = () => {
                     className="msg-input"
                   />
                   <button
+                    type="button"
                     className="msg-send-btn"
                     onClick={handleSend}
                     disabled={!newMessage.trim() || sending}
@@ -218,12 +227,13 @@ const MessagesPage = () => {
           border: 1px solid var(--border);
           border-radius: 14px;
           overflow: hidden;
-          height: calc(100vh - 200px);
-          min-height: 500px;
+          height: calc(100vh - 220px);
+          min-height: 520px;
         }
         .msg-list {
           border-right: 1px solid var(--border);
           overflow-y: auto;
+          background: #fff;
         }
         .msg-item {
           display: flex;
@@ -241,7 +251,7 @@ const MessagesPage = () => {
           position: relative;
         }
         .msg-item:hover { background: var(--bg-cream); }
-        .msg-item--active { background: var(--primary-light); }
+        .msg-item--active { background: var(--primary-light) !important; }
         .msg-item-avatar {
           width: 42px; height: 42px; border-radius: 10px;
           background: var(--bg-cream); border: 1px solid var(--border);
@@ -252,7 +262,7 @@ const MessagesPage = () => {
         .msg-item-header { display: flex; justify-content: space-between; align-items: baseline; }
         .msg-item-name { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         .msg-item-time { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; margin-left: 8px; }
-        .msg-item-product { font-size: 0.7rem; color: var(--primary); font-weight: 500; margin: 1px 0; }
+        .msg-item-product { font-size: 0.72rem; color: var(--primary); font-weight: 500; margin: 1px 0; }
         .msg-item-preview {
           font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;
           overflow: hidden; text-overflow: ellipsis; max-width: 230px;
@@ -264,7 +274,7 @@ const MessagesPage = () => {
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
         }
-        .msg-chat { display: flex; flex-direction: column; }
+        .msg-chat { display: flex; flex-direction: column; background: #fff; }
         .msg-chat-header {
           display: flex; align-items: center; gap: 0.75rem;
           padding: 0.85rem 1rem; border-bottom: 1px solid var(--border);
@@ -279,7 +289,7 @@ const MessagesPage = () => {
         .msg-chat-body {
           flex: 1; overflow-y: auto; padding: 1rem;
           display: flex; flex-direction: column; gap: 0.5rem;
-          background: var(--bg-cream);
+          background: #faf9f7;
         }
         .msg-bubble {
           max-width: 75%; padding: 0.65rem 0.85rem;
@@ -294,9 +304,9 @@ const MessagesPage = () => {
         .msg-bubble p { margin: 0; }
         .msg-time {
           display: block; font-size: 0.65rem; margin-top: 4px;
-          opacity: 0.6; text-align: right;
+          opacity: 0.7; text-align: right;
         }
-        .msg-bubble--own .msg-time { color: rgba(255,255,255,0.7); }
+        .msg-bubble--own .msg-time { color: rgba(255,255,255,0.85); }
         .msg-chat-footer {
           display: flex; align-items: flex-end; gap: 0.5rem;
           padding: 0.75rem 1rem; border-top: 1px solid var(--border);
@@ -308,19 +318,22 @@ const MessagesPage = () => {
           resize: none; min-height: 38px; max-height: 120px;
           color: var(--text-dark); outline: none;
         }
-        .msg-input:focus { border-color: var(--accent); }
+        .msg-input:focus { border-color: var(--primary); }
         .msg-send-btn {
           width: 38px; height: 38px; border-radius: 10px;
           background: var(--primary); color: #fff; border: none;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; flex-shrink: 0; transition: background 0.2s;
         }
-        .msg-send-btn:hover { background: var(--primary-hover); }
+        .msg-send-btn:hover { background: var(--primary-hover, #1b4d3e); }
         .msg-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         @media (max-width: 768px) {
           .msg-layout { grid-template-columns: 1fr; height: calc(100vh - 160px); }
-          .msg-list { display: ${'{'}selectedConvo ? 'none' : 'block'}; }
+          .msg-layout .msg-list { display: block; }
+          .msg-layout .msg-chat { display: none; }
+          .msg-layout--convo-active .msg-list { display: none !important; }
+          .msg-layout--convo-active .msg-chat { display: flex !important; }
           .msg-back-btn { display: flex; }
         }
       `}</style>

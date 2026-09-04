@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getOrderById } from '../data/orders';
 import { fetchOrderByNumber } from '../services/orders';
 import { ArrowLeft, Truck, MapPin, CreditCard, RotateCcw } from 'lucide-react';
 import './animations.css';
@@ -36,7 +35,7 @@ const OrderDetails = () => {
     setOrder(null);
     fetchOrderByNumber(id).then((fetched) => {
       if (!active) return;
-      setOrder(fetched || getOrderById(id) || null);
+      setOrder(fetched || null);
     });
     return () => { active = false; };
   }, [id]);
@@ -132,7 +131,7 @@ const OrderDetails = () => {
               {address.postalCode} {address.city}, {address.country}
             </p>
           ) : (
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>12 Rue de la Vanille<br />75001 Paris, France</p>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>Adresse de livraison non renseignée</p>
           )}
         </div>
         <div className="premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>

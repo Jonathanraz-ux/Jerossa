@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import './animations.css';
+import { COMPANY_INFO } from '../config/companyInfo';
 
 const LegalNotice = () => {
   return (
@@ -26,32 +27,44 @@ const LegalNotice = () => {
 
         <div className="scroll-animate" style={{ lineHeight: 1.8, color: 'var(--text-dark)', fontSize: '15px' }}>
           <section style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Éditeur du site</h2>
-            <p style={{ marginBottom: '12px' }}><strong>Jerossa Trading Ltd.</strong><br />
-            Siège social : 123 Rue de l\'Import-Export, Antananarivo, Madagascar<br />
-            Email : contact@jerosa.mg<br />
-            Téléphone : +261 32 00 000 00<br />
-            N° Registre : RM-2015-0012345</p>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Éditeur de la plateforme</h2>
+            <p style={{ marginBottom: '12px' }}>
+              <strong>Plateforme {COMPANY_INFO.brandName}</strong><br />
+              {COMPANY_INFO.legalName ? (
+                <>
+                  Raison sociale : {COMPANY_INFO.legalName}<br />
+                  {COMPANY_INFO.addressDisplay && <>Siège social : {COMPANY_INFO.addressDisplay}<br /></>}
+                  {COMPANY_INFO.contactEmail && <>Email : {COMPANY_INFO.contactEmail}<br /></>}
+                  {COMPANY_INFO.phoneDisplay && <>Téléphone : {COMPANY_INFO.phoneDisplay}<br /></>}
+                  {COMPANY_INFO.registrationNumber && <>N° Registre : {COMPANY_INFO.registrationNumber}</>}
+                </>
+              ) : (
+                <span style={{ color: 'var(--text-muted)' }}>
+                  Marketplace régionale Madagascar · Maurice.<br />
+                  Les coordonnées juridiques complètes et numéros d'enregistrement officiel sont en cours de finalisation administrative préalable au lancement public.
+                </span>
+              )}
+            </p>
           </section>
 
           <section style={{ marginBottom: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Hébergement</h2>
-            <p style={{ marginBottom: '12px' }}>Ce site est hébergé par Vercel Inc., 340 S Lemon Ave, Walnut, CA 91789, États-Unis.</p>
+            <p style={{ marginBottom: '12px' }}>Ce site est hébergé par {COMPANY_INFO.hostingProvider}.</p>
           </section>
 
           <section style={{ marginBottom: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Propriété intellectuelle</h2>
-            <p style={{ marginBottom: '12px' }}>Tous les éléments du site (textes, images, logos, marques, graphismes) sont protégés par le droit d\'auteur et la propriété intellectuelle. Toute reproduction ou utilisation sans autorisation est strictement interdite.</p>
+            <p style={{ marginBottom: '12px' }}>Tous les éléments du site (textes, images, logos, marques, graphismes) sont protégés par le droit d'auteur et la propriété intellectuelle. Toute reproduction ou utilisation sans autorisation est strictement interdite.</p>
           </section>
 
           <section style={{ marginBottom: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Protection des données</h2>
-            <p style={{ marginBottom: '12px' }}>Jerossa Trading Ltd. respecte la réglementation applicable en matière de protection des données personnelles. Consultez notre <Link to="/privacy" style={{ color: 'var(--primary)', textDecoration: 'none' }}>politique de confidentialité</Link> pour plus d\'informations.</p>
+            <p style={{ marginBottom: '12px' }}>La plateforme {COMPANY_INFO.brandName} respecte la réglementation applicable en matière de protection des données personnelles. Consultez notre <Link to="/privacy" style={{ color: 'var(--primary)', textDecoration: 'none' }}>politique de confidentialité</Link> pour plus d'informations.</p>
           </section>
 
           <section style={{ marginBottom: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-dark)' }}>Limitation de responsabilité</h2>
-            <p style={{ marginBottom: '12px' }}>Jerossa s\'efforce de fournir des informations exactes sur son site. Toutefois, Jerossa ne saurait être tenue responsable des erreurs, omissions ou interruptions pouvant affecter le contenu du site.</p>
+            <p style={{ marginBottom: '12px' }}>Jerossa s'efforce de fournir des informations exactes sur son site. Toutefois, Jerossa ne saurait être tenue responsable des erreurs, omissions ou interruptions pouvant affecter le contenu du site.</p>
           </section>
         </div>
 

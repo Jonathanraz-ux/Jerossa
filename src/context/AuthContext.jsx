@@ -18,7 +18,11 @@ export const AuthProvider = ({ children }) => {
       .select('*')
       .eq('id', userId)
       .maybeSingle();
-    if (!error) setProfile(data);
+    if (error) {
+      console.error('[auth] refreshProfile', error);
+      return;
+    }
+    setProfile(data);
   }, []);
 
   useEffect(() => {

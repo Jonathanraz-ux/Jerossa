@@ -1,14 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Package, Heart, Settings as SettingsIcon, LogOut, MapPin, ChevronRight, FileText, RotateCcw } from 'lucide-react';
+import { User, Package, Heart, Settings as SettingsIcon, LogOut, MapPin, ChevronRight, FileText, RotateCcw, MessageSquare, Store } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ordersData } from '../data/orders';
+import { supabase } from '../lib/supabase';
+import { fetchMyOrders } from '../services/orders';
+import { fetchMyConversations } from '../services/messages';
 import './animations.css';
 
 const MyAccount = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
+  const [orders, setOrders] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      const name = profile.full_name || '';
+      const parts = name.split(' ');
+      setFirstName(parts[0] || '');
+      setLastName(parts.slice(1).join(' ') || '');
+      setPhone(profile.phone || '');
+      setCity(profile.city || '');
+      setCountry(profile.country || '');
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMyOrders(user.id).then((data) => {
+        if (data) setOrders(data);
+      });
+      fetchMyConversations().then((convos) => {
+        const total = (convos || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+        setUnreadCount(total);
+      });
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -17,6 +54,7 @@ const MyAccount = () => {
 
   const menuItems = [
     { id: 'profile', label: 'Mon profil', icon: User },
+    { id: 'messages', label: 'Mes messages', icon: MessageSquare, href: '/my-messages', badge: unreadCount },
     { id: 'orders', label: 'Mes commandes', icon: Package },
     { id: 'quotes', label: 'Mes devis', icon: FileText },
     { id: 'refunds', label: 'Mes remboursements', icon: RotateCcw },
@@ -24,6 +62,8 @@ const MyAccount = () => {
     { id: 'favorites', label: 'Mes favoris', icon: Heart },
     { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
   ];
+
+  const displayName = profile?.full_name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || '') || user?.email || 'Mon compte';
 
   const renderContent = () => {
     switch (activeSection) {
@@ -35,25 +75,63 @@ const MyAccount = () => {
               <h2>Mon profil</h2>
             </div>
             <div className="account-avatar-section">
-              <div className="account-avatar">{((profile?.full_name || user?.email || 'U').charAt(0) || 'U').toUpperCase()}</div>
+              <div className="account-avatar">{(displayName.charAt(0) || 'U').toUpperCase()}</div>
               <div>
-                <div className="account-name">{profile?.full_name || user?.email || 'Mon compte'}</div>
+                <div className="account-name">{displayName}</div>
                 <div className="account-email">{user?.email || ''}</div>
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Nom complet</label>
-              <input type="text" className="form-input" defaultValue="Jean Dupont" />
+              <label className="form-label">Prénom</label>
+              <input type="text" className="form-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Nom</label>
+              <input type="text" className="form-input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input type="email" className="form-input" defaultValue="jean.dupont@email.com" />
+              <input type="email" className="form-input" defaultValue={user?.email || ''} disabled />
             </div>
             <div className="form-group">
               <label className="form-label">Téléphone</label>
-              <input type="tel" className="form-input" defaultValue="+261 32 123 4567" />
+              <input type="tel" className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Non renseigné" />
             </div>
-            <button className="btn btn-primary">Enregistrer</button>
+            <div className="form-group">
+              <label className="form-label">Ville</label>
+              <input type="text" className="form-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Non renseignée" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Pays</label>
+              <input type="text" className="form-input" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Non renseigné" />
+            </div>
+            <button className="btn btn-primary" onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              setSaveError('');
+              const fullName = [firstName, lastName].filter(Boolean).join(' ') || null;
+              const { error } = await supabase.from('profiles').update({
+                full_name: fullName,
+                phone: phone || null,
+                city: city || null,
+                country: country || null,
+              }).eq('id', user.id);
+              setSaving(false);
+              if (error) {
+                console.error('[MyAccount] save profile', error);
+                setSaveError("Échec de l'enregistrement : " + (error.message || 'erreur inconnue'));
+                return;
+              }
+              setSaved(true);
+              setTimeout(() => setSaved(false), 3000);
+            }} disabled={saving}>
+              {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
+            </button>
+            {saveError && (
+              <div style={{ marginTop: '12px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
+                {saveError}
+              </div>
+            )}
           </div>
         );
       case 'orders':
@@ -63,7 +141,7 @@ const MyAccount = () => {
               <Package size={20} />
               <h2>Mes commandes</h2>
             </div>
-            {ordersData.length === 0 ? (
+            {orders.length === 0 ? (
               <div className="account-empty">
                 <Package size={32} />
                 <p>Aucune commande pour le moment.</p>
@@ -82,13 +160,13 @@ const MyAccount = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {ordersData.map(order => (
+                    {orders.map(order => (
                       <tr key={order.id}>
                         <td style={{ fontWeight: 600 }}>{order.id}</td>
                         <td>{order.date}</td>
                         <td>{order.total}</td>
                         <td>
-                          <span className={`status-badge ${order.status}`}>{order.status}</span>
+                          <span className={`status-badge ${order.status}`}>{order.statusLabel || order.status}</span>
                         </td>
                         <td>
                           <Link to={`/order/${order.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -218,15 +296,52 @@ const MyAccount = () => {
 
         <div className="client-layout">
           <div className="dashboard-sidebar">
-            {menuItems.map(item => (
-              <button
-                key={item.id}
-                className={`db-side-btn ${activeSection === item.id ? 'active' : ''}`}
-                onClick={() => setActiveSection(item.id)}
+            {profile?.role === 'seller' && (
+              <Link
+                to="/espace-vendeur"
+                className="db-side-btn"
+                style={{
+                  textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600,
+                  marginBottom: '0.5rem', borderRadius: '8px',
+                }}
               >
-                <item.icon size={18} />
-                {item.label}
-              </button>
+                <Store size={18} />
+                Accéder à l'Espace vendeur
+              </Link>
+            )}
+            {menuItems.map(item => (
+              item.href ? (
+                <Link
+                  key={item.id}
+                  to={item.href}
+                  className="db-side-btn"
+                  style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <item.icon size={18} />
+                    {item.label}
+                  </span>
+                  {item.badge > 0 && (
+                    <span style={{
+                      background: 'var(--primary)', color: '#fff', fontSize: '0.65rem',
+                      fontWeight: 700, borderRadius: '50%', minWidth: 18, height: 18,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
+                    }}>
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <button
+                  key={item.id}
+                  className={`db-side-btn ${activeSection === item.id ? 'active' : ''}`}
+                  onClick={() => setActiveSection(item.id)}
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                </button>
+              )
             ))}
             <div style={{ borderTop: '1px solid var(--border)', margin: '0.5rem 0', paddingTop: '0.5rem' }}>
               <button className="db-side-btn" style={{ color: 'var(--danger)' }} onClick={handleLogout}>

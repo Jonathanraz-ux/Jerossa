@@ -4,6 +4,7 @@ import { Lock, CreditCard, Smartphone, Landmark, ShieldCheck, CheckCircle, XCirc
 import { fetchOrderByNumber, confirmPayment } from '../services/orders';
 import { useCart } from '../context/CartContext';
 import './animations.css';
+import { COMPANY_INFO } from '../config/companyInfo';
 
 const METHOD_META = {
   card: { label: 'Carte bancaire', icon: CreditCard },
@@ -157,19 +158,19 @@ const Payment = () => {
                   <>
                     <div className="pay-mobile">
                       <div className="pay-mobile-top">
-                        <span>Mobile Money</span>
+                        <span>Paiement Mobile Money (Simulateur)</span>
                         <span>MADAGASCAR · MAURICE</span>
                       </div>
                       <div className="pay-mobile-phone">
-                        <span className="pay-mobile-label">Numéro de téléphone</span>
-                        <span className="pay-mobile-number">+261 32 000 0000</span>
+                        <span className="pay-mobile-label">Opérateurs supportés</span>
+                        <span className="pay-mobile-number">MVola · Orange Money · Airtel · Juice</span>
                       </div>
                       <div className="pay-mobile-pin">
-                        <span className="pay-mobile-label">Code secret</span>
-                        <span className="pay-mobile-dots">••••</span>
+                        <span className="pay-mobile-label">Validation</span>
+                        <span className="pay-mobile-dots">Validation instantanée</span>
                       </div>
                     </div>
-                    <p className="pay-note">Confirmation simulée — aucune transaction réelle (Orange Money / MVola / MCB).</p>
+                    <p className="pay-note">Environnement de test — aucune transaction financière réelle ne sera prélevée.</p>
                   </>
                 )}
 
@@ -178,18 +179,18 @@ const Payment = () => {
                     <div className="pay-bank">
                       <div className="pay-bank-row">
                         <span className="pay-bank-label">Bénéficiaire</span>
-                        <span>Jerossa SAS</span>
+                        <span className="pay-bank-value">{COMPANY_INFO.legalName || 'Compte Sécurisé Jerossa'}</span>
                       </div>
                       <div className="pay-bank-row">
-                        <span className="pay-bank-label">IBAN</span>
-                        <span>FR76 0000 0000 0000 0000 0000 000</span>
+                        <span className="pay-bank-label">Mode</span>
+                        <span>Virement bancaire (Madagascar / Maurice)</span>
                       </div>
                       <div className="pay-bank-row">
-                        <span className="pay-bank-label">Référence à rappeler</span>
-                        <span>{orderNumber}</span>
+                        <span className="pay-bank-label">Référence commande</span>
+                        <span style={{ fontWeight: 600 }}>{orderNumber}</span>
                       </div>
                     </div>
-                    <p className="pay-note">Virement simulé — la commande sera considérée payée immédiatement.</p>
+                    <p className="pay-note">Environnement de test — la validation est immédiate pour la démonstration.</p>
                   </>
                 )}
               </div>

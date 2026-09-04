@@ -456,18 +456,16 @@ export const fetchSellerApplications = async () => {
 };
 
 export const updateProducerStatus = async (producerId, status, reviewNote = '') => {
-  const updates = { status };
-  if (reviewNote !== undefined && reviewNote !== null) updates.review_note = reviewNote;
-  if (status !== 'pending') updates.reviewed_at = new Date().toISOString();
-  const { error } = await supabase
-    .from('producers')
-    .update(updates)
-    .eq('id', producerId);
+  const { data, error } = await supabase.rpc('admin_update_producer_status', {
+    p_producer_id: producerId,
+    p_status: status,
+    p_review_note: reviewNote || '',
+  });
   if (error) {
     console.error('[admin] updateProducerStatus', error);
     return { ok: false, error };
   }
-  return { ok: true };
+  return { ok: true, data };
 };
 
 // URL signée (10 min) pour consulter une pièce du bucket privé seller-documents

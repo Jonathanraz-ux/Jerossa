@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Mail, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
 import './animations.css';
+import { COMPANY_INFO } from '../config/companyInfo';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
@@ -75,11 +76,11 @@ const Contact = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {[
-                { icon: Mail, title: 'Email', info: 'contact@jerosa.mg' },
-                { icon: Phone, title: 'Téléphone', info: '+261 32 00 000 00' },
-                { icon: MapPin, title: 'Adresse', info: '123 Rue de l\'Import-Export\nAntananarivo, Madagascar' },
-                { icon: Clock, title: 'Horaires', info: 'Lun - Ven : 8h00 - 17h00\nSam : 9h00 - 12h00' },
-              ].map((item, i) => (
+                { icon: Mail, title: 'Email', info: COMPANY_INFO.contactEmail },
+                { icon: Phone, title: 'Téléphone', info: COMPANY_INFO.phoneMadagascar },
+                { icon: MapPin, title: 'Adresse', info: COMPANY_INFO.addressMadagascar },
+                { icon: Clock, title: 'Horaires', info: COMPANY_INFO.businessHours },
+              ].filter(item => Boolean(item.info)).map((item, i) => (
                 <div key={i} className="premium-card" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '20px' }}>
                   <div className="icon-hover" style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <item.icon size={20} style={{ color: 'var(--primary)' }} />
@@ -90,6 +91,15 @@ const Contact = () => {
                   </div>
                 </div>
               ))}
+              <div className="premium-card" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '20px' }}>
+                <div className="icon-hover" style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Clock size={20} style={{ color: 'var(--primary)' }} />
+                </div>
+                <div>
+                  <h4 style={{ fontWeight: 600, marginBottom: '4px', fontSize: '14px', color: 'var(--text-dark)' }}>Assistance en ligne</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5 }}>Notre formulaire de messagerie est accessible 24h/24 et 7j/7 pour toute demande d'assistance ou d'information.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

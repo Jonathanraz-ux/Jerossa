@@ -1,9 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Bell, Globe, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import './animations.css';
 
 const Settings = () => {
+  const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.full_name || '');
+    }
+    if (user) {
+      setEmail(user.email || '');
+    }
+  }, [profile, user]);
 
   const tabs = [
     { id: 'general', label: 'Général', icon: Globe },
@@ -52,11 +69,11 @@ const Settings = () => {
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '24px', color: 'var(--text-dark)' }}>Paramètres généraux</h2>
             <div className="form-group" style={{ marginBottom: '16px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Nom d\'affichage</label>
-              <input type="text" className="form-input" defaultValue="Jean Dupont" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+              <input type="text" className="form-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Votre nom" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
             </div>
             <div className="form-group" style={{ marginBottom: '16px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Email</label>
-              <input type="email" className="form-input" defaultValue="jean.dupont@email.com" style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+              <input type="email" className="form-input" value={email} disabled style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)', opacity: 0.6 }} />
             </div>
             <div className="form-group" style={{ marginBottom: '24px' }}>
               <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Langue</label>
@@ -65,9 +82,29 @@ const Settings = () => {
                 <option>English</option>
               </select>
             </div>
-            <button className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Save size={16} /> Enregistrer
+            <button className="btn btn-primary" onClick={async () => {
+              if (!user) return;
+              setSaving(true);
+              setSaveError('');
+              const { error } = await supabase.from('profiles').update({
+                full_name: displayName || null,
+              }).eq('id', user.id);
+              setSaving(false);
+              if (error) {
+                console.error('[Settings] save profile', error);
+                setSaveError("Échec de l'enregistrement : " + (error.message || 'erreur inconnue'));
+                return;
+              }
+              setSaved(true);
+              setTimeout(() => setSaved(false), 3000);
+            }} disabled={saving} style={{ padding: '12px 24px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Save size={16} /> {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
             </button>
+            {saveError && (
+              <div style={{ marginTop: '12px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
+                {saveError}
+              </div>
+            )}
           </div>
         )}
 

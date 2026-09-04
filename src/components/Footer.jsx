@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone, PlusCircle } from 'lucide-react';
 import './Footer.css';
+import { COMPANY_INFO } from '../config/companyInfo';
 
 const Footer = () => {
   return (
@@ -17,24 +18,30 @@ const Footer = () => {
               />
             </div>
             <p className="footer-desc">
-              La marketplace de référence entre Madagascar et Maurice : produits authentiques,
-              matières premières et fournisseurs.
-              Créer des opportunités. Développer les échanges.
+              {COMPANY_INFO.description}
             </p>
-            <div className="footer-contact">
-              <div className="footer-contact-item">
-                <MapPin size={14} />
-                <span>Antananarivo, Madagascar · Port-Louis, Maurice</span>
+            {(COMPANY_INFO.addressDisplay || COMPANY_INFO.contactEmail || COMPANY_INFO.phoneDisplay) && (
+              <div className="footer-contact">
+                {COMPANY_INFO.addressDisplay && (
+                  <div className="footer-contact-item">
+                    <MapPin size={14} />
+                    <span>{COMPANY_INFO.addressDisplay}</span>
+                  </div>
+                )}
+                {COMPANY_INFO.contactEmail && (
+                  <div className="footer-contact-item">
+                    <Mail size={14} />
+                    <span>{COMPANY_INFO.contactEmail}</span>
+                  </div>
+                )}
+                {COMPANY_INFO.phoneDisplay && (
+                  <div className="footer-contact-item">
+                    <Phone size={14} />
+                    <span>{COMPANY_INFO.phoneDisplay}</span>
+                  </div>
+                )}
               </div>
-              <div className="footer-contact-item">
-                <Mail size={14} />
-                <span>contact@jerossa.com</span>
-              </div>
-              <div className="footer-contact-item">
-                <Phone size={14} />
-                <span>+261 20 123 4567 · +230 5 234 5678</span>
-              </div>
-            </div>
+            )}
             <div className="footer-market-row">
               <span className="footer-market-chip">🇲🇬 Madagascar</span>
               <span className="footer-market-chip">🇲🇺 Maurice</span>
@@ -88,7 +95,7 @@ const Footer = () => {
 
       <div className="footer-bottom">
         <div className="container footer-bottom-flex">
-          <p className="copyright">&copy; {new Date().getFullYear()} Jerossa Trading Ltd. Tous droits réservés.</p>
+          <p className="copyright">&copy; {new Date().getFullYear()} {COMPANY_INFO.legalName || COMPANY_INFO.brandName}. Tous droits réservés.</p>
           <div className="footer-legal-links">
             <Link to="/legal">Mentions légales</Link>
             <Link to="/privacy">Confidentialité</Link>

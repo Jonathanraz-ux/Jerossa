@@ -7,24 +7,16 @@ const Faq = () => {
 
   const faqs = [
     {
-      q: 'Comment passer une commande ?',
-      a: 'Parcourez notre catalogue, ajoutez les produits souhaités à votre panier, puis cliquez sur "Commander". Suivez les étapes de livraison et de paiement pour finaliser votre commande.'
-    },
-    {
-      q: 'Quels sont les modes de paiement acceptés ?',
-      a: 'Nous acceptons les cartes bancaires (Visa, Mastercard), le paiement mobile (Mobile Money) et les virements bancaires. Toutes les transactions sont sécurisées.'
-    },
-    {
       q: 'Quels sont les délais de livraison ?',
-      a: 'La livraison en France métropolitaine prend généralement 5 à 7 jours ouvrés. Les délais peuvent varier selon la destination et la disponibilité des produits.'
+      a: 'Les délais de livraison varient selon votre localisation. Pour Madagascar, comptez 2 à 5 jours ouvrés. Pour l\'île Maurice et l\'international, comptez 5 à 10 jours ouvrés via nos partenaires logistiques certifiés.'
     },
     {
-      q: 'Puis-je retourner un produit ?',
-      a: 'Oui, nous acceptons les retours sous 30 jours suivant la réception. Les produits doivent être dans leur état d\'origine et non utilisés. Contactez notre service client pour initier un retour.'
+      q: 'Quels moyens de paiement acceptez-vous ?',
+      a: 'Nous acceptons les cartes bancaires (Visa, Mastercard), les virements bancaires ainsi que les solutions de mobile money locales (MVola, Orange Money, Airtel Money pour Madagascar ; Juice/MauCas pour Maurice).'
     },
     {
       q: 'Comment devenir vendeur sur Jerossa ?',
-      a: 'Rendez-vous sur la page "Mon compte" et cliquez sur "Devenir Vendeur". Notre équipe examinera votre dossier et vous contactera sous 48 heures.'
+      a: 'Pour devenir vendeur, cliquez sur "Devenir vendeur" dans le menu, remplissez le formulaire avec les informations de votre entreprise et soumettez vos documents. Notre équipe examinera votre demande sous 48h.'
     },
     {
       q: 'Comment suivre ma commande ?',
@@ -36,7 +28,7 @@ const Faq = () => {
     },
     {
       q: 'Comment contacter le support client ?',
-      a: 'Vous pouvez nous contacter via le formulaire de contact, par email à contact@jerosa.mg ou par téléphone au +261 32 00 000 00. Notre équipe est disponible du lundi au vendredi de 8h à 17h.'
+      a: 'Vous pouvez nous contacter à tout moment via notre formulaire de contact en ligne ou par messagerie directe. Notre équipe d\'assistance répond à vos questions du lundi au vendredi.'
     }
   ];
 

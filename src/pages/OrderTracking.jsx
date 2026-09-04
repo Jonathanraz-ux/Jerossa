@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Truck, Clock, Search } from 'lucide-react';
-import { ordersData } from '../data/orders';
 import { fetchOrderByNumber } from '../services/orders';
 import './animations.css';
 
@@ -15,7 +14,7 @@ const OrderTracking = () => {
     if (!normalized) return;
     setSearching(true);
     const found = await fetchOrderByNumber(normalized);
-    setTrackingOrder(found || ordersData.find(o => o.id === normalized) || null);
+    setTrackingOrder(found || null);
     setSearching(false);
   };
 

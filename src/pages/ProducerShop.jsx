@@ -202,12 +202,22 @@ const ProducerShop = () => {
 
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '16px' }}>
-                <button
-                  className="j-pill-btn j-pill-btn--primary"
-                  onClick={() => setContactModal({ mode: 'contact' })}
-                >
-                  <MessageSquare size={15} /> {t('shop.contact')}
-                </button>
+                {producer.sellerAvailable ? (
+                  <button
+                    className="j-pill-btn j-pill-btn--primary"
+                    onClick={() => setContactModal({ mode: 'contact' })}
+                  >
+                    <MessageSquare size={15} /> {t('shop.contact')}
+                  </button>
+                ) : (
+                  <button
+                    className="j-pill-btn j-pill-btn--primary"
+                    disabled
+                    title="Ce vendeur n'est pas encore disponible sur la messagerie."
+                  >
+                    <MessageSquare size={15} /> {t('shop.contact_unavailable') || 'Vendeur indisponible'}
+                  </button>
+                )}
                 <button
                   className="j-pill-btn j-pill-btn--outline-dark"
                   onClick={() => setContactModal({ mode: 'quote' })}
@@ -215,6 +225,11 @@ const ProducerShop = () => {
                   <FileText size={15} /> {t('shop.quote')}
                 </button>
               </div>
+              {!producer.sellerAvailable && (
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                  Ce vendeur n'est pas encore disponible sur la messagerie.
+                </p>
+              )}
             </div>
           </div>
 
@@ -295,6 +310,8 @@ const ProducerShop = () => {
                       <button
                         className="j-pill-btn j-pill-btn--primary"
                         onClick={() => setContactModal({ mode: 'contact' })}
+                        disabled={!producer.sellerAvailable}
+                        title={producer.sellerAvailable ? undefined : "Ce vendeur n'est pas encore disponible sur la messagerie."}
                       >
                         <MessageSquare size={15} /> {t('shop.empty.cta')}
                       </button>

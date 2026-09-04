@@ -51,6 +51,19 @@ export const fetchMyConversations = async () => {
     return [];
   }
 
+  // Fetch buyer profiles separately (safe regardless of FK definition)
+  const buyerIds = [...new Set((data || []).map(c => c.buyer_id).filter(Boolean))];
+  let buyerProfiles = {};
+  if (buyerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', buyerIds);
+    if (profiles) {
+      buyerProfiles = Object.fromEntries(profiles.map(p => [p.id, p]));
+    }
+  }
+
   // Enrich with last message and unread count
   const enriched = await Promise.all((data || []).map(async (convo) => {
     const { data: lastMsg } = await supabase
@@ -68,6 +81,9 @@ export const fetchMyConversations = async () => {
       .eq('is_read', false)
       .neq('sender_id', user.id);
 
+    const bp = buyerProfiles[convo.buyer_id];
+    const buyerName = bp?.full_name || bp?.email || '';
+
     return {
       id: convo.id,
       buyerId: convo.buyer_id,
@@ -75,6 +91,7 @@ export const fetchMyConversations = async () => {
       sellerName: convo.producers?.name || '',
       sellerSlug: convo.producers?.slug || '',
       sellerLogo: convo.producers?.logo_url || '',
+      buyerName,
       productCode: convo.product_code,
       productTitle: convo.product_title,
       subject: convo.subject,

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User, Store } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User, MessageSquare, Store } from 'lucide-react';
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchCategories } from '../services/catalog';
+import { fetchMyConversations } from '../services/messages';
 
 const Popover = ({ open, onClose, children, align = 'left' }) => {
   const ref = useRef(null);
@@ -126,12 +127,21 @@ const Navbar = () => {
   const [publishOpen, setPublishOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { count } = useCart();
-  const { isAuthenticated, signOut } = useAuth();
+  const { isAuthenticated, signOut, user, profile } = useAuth();
 
   useEffect(() => {
     fetchCategories().then(setCategories);
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) { setUnreadCount(0); return; }
+    fetchMyConversations().then((convos) => {
+      const total = convos.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+      setUnreadCount(total);
+    });
+  }, [isAuthenticated, user]);
 
   const openPublish = () => { setMenuOpen(false); setPublishOpen(true); };
 
@@ -156,6 +166,11 @@ const Navbar = () => {
               <Link to="/about" className="nav-topbar-link">À propos</Link>
               {isAuthenticated ? (
                 <>
+                  {profile?.role === 'seller' && (
+                    <Link to="/espace-vendeur" className="nav-topbar-link nav-topbar-link--seller" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                      <Store size={13} strokeWidth={1.8} /> Espace vendeur
+                    </Link>
+                  )}
                   <Link to="/my-account" className="nav-topbar-link nav-topbar-link--strong">
                     <User size={13} strokeWidth={1.8} /> Mon compte
                   </Link>
@@ -219,7 +234,11 @@ const Navbar = () => {
               </div>
             </div>
             <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>Fournisseurs</Link>
-            <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Devenir vendeur</Link>
+            {profile?.role === 'seller' ? (
+              <Link to="/espace-vendeur" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Espace vendeur</Link>
+            ) : (
+              <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Devenir vendeur</Link>
+            )}
             <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>Comment ça marche</Link>
           </div>
 
@@ -236,6 +255,13 @@ const Navbar = () => {
               <ShoppingCart size={18} strokeWidth={1.6} />
               {count > 0 && <span className="cart-badge">{count}</span>}
             </Link>
+
+            {isAuthenticated && (
+              <Link to="/my-messages" className="nav-icon-btn nav-messages" aria-label="Messages">
+                <MessageSquare size={18} strokeWidth={1.6} />
+                {unreadCount > 0 && <span className="cart-badge">{unreadCount}</span>}
+              </Link>
+            )}
 
             <button className="nav-publish-btn" onClick={openPublish}>
               <PlusCircle size={16} strokeWidth={2} />
@@ -263,7 +289,15 @@ const Navbar = () => {
           <span className="mobile-bar-publish-ico"><PlusCircle size={22} strokeWidth={2} /></span>
           <span>Publier</span>
         </button>
-        <Link to="/vendeur/devenir" className="mobile-bar-item mobile-bar-seller"><Store size={19} strokeWidth={1.8} /><span>Vendeur</span></Link>
+        {isAuthenticated && (
+          <Link to="/my-messages" className="mobile-bar-item">
+            <span style={{ position: 'relative' }}>
+              <MessageSquare size={19} strokeWidth={1.8} />
+              {unreadCount > 0 && <span style={{ position: 'absolute', top: -4, right: -6, width: 14, height: 14, borderRadius: '50%', background: 'var(--primary)', color: '#fff', fontSize: '0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unreadCount}</span>}
+            </span>
+            <span>Messages</span>
+          </Link>
+        )}
         <Link to={isAuthenticated ? '/my-account' : '/account'} className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
       </div>
     </>

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-const PRODUCT_SELECT = '*, producers(name)';
+const PRODUCT_SELECT = '*, producers(name, user_id, status)';
 
 const formatPrice = (value, unit) => {
   const num = Number(value);
@@ -16,6 +16,10 @@ const mapProduct = (row) => ({
   title: row.title,
   seller: row.producers?.name || '',
   sellerId: row.seller_id,
+  // Un vendeur n'est joignable sur la messagerie que s'il dispose d'un compte
+  // réel lié (user_id) et d'un statut approuvé. Les producteurs de démo/orphelins
+  // restent visibles mais leur messagerie est désactivée.
+  sellerAvailable: !!(row.producers?.user_id && row.producers?.status === 'approved'),
   market: row.market,
   price: formatPrice(row.price_eur, row.unit),
   priceEUR: Number(row.price_eur),
@@ -63,6 +67,7 @@ const mapProducer = (row) => ({
   contactEmail: row.contact_email || '',
   phone: row.phone || '',
   userId: row.user_id || '',
+  sellerAvailable: !!(row.user_id && row.status === 'approved'),
 });
 
 export const fetchProducts = async () => {
@@ -183,7 +188,23 @@ export const fetchProducers = async () => {
     console.error('[catalog] fetchProducers', error);
     return [];
   }
-  return data.map(mapProducer);
+  // Masque les producteurs "orphelins" (données de démonstration sans compte
+  // rattaché et sans produit) : seuls les vendeurs ayant un compte réel ou au
+  // moins un produit en ligne sont affichés publiquement.
+  if (!data) return [];
+  const withProduct = await (async () => {
+    const codes = data.map((p) => p.id);
+    if (!codes.length) return new Set();
+    const { data: prods } = await supabase
+      .from('products')
+      .select('seller_id')
+      .eq('active', true)
+      .in('seller_id', codes);
+    return new Set((prods || []).map((g) => g.seller_id));
+  })();
+  return data
+    .filter((p) => p.user_id || withProduct.has(p.id))
+    .map(mapProducer);
 };
 
 export const fetchProducerByIdentifier = async (identifier) => {

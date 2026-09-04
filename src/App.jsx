@@ -23,6 +23,9 @@ import SellerOrders from './seller/SellerOrders';
 import SellerQuotes from './seller/SellerQuotes';
 import SellerShop from './seller/SellerShop';
 import SellerMessages from './seller/SellerMessages';
+import SellerReviews from './seller/SellerReviews';
+import SellerStats from './seller/SellerStats';
+import SellerSettings from './seller/SellerSettings';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Account from './pages/Account';
@@ -99,6 +102,9 @@ function AppRoutes() {
             <Route path="devis" element={<SellerQuotes />} />
             <Route path="messages" element={<SellerMessages />} />
             <Route path="boutique" element={<SellerShop />} />
+            <Route path="avis" element={<SellerReviews />} />
+            <Route path="statistiques" element={<SellerStats />} />
+            <Route path="parametres" element={<SellerSettings />} />
           </Route>
           <Route path="/search" element={<Search />} />
           <Route path="/categories/:slug" element={<Category />} />

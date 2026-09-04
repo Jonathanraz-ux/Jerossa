@@ -4,10 +4,11 @@ import { fetchProductByIdentifier, fetchRelatedProducts, fetchProducts } from '.
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { createQuoteRequest } from '../services/quotes';
-import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X } from 'lucide-react';
+import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X, MessageSquare } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
+import ContactSellerModal from '../components/ContactSellerModal';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -29,6 +30,7 @@ const ProductDetails = () => {
   const [quoteSubmitting, setQuoteSubmitting] = useState(false);
   const [quoteError, setQuoteError] = useState('');
   const [quoteDone, setQuoteDone] = useState(null);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -225,9 +227,27 @@ const ProductDetails = () => {
               </button>
             </div>
 
-            <button className="pd-quote-btn" onClick={() => { setQuoteQuantity(1); setQuoteDelay(''); setQuoteMessage(''); setQuoteError(''); setQuoteDone(null); setQuoteOpen(true); }}>
-              <FileText size={16} /> Demander un devis
-            </button>
+            <div className="pd-contact-row">
+              {product.sellerAvailable ? (
+                <button className="pd-contact-btn" onClick={() => setContactOpen(true)}>
+                  <MessageSquare size={16} /> Contacter le vendeur
+                </button>
+              ) : (
+                <button className="pd-contact-btn" disabled title="Ce vendeur n'est pas encore disponible sur la messagerie.">
+                  <MessageSquare size={16} /> Vendeur indisponible
+                </button>
+              )}
+              <button className="pd-quote-btn" onClick={() => { setQuoteQuantity(1); setQuoteDelay(''); setQuoteMessage(''); setQuoteError(''); setQuoteDone(null); setQuoteOpen(true); }}>
+                <FileText size={16} /> Demander un devis
+              </button>
+            </div>
+            {!product.sellerAvailable && (
+              <p className="pd-contact-unavailable" style={{
+                fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px',
+              }}>
+                Ce vendeur n'est pas encore disponible sur la messagerie.
+              </p>
+            )}
 
             <div className="pd-trust">
               <div className="pd-trust-item">
@@ -270,6 +290,15 @@ const ProductDetails = () => {
           </div>
         )}
       </div>
+
+      {contactOpen && (
+        <ContactSellerModal
+          seller={{ name: product.seller, rawId: product.sellerId }}
+          product={{ id: product.id, title: product.title, images: product.images }}
+          mode="contact"
+          onClose={() => setContactOpen(false)}
+        />
+      )}
 
       {quoteOpen && (
         <div className="j-modal-backdrop" onClick={() => setQuoteOpen(false)}>
@@ -391,8 +420,11 @@ const ProductDetails = () => {
         .pd-buy-now:hover { border-color: var(--primary); color: var(--primary); }
         .pd-wishlist-btn { width: 48px; height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; flex-shrink: 0; font-family: inherit; }
         .pd-wishlist-btn:hover { border-color: var(--danger); background: var(--danger-bg); }
-        .pd-quote-btn { width: 100%; padding: 0.75rem 1.5rem; border: 1px dashed var(--primary); background: var(--primary-light); color: var(--primary); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; transition: all 0.2s; }
+        .pd-quote-btn { width: 100%; padding: 0.75rem 1.5rem; border: 1px dashed var(--primary); background: var(--primary-light); color: var(--primary); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; }
         .pd-quote-btn:hover { background: var(--primary); color: #fff; border-style: solid; }
+        .pd-contact-row { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .pd-contact-btn { width: 100%; padding: 0.75rem 1.5rem; border: 1px solid var(--primary); background: transparent; color: var(--primary); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.875rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; }
+        .pd-contact-btn:hover { background: var(--primary); color: #fff; }
         .quote-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); }
         .quote-modal-header h3 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; margin-bottom: 2px; }
         .quote-modal-header p { font-size: 0.8rem; color: var(--text-muted); }

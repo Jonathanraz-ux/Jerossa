@@ -7,7 +7,7 @@ import {
 } from '../services/messages';
 
 const SellerMessages = () => {
-  useOutletContext();
+  const { onConversationUpdated } = useOutletContext() || {};
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
@@ -20,9 +20,10 @@ const SellerMessages = () => {
   const loadConversations = useCallback(async () => {
     setLoading(true);
     const data = await fetchMyConversations();
-    setConversations(data);
+    setConversations(data || []);
     setLoading(false);
-  }, []);
+    if (onConversationUpdated) onConversationUpdated();
+  }, [onConversationUpdated]);
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
@@ -30,11 +31,14 @@ const SellerMessages = () => {
     if (!convoId) return;
     setLoadingMessages(true);
     const data = await fetchConversationMessages(convoId);
-    setMessages(data);
+    setMessages(data || []);
     setLoadingMessages(false);
     await markConversationRead(convoId);
-    loadConversations();
-  }, [loadConversations]);
+    // Refresh conversation unread counter
+    const updated = await fetchMyConversations();
+    setConversations(updated || []);
+    if (onConversationUpdated) onConversationUpdated();
+  }, [onConversationUpdated]);
 
   useEffect(() => {
     if (selectedConvo) loadMessages(selectedConvo);
@@ -82,68 +86,51 @@ const SellerMessages = () => {
         Conversations avec vos acheteurs. Répondez pour améliorer votre taux de réponse.
       </p>
 
-      <div style={{
-        display: 'grid', gridTemplateColumns: selectedConvo ? '1fr' : '320px 1fr',
-        background: '#fff', border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-xl)', overflow: 'hidden',
-        minHeight: 450,
-      }}>
+      <div className={`sv-msg-container ${selectedConvo ? 'sv-msg--convo-active' : ''}`}>
         {/* Conversation list */}
-        <div style={{
-          borderRight: selectedConvo ? 'none' : '1px solid var(--border)',
-          overflowY: 'auto',
-          display: selectedConvo ? 'none' : 'block',
-        }}>
+        <div className="sv-msg-sidebar">
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
               <Loader2 size={20} style={{ animation: 'sv-rotate 0.8s linear infinite' }} />
             </div>
           ) : conversations.length === 0 ? (
-            <div className="sv-empty">
+            <div className="sv-empty" style={{ padding: '3rem 1rem' }}>
               <MessageSquare size={28} />
-              <p>Aucune conversation</p>
+              <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>Aucune conversation</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Les messages de vos clients apparaîtront ici.
+              </p>
             </div>
           ) : (
             conversations.map((convo) => (
               <button
                 key={convo.id}
                 onClick={() => setSelectedConvo(convo.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  width: '100%', padding: '0.85rem 1rem',
-                  border: 'none', borderBottom: '1px solid var(--border)',
-                  background: selectedConvo === convo.id ? 'var(--primary-light)' : 'transparent',
-                  cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-                }}
+                className={`sv-msg-item ${selectedConvo === convo.id ? 'sv-msg-item--active' : ''}`}
               >
-                <div style={{
-                  width: 38, height: 38, borderRadius: 10,
-                  background: 'var(--bg-cream)', border: '1px solid var(--border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', flexShrink: 0,
-                }}>
-                  {(convo.productTitle || '?').charAt(0)}
+                <div className="sv-msg-avatar">
+                  {(convo.buyerName || convo.productTitle || '?').charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>
-                      {convo.productTitle || convo.subject || 'Conversation'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.84rem', color: 'var(--text-dark)' }}>
+                      {convo.buyerName || 'Client'}
                     </span>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                       {formatTime(convo.lastMessageAt)}
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {convo.lastMessage?.slice(0, 50) || 'Pas de message'}
+                  {convo.productTitle && (
+                    <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {convo.productTitle}
+                    </div>
+                  )}
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {convo.lastMessage || convo.subject || 'Nouveau message'}
                   </div>
                 </div>
                 {convo.unreadCount > 0 && (
-                  <span style={{
-                    width: 18, height: 18, borderRadius: '50%',
-                    background: 'var(--brand-green)', color: '#fff',
-                    fontSize: '0.6rem', fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
+                  <span className="sv-msg-unread-badge">
                     {convo.unreadCount}
                   </span>
                 )}
@@ -153,11 +140,11 @@ const SellerMessages = () => {
         </div>
 
         {/* Chat area */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="sv-msg-chat-pane">
           {!selectedConvo ? (
             <div style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', height: '100%', color: 'var(--text-muted)',
+              justifyContent: 'center', height: '100%', minHeight: 350, color: 'var(--text-muted)',
               textAlign: 'center', padding: '2rem',
             }}>
               <MessageSquare size={36} style={{ opacity: 0.2, marginBottom: '0.75rem' }} />
@@ -165,8 +152,8 @@ const SellerMessages = () => {
               <p style={{ fontSize: '0.8rem' }}>Choisissez un échange dans la liste pour y répondre.</p>
             </div>
           ) : loadingMessages ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <Loader2 size={24} style={{ animation: 'sv-rotate 0.8s linear infinite', color: 'var(--accent)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 350 }}>
+              <Loader2 size={24} style={{ animation: 'sv-rotate 0.8s linear infinite', color: 'var(--primary)' }} />
             </div>
           ) : (
             <>
@@ -174,23 +161,22 @@ const SellerMessages = () => {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.75rem',
                 padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)',
+                background: '#fff',
               }}>
                 <button
+                  type="button"
                   onClick={() => setSelectedConvo(null)}
-                  style={{
-                    width: 30, height: 30, borderRadius: 8, border: '1px solid var(--border)',
-                    background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
+                  className="sv-msg-back-btn"
+                  title="Retour à la liste"
                 >
-                  <ArrowLeft size={15} />
+                  <ArrowLeft size={16} />
                 </button>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                    {selectedConvoData?.productTitle || 'Conversation'}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-dark)' }}>
+                    {selectedConvoData?.buyerName || 'Client'}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    {selectedConvoData?.subject}
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {selectedConvoData?.productTitle ? `Produit : ${selectedConvoData.productTitle}` : selectedConvoData?.subject}
                   </div>
                 </div>
               </div>
@@ -199,22 +185,22 @@ const SellerMessages = () => {
               <div style={{
                 flex: 1, overflowY: 'auto', padding: '1rem',
                 display: 'flex', flexDirection: 'column', gap: '0.5rem',
-                background: '#faf9f7',
+                background: '#faf9f7', minHeight: 280, maxHeight: 420,
               }}>
                 {messages.map((msg) => (
                   <div key={msg.id} style={{
-                    maxWidth: '75%', padding: '0.6rem 0.85rem',
-                    borderRadius: 14, fontSize: '0.83rem', lineHeight: 1.5,
-                    background: msg.isOwn ? 'var(--brand-green)' : '#fff',
+                    maxWidth: '75%', padding: '0.65rem 0.85rem',
+                    borderRadius: 14, fontSize: '0.84rem', lineHeight: 1.5,
+                    background: msg.isOwn ? 'var(--primary)' : '#fff',
                     color: msg.isOwn ? '#fff' : 'var(--text-dark)',
-                    border: msg.isOwn ? '1px solid var(--brand-green)' : '1px solid var(--border)',
+                    border: msg.isOwn ? '1px solid var(--primary)' : '1px solid var(--border)',
                     alignSelf: msg.isOwn ? 'flex-end' : 'flex-start',
                   }}>
                     <p style={{ margin: 0 }}>{msg.content}</p>
                     <span style={{
                       display: 'block', fontSize: '0.63rem', marginTop: 4,
-                      opacity: 0.6, textAlign: 'right',
-                      color: msg.isOwn ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)',
+                      opacity: 0.7, textAlign: 'right',
+                      color: msg.isOwn ? 'rgba(255,255,255,0.85)' : 'var(--text-muted)',
                     }}>
                       {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -227,24 +213,26 @@ const SellerMessages = () => {
               <div style={{
                 display: 'flex', alignItems: 'flex-end', gap: '0.5rem',
                 padding: '0.75rem 1rem', borderTop: '1px solid var(--border)',
+                background: '#fff',
               }}>
                 <textarea
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Répondre…"
+                  placeholder="Écrivez votre réponse au client…"
                   rows={1}
                   style={{
                     flex: 1, padding: '0.6rem 0.85rem', border: '1px solid var(--border)',
                     borderRadius: 10, fontSize: '0.83rem', fontFamily: 'inherit',
-                    resize: 'none', minHeight: 36, color: 'var(--text-dark)', outline: 'none',
+                    resize: 'none', minHeight: 38, maxHeight: 100, color: 'var(--text-dark)', outline: 'none',
                   }}
                 />
                 <button
+                  type="button"
                   onClick={handleSend}
                   disabled={!newMessage.trim() || sending}
                   className="sv-btn sv-btn--primary"
-                  style={{ flexShrink: 0, padding: '0.55rem 0.85rem' }}
+                  style={{ flexShrink: 0, padding: '0.55rem 0.9rem', height: 38 }}
                 >
                   {sending ? <Loader2 size={15} style={{ animation: 'sv-rotate 0.8s linear infinite' }} /> : <Send size={15} />}
                 </button>
@@ -255,9 +243,99 @@ const SellerMessages = () => {
       </div>
 
       <style>{`
-        @media (max-width: 720px) {
-          [style*="grid-template-columns: 320px 1fr"] {
-            grid-template-columns: 1fr !important;
+        .sv-msg-container {
+          display: grid;
+          grid-template-columns: 320px 1fr;
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-xl);
+          overflow: hidden;
+          min-height: 480px;
+        }
+        .sv-msg-sidebar {
+          border-right: 1px solid var(--border);
+          overflow-y: auto;
+          max-height: 520px;
+        }
+        .sv-msg-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          width: 100%;
+          padding: 0.85rem 1rem;
+          border: none;
+          border-bottom: 1px solid var(--border);
+          background: transparent;
+          cursor: pointer;
+          text-align: left;
+          font-family: inherit;
+          transition: background 0.15s;
+        }
+        .sv-msg-item:hover { background: #faf9f7; }
+        .sv-msg-item--active { background: var(--primary-light) !important; }
+        .sv-msg-avatar {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: var(--bg-cream);
+          border: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: var(--primary);
+          flex-shrink: 0;
+        }
+        .sv-msg-unread-badge {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: var(--primary);
+          color: #fff;
+          font-size: 0.62rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .sv-msg-chat-pane {
+          display: flex;
+          flex-direction: column;
+          background: #fff;
+        }
+        .sv-msg-back-btn {
+          display: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background: transparent;
+          color: var(--text-muted);
+          cursor: pointer;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+          .sv-msg-container {
+            grid-template-columns: 1fr;
+          }
+          .sv-msg-container .sv-msg-sidebar {
+            display: block;
+          }
+          .sv-msg-container .sv-msg-chat-pane {
+            display: none;
+          }
+          .sv-msg--convo-active .sv-msg-sidebar {
+            display: none !important;
+          }
+          .sv-msg--convo-active .sv-msg-chat-pane {
+            display: flex !important;
+          }
+          .sv-msg-back-btn {
+            display: flex;
           }
         }
       `}</style>
