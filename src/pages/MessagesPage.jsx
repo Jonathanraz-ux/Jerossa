@@ -6,9 +6,11 @@ import {
   sendMessage, markConversationRead,
 } from '../services/messages';
 import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
+import { useAuth } from '../context/AuthContext';
 
 const MessagesPage = () => {
   const { id: conversationId } = useParams();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(conversationId || null);
@@ -49,7 +51,7 @@ const MessagesPage = () => {
 
   // Realtime subscription for the selected conversation
   useRealtimeMessages(selectedConvo, useCallback((newMsg) => {
-    if (pendingSendRef.current && newMsg.sender_id) {
+    if (pendingSendRef.current && newMsg.sender_id === user?.id) {
       pendingSendRef.current = false;
       return;
     }
@@ -58,7 +60,7 @@ const MessagesPage = () => {
       return [...prev, {
         id: newMsg.id,
         senderId: newMsg.sender_id,
-        isOwn: false,
+        isOwn: newMsg.sender_id === user?.id,
         content: newMsg.content,
         isRead: newMsg.is_read,
         createdAt: newMsg.created_at,
@@ -67,7 +69,7 @@ const MessagesPage = () => {
     fetchMyConversations().then((updated) => {
       setConversations(updated || []);
     });
-  }, []));
+  }, [user?.id]));
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

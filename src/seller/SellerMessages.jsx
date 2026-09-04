@@ -6,9 +6,11 @@ import {
   sendMessage, markConversationRead,
 } from '../services/messages';
 import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
+import { useAuth } from '../context/AuthContext';
 
 const SellerMessages = () => {
   const { onConversationUpdated } = useOutletContext() || {};
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
@@ -47,8 +49,8 @@ const SellerMessages = () => {
 
   // Realtime subscription for the selected conversation
   useRealtimeMessages(selectedConvo, useCallback((newMsg) => {
-    // Empêcher le doublon : si on vient d'envoyer ce message, ignorer l'event Realtime
-    if (pendingSendRef.current && newMsg.sender_id) {
+    // Anti-doublon : si on vient d'envoyer ce message (déjà optimistiquement ajouté via Realtime by sender), on ignore
+    if (pendingSendRef.current && newMsg.sender_id === user?.id) {
       pendingSendRef.current = false;
       return;
     }
@@ -58,7 +60,7 @@ const SellerMessages = () => {
       return [...prev, {
         id: newMsg.id,
         senderId: newMsg.sender_id,
-        isOwn: false,
+        isOwn: newMsg.sender_id === user?.id,
         content: newMsg.content,
         isRead: newMsg.is_read,
         createdAt: newMsg.created_at,
@@ -69,7 +71,7 @@ const SellerMessages = () => {
       setConversations(updated || []);
       if (onConversationUpdated) onConversationUpdated();
     });
-  }, [onConversationUpdated]));
+  }, [onConversationUpdated, user?.id]));
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

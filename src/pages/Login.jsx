@@ -4,11 +4,13 @@ import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './animations.css';
 
+const isInternalPath = (path) => typeof path === 'string' && path.startsWith('/') && !path.startsWith('//');
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
-  const redirectTo = location.state?.from || '/my-account';
+  const redirectTo = isInternalPath(location.state?.from) ? location.state.from : '/my-account';
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
