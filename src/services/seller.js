@@ -233,3 +233,35 @@ export const respondToQuote = async ({ quoteRequestId, priceEur, unit, delay, me
   }
   return { ok: true, data };
 };
+
+// ─── PRÉFÉRENCES VENDEUR ──────────────────────────────────────
+
+export const fetchSellerPreferences = async () => {
+  const { data, error } = await supabase.rpc('fetch_seller_preferences');
+  if (error) {
+    console.error('[seller] fetchSellerPreferences', error);
+    return null;
+  }
+  return data;
+};
+
+export const saveSellerPreferences = async ({
+  notifyNewOrders,
+  notifyNewMessages,
+  notifyNewQuotes,
+  defaultLeadTime,
+  isPaused,
+}) => {
+  const { data, error } = await supabase.rpc('upsert_seller_preferences', {
+    p_notify_new_orders: notifyNewOrders,
+    p_notify_new_messages: notifyNewMessages,
+    p_notify_new_quotes: notifyNewQuotes,
+    p_default_lead_time: defaultLeadTime,
+    p_is_paused: isPaused,
+  });
+  if (error) {
+    console.error('[seller] saveSellerPreferences', error);
+    return { ok: false, error };
+  }
+  return { ok: true, data };
+};

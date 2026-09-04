@@ -5,6 +5,7 @@ import {
   fetchMyConversations, fetchConversationMessages,
   sendMessage, markConversationRead,
 } from '../services/messages';
+import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
 
 const SellerMessages = () => {
   const { onConversationUpdated } = useOutletContext() || {};
@@ -16,6 +17,7 @@ const SellerMessages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const pendingSendRef = useRef(false);
 
   const loadConversations = useCallback(async () => {
     setLoading(true);
@@ -34,7 +36,6 @@ const SellerMessages = () => {
     setMessages(data || []);
     setLoadingMessages(false);
     await markConversationRead(convoId);
-    // Refresh conversation unread counter
     const updated = await fetchMyConversations();
     setConversations(updated || []);
     if (onConversationUpdated) onConversationUpdated();
@@ -44,6 +45,32 @@ const SellerMessages = () => {
     if (selectedConvo) loadMessages(selectedConvo);
   }, [selectedConvo, loadMessages]);
 
+  // Realtime subscription for the selected conversation
+  useRealtimeMessages(selectedConvo, useCallback((newMsg) => {
+    // Empêcher le doublon : si on vient d'envoyer ce message, ignorer l'event Realtime
+    if (pendingSendRef.current && newMsg.sender_id) {
+      pendingSendRef.current = false;
+      return;
+    }
+    setMessages((prev) => {
+      // Vérifier l'unicité par ID
+      if (prev.some((m) => m.id === newMsg.id)) return prev;
+      return [...prev, {
+        id: newMsg.id,
+        senderId: newMsg.sender_id,
+        isOwn: false,
+        content: newMsg.content,
+        isRead: newMsg.is_read,
+        createdAt: newMsg.created_at,
+      }];
+    });
+    // Rafraîchir la liste des conversations (dernier message, non lus)
+    fetchMyConversations().then((updated) => {
+      setConversations(updated || []);
+      if (onConversationUpdated) onConversationUpdated();
+    });
+  }, [onConversationUpdated]));
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -51,10 +78,19 @@ const SellerMessages = () => {
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo) return;
     setSending(true);
+    pendingSendRef.current = true;
     const res = await sendMessage({ conversationId: selectedConvo, content: newMessage.trim() });
     if (res.ok) {
       setNewMessage('');
-      await loadMessages(selectedConvo);
+      // Ne pas recharger manuellement : Realtime va ajouter le message.
+      // Mais marquer comme lu immédiatement.
+      await markConversationRead(selectedConvo);
+      // Rafraîchir les compteurs
+      const updated = await fetchMyConversations();
+      setConversations(updated || []);
+      if (onConversationUpdated) onConversationUpdated();
+    } else {
+      pendingSendRef.current = false;
     }
     setSending(false);
   };

@@ -1,21 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
-import { Settings as SettingsIcon, Bell, Truck, CreditCard, CheckCircle2, Shield, PauseCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Truck, CreditCard, CheckCircle2, PauseCircle, Loader2, AlertTriangle } from 'lucide-react';
+import { fetchSellerPreferences, saveSellerPreferences } from '../services/seller';
 
 const SellerSettings = () => {
   const { producer } = useOutletContext();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
   const [notifyOrders, setNotifyOrders] = useState(true);
   const [notifyMessages, setNotifyMessages] = useState(true);
   const [notifyQuotes, setNotifyQuotes] = useState(true);
   const [vacationMode, setVacationMode] = useState(false);
   const [defaultLeadTime, setDefaultLeadTime] = useState('2-5 jours');
-  const [saved, setSaved] = useState(false);
 
-  const handleSave = (e) => {
+  const loadPreferences = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const prefs = await fetchSellerPreferences();
+    if (prefs) {
+      setNotifyOrders(prefs.notify_new_orders ?? true);
+      setNotifyMessages(prefs.notify_new_messages ?? true);
+      setNotifyQuotes(prefs.notify_new_quotes ?? true);
+      setDefaultLeadTime(prefs.default_lead_time || '2-5 jours');
+      setVacationMode(prefs.is_paused ?? false);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (producer?.id) loadPreferences();
+  }, [producer?.id, loadPreferences]);
+
+  const handleSave = async (e) => {
     e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSaved(false);
+
+    const res = await saveSellerPreferences({
+      notifyNewOrders: notifyOrders,
+      notifyNewMessages: notifyMessages,
+      notifyNewQuotes: notifyQuotes,
+      defaultLeadTime,
+      isPaused: vacationMode,
+    });
+
+    setSaving(false);
+
+    if (!res.ok) {
+      setError(res.error?.message || "Une erreur est survenue lors de l'enregistrement. Réessayez.");
+      return;
+    }
+
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 720 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem' }}>
+          <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: 'var(--primary)' }} />
+          <span style={{ marginLeft: '0.75rem', color: 'var(--text-muted)' }}>Chargement des paramètres…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -31,6 +84,18 @@ const SellerSettings = () => {
       {saved && (
         <div className="sv-success-note" style={{ marginBottom: '1.25rem' }}>
           <CheckCircle2 size={15} /> Préférences enregistrées avec succès.
+        </div>
+      )}
+
+      {error && (
+        <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid var(--danger)', borderRadius: '8px', fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertTriangle size={16} /> {error}
+        </div>
+      )}
+
+      {vacationMode && (
+        <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: '#fff3cd', color: '#856404', border: '1px solid #ffc107', borderRadius: '8px', fontSize: '0.8125rem' }}>
+          <strong>Mode pause actif.</strong> Votre boutique est visible mais les clients ne peuvent plus passer de commandes. Désactivez cette option pour reprendre les ventes.
         </div>
       )}
 
@@ -145,11 +210,15 @@ const SellerSettings = () => {
         </section>
 
         <div>
-          <button type="submit" className="sv-btn sv-btn--primary">
-            Enregistrer les paramètres
+          <button type="submit" className="sv-btn sv-btn--primary" disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: saving ? 0.7 : 1 }}>
+            {saving ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Enregistrement…</> : 'Enregistrer les paramètres'}
           </button>
         </div>
       </form>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 };

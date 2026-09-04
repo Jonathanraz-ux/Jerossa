@@ -5,6 +5,7 @@ import {
   fetchMyConversations, fetchConversationMessages,
   sendMessage, markConversationRead,
 } from '../services/messages';
+import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
 
 const MessagesPage = () => {
   const { id: conversationId } = useParams();
@@ -16,6 +17,7 @@ const MessagesPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const pendingSendRef = useRef(false);
 
   const loadConversations = useCallback(async () => {
     setLoading(true);
@@ -37,7 +39,6 @@ const MessagesPage = () => {
     setMessages(data || []);
     setLoadingMessages(false);
     await markConversationRead(convoId);
-    // Refresh conversation list to update unread counts
     const updated = await fetchMyConversations();
     setConversations(updated || []);
   }, []);
@@ -46,6 +47,28 @@ const MessagesPage = () => {
     if (selectedConvo) loadMessages(selectedConvo);
   }, [selectedConvo, loadMessages]);
 
+  // Realtime subscription for the selected conversation
+  useRealtimeMessages(selectedConvo, useCallback((newMsg) => {
+    if (pendingSendRef.current && newMsg.sender_id) {
+      pendingSendRef.current = false;
+      return;
+    }
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === newMsg.id)) return prev;
+      return [...prev, {
+        id: newMsg.id,
+        senderId: newMsg.sender_id,
+        isOwn: false,
+        content: newMsg.content,
+        isRead: newMsg.is_read,
+        createdAt: newMsg.created_at,
+      }];
+    });
+    fetchMyConversations().then((updated) => {
+      setConversations(updated || []);
+    });
+  }, []));
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -53,10 +76,15 @@ const MessagesPage = () => {
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo) return;
     setSending(true);
+    pendingSendRef.current = true;
     const res = await sendMessage({ conversationId: selectedConvo, content: newMessage.trim() });
     if (res.ok) {
       setNewMessage('');
-      await loadMessages(selectedConvo);
+      await markConversationRead(selectedConvo);
+      const updated = await fetchMyConversations();
+      setConversations(updated || []);
+    } else {
+      pendingSendRef.current = false;
     }
     setSending(false);
   };

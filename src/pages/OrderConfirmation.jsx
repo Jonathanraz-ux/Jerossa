@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Package, ArrowLeft, Loader2 } from 'lucide-react';
-import { fetchOrderByNumber } from '../services/orders';
+import { fetchOrderByUser } from '../services/orders';
 import './animations.css';
 
 const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
@@ -16,7 +16,7 @@ const OrderConfirmation = () => {
   useEffect(() => {
     if (!ref) { setLoading(false); return; }
     let active = true;
-    fetchOrderByNumber(ref).then((fetched) => {
+    fetchOrderByUser(ref).then((fetched) => {
       if (!active) return;
       if (fetched) {
         setOrder(fetched);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, CreditCard, Smartphone, Landmark, ShieldCheck, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
-import { fetchOrderByNumber, confirmPayment } from '../services/orders';
+import { fetchOrderByUser, confirmPayment } from '../services/orders';
 import { useCart } from '../context/CartContext';
 import './animations.css';
 import { COMPANY_INFO } from '../config/companyInfo';
@@ -35,7 +35,7 @@ const Payment = () => {
       setLoading(false);
       return;
     }
-    fetchOrderByNumber(orderNumber).then((fetched) => {
+    fetchOrderByUser(orderNumber).then((fetched) => {
       if (!active) return;
       setOrder(fetched);
       setNotFound(!fetched);

@@ -113,9 +113,9 @@ function AppRoutes() {
           <Route path="/producteur/:id" element={<ProducerShop />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
+          <Route path="/checkout" element={<ProtectedClientRoute><Checkout /></ProtectedClientRoute>} />
+          <Route path="/payment" element={<ProtectedClientRoute><Payment /></ProtectedClientRoute>} />
+          <Route path="/order-confirmation" element={<ProtectedClientRoute><OrderConfirmation /></ProtectedClientRoute>} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/account" element={<Account />} />
           <Route path="/login" element={<Login />} />
