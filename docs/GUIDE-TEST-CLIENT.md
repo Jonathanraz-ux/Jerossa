@@ -11,11 +11,11 @@
 | Rôle | Comment y accéder | Identifiants |
 |---|---|---|
 | **Client** | Créer un compte librement sur le site | Page « Créer un compte » → onglet *Compte Client* |
-| **Administrateur** | Connexion puis menu **Mon compte → tableau de bord** | Email : `admin@jerossa.mg` · Mot de passe : `Admin@Jerossa2026` |
+| **Administrateur** | Connexion puis menu **Mon compte → tableau de bord** | Compte administrateur créé manuellement (voir README § Installation — aucun identifiant n'est stocké dans le dépôt) |
 
 > 💡 Astuce : ouvrez une fenêtre de navigation privée pour tester le parcours client, tout en restant connecté en admin dans votre fenêtre principale. Vous verrez ainsi en direct l'effet des actions admin côté client.
 >
-> ⚠️ Ce mot de passe admin est temporaire : il sera changé avant la mise en production.
+> ℹ️ Le compte administrateur est créé manuellement : aucun identifiant de test n'est fourni dans ce dépôt.
 
 ---
 
@@ -69,7 +69,7 @@
 
 ## 3. Parcours administrateur
 
-Se connecter avec `admin@jerossa.mg`, puis ouvrir **/admin** (accès refusé pour tout compte non admin — c'est voulu, vous pouvez le vérifier avec le compte client).
+Se connecter avec le compte administrateur créé manuellement, puis ouvrir **/admin** (accès refusé pour tout compte non admin — c'est voulu, vous pouvez le vérifier avec le compte client).
 
 | Onglet | Ce que vous pouvez faire |
 |---|---|
