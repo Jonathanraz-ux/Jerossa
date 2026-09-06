@@ -92,8 +92,8 @@ Se connecter avec le compte administrateur créé manuellement, puis ouvrir **/a
 | Favoris / Wishlist | Vitrine non personnalisée (données d'exemple) |
 | Carnet d'adresses & paramètres du compte | Maquettes (non enregistrées) |
 | Édition/création de produits par l'admin | Activation/suppression seulement ; création via espace vendeur à venir |
-| Espace vendeur complet (commandes reçues, KPIs, validation d'onboarding) | À venir |
-| « Publier une offre » | Interface de démonstration |
+| Espace vendeur complet (commandes reçues, KPIs, validation d'onboarding) | Fait — `/espace-vendeur` : tableau de bord + KPIs (CA payé, panier moyen, conversion devis), produits, commandes reçues (part vendeur), devis reçus avec réponse, avis, statistiques, paramètres ; validation d'onboarding/admin dans `/admin` (onglet Vendeurs) |
+| « Publier une offre » | Réel pour vendeur approuvé (insert en base) ; aperçu simulé sinon |
 
 ---
 
