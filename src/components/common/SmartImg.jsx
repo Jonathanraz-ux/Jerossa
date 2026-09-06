@@ -14,33 +14,31 @@ const FALLBACK_SVG =
  * Conserve le className et les props transmis pour ne rien casser des styles existants.
  */
 const SmartImg = ({ src = '', alt = '', className = '', ...rest }) => {
+  const [currentSrc, setCurrentSrc] = useState(src || FALLBACK_SVG);
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef(null);
 
-  // Images en cache : l'événement load peut avoir déjà eu lieu
+  // Synchronisation avec la prop `src` + détection des images déjà en cache
+  // (l'événement load peut déjà être passé avant le rendu)
   useEffect(() => {
-    if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
-      setLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    setLoaded(false);
+    const target = src || FALLBACK_SVG;
+    setCurrentSrc(target);
+    setLoaded(imgRef.current?.complete && imgRef.current?.naturalWidth > 0);
   }, [src]);
 
   return (
     <img
       ref={imgRef}
-      src={src || FALLBACK_SVG}
+      src={currentSrc}
       alt={alt}
       loading="lazy"
       decoding="async"
       className={`jr-smartimg ${loaded ? 'is-loaded' : ''} ${className}`}
       onLoad={() => setLoaded(true)}
-      onError={(e) => {
+      onError={() => {
         setLoaded(true);
-        if (e.currentTarget.src !== FALLBACK_SVG) {
-          e.currentTarget.src = FALLBACK_SVG;
+        if (currentSrc !== FALLBACK_SVG) {
+          setCurrentSrc(FALLBACK_SVG);
         }
       }}
       {...rest}
