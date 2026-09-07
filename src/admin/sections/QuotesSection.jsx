@@ -3,21 +3,27 @@ import { Search, FileText, RefreshCcw } from 'lucide-react';
 import { fetchAdminQuotes } from '../../services/admin';
 import { formatEUR, formatInt, formatDateTime } from '../format';
 import { PageHead, EmptyState, Modal } from '../ui';
+import { useLang } from '../../context/LangContext';
 
 const QUOTE_STATUS = {
-  pending: { label: 'En attente', tone: 'amber' },
-  responded: { label: 'Réponse reçue', tone: 'green' },
-  accepted: { label: 'Acceptée', tone: 'blue' },
-  declined: { label: 'Refusée', tone: 'red' },
+  pending: { tone: 'amber' },
+  responded: { tone: 'green' },
+  accepted: { tone: 'blue' },
+  declined: { tone: 'red' },
 };
 
-const QuoteBadge = ({ status }) => (
-  <span className={`adm-badge adm-badge--${QUOTE_STATUS[status]?.tone || 'neutral'}`}>
-    {QUOTE_STATUS[status]?.label || status}
-  </span>
-);
+const QuoteBadge = ({ status }) => {
+  const { t } = useLang();
+  const fallback = status;
+  return (
+    <span className={`adm-badge adm-badge--${QUOTE_STATUS[status]?.tone || 'neutral'}`}>
+      {t('status.' + status) !== ('status.' + status) ? t('status.' + status) : fallback}
+    </span>
+  );
+};
 
 const QuotesSection = () => {
+  const { t, lang } = useLang();
   const [quotes, setQuotes] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -62,26 +68,26 @@ const QuotesSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Ventes"
-        title="Devis"
-        subtitle={`${formatInt(quotes.length)} demande${quotes.length > 1 ? 's' : ''} de devis — ${formatInt(pendingCount)} en attente de réponse`}
+        eyebrow={t('admin.nav.sales')}
+        title={t('admin.quotes.title')}
+        subtitle={t('admin.quotes.subtitle', { count: formatInt(quotes.length), pending: formatInt(pendingCount) })}
       />
 
       <div className="adm-toolbar">
-        <div className="adm-pills" role="tablist" aria-label="Filtrer par statut">
+        <div className="adm-pills" role="tablist" aria-label={t('admin.quotes.filterByStatus')}>
           <button
             className={`adm-pill ${statusFilter === 'all' ? 'adm-pill--active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            Tous <span className="adm-pill-count">{quotes.length}</span>
+            {t('common.all')} <span className="adm-pill-count">{quotes.length}</span>
           </button>
-          {Object.entries(QUOTE_STATUS).map(([key, cfg]) => (
+          {Object.entries(QUOTE_STATUS).map(([key]) => (
             <button
               key={key}
               className={`adm-pill ${statusFilter === key ? 'adm-pill--active' : ''}`}
               onClick={() => setStatusFilter(key)}
             >
-              {cfg.label} {!!statusCounts[key] && <span className="adm-pill-count">{statusCounts[key]}</span>}
+              {t('status.' + key)} {!!statusCounts[key] && <span className="adm-pill-count">{statusCounts[key]}</span>}
             </button>
           ))}
         </div>
@@ -92,7 +98,7 @@ const QuotesSection = () => {
           <Search size={15} strokeWidth={1.75} />
           <input
             type="text"
-            placeholder="N° devis, produit, vendeur, commande…"
+            placeholder={t('admin.quotes.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -102,7 +108,7 @@ const QuotesSection = () => {
           onClick={loadQuotes}
           style={{ marginLeft: 'auto' }}
         >
-          <RefreshCcw size={14} strokeWidth={1.75} /> Actualiser
+          <RefreshCcw size={14} strokeWidth={1.75} /> {t('admin.quotes.refresh')}
         </button>
       </div>
 
@@ -110,27 +116,27 @@ const QuotesSection = () => {
         {quotes.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="Aucune demande de devis"
-            text="Les devis demandés par les clients depuis les fiches produit apparaîtront ici."
+            title={t('admin.quotes.emptyTitle')}
+            text={t('admin.quotes.emptyText')}
           />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Search}
             compact
-            title="Aucun résultat"
-            text="Ajustez la recherche ou le filtre de statut."
+            title={t('common.noResults')}
+            text={t('admin.quotes.noResultsText')}
           />
         ) : (
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
                 <tr>
-                  <th>Devis</th>
-                  <th>Produit</th>
-                  <th>Vendeur</th>
-                  <th>Qté</th>
-                  <th>Créé le</th>
-                  <th>Statut</th>
+                  <th>{t('admin.quotes.colQuote')}</th>
+                  <th>{t('admin.quotes.colProduct')}</th>
+                  <th>{t('admin.quotes.colSeller')}</th>
+                  <th>{t('admin.quotes.colQty')}</th>
+                  <th>{t('admin.quotes.colCreated')}</th>
+                  <th>{t('common.status')}</th>
                   <th />
                 </tr>
               </thead>
@@ -140,13 +146,13 @@ const QuotesSection = () => {
                     <td>
                       <div className="adm-prod-meta">
                         <span className="adm-prod-name" style={{ fontSize: 13 }}>{q.quoteNumber}</span>
-                        <span className="adm-prod-code">{q.orderNumber ? `Commande ${q.orderNumber}` : '—'}</span>
+                        <span className="adm-prod-code">{q.orderNumber ? t('admin.quotes.colOrderNum', { number: q.orderNumber }) : '—'}</span>
                       </div>
                     </td>
                     <td className="adm-cell-dim" style={{ fontSize: 12.5, maxWidth: 220 }}>{q.productTitle || '—'}</td>
                     <td className="adm-cell-dim" style={{ fontSize: 12.5 }}>{q.sellerName || '—'}</td>
                     <td className="num">{q.quantity ? `${q.quantity} ${q.unit || ''}`.trim() : '—'}</td>
-                    <td className="adm-cell-dim" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(q.createdAt)}</td>
+                    <td className="adm-cell-dim" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(q.createdAt, lang)}</td>
                     <td><QuoteBadge status={q.status} /></td>
                     <td>
                       <div className="adm-row-actions">
@@ -166,68 +172,69 @@ const QuotesSection = () => {
 
 const QuoteDetailModal = ({ quote }) => {
   const [open, setOpen] = useState(false);
+  const { t, lang } = useLang();
 
   return (
     <>
-      <button className="adm-action" title="Voir le détail" onClick={() => setOpen(true)}>
+      <button className="adm-action" title={t('admin.quotes.viewDetail')} onClick={() => setOpen(true)}>
         <FileText size={15} strokeWidth={1.75} />
       </button>
 
       {open && (
         <Modal
-          title={`Devis ${quote.quoteNumber}`}
-          subtitle={`Demandé le ${formatDateTime(quote.createdAt)}`}
+          title={t('admin.quotes.modalTitle', { number: quote.quoteNumber })}
+          subtitle={t('admin.quotes.modalSub', { date: formatDateTime(quote.createdAt, lang) })}
           onClose={() => setOpen(false)}
           maxWidth={640}
           footer={
             <button className="adm-btn adm-btn--ghost" onClick={() => setOpen(false)}>
-              Fermer
+              {t('common.close')}
             </button>
           }
         >
           <div className="adm-meta-grid" style={{ marginBottom: 18 }}>
             <div>
-              <div className="adm-meta-label">Statut</div>
+              <div className="adm-meta-label">{t('common.status')}</div>
               <div style={{ marginTop: 2 }}><QuoteBadge status={quote.status} /></div>
             </div>
             <div>
-              <div className="adm-meta-label">Client</div>
+              <div className="adm-meta-label">{t('admin.quotes.client')}</div>
               <div className="adm-meta-value adm-cell-dim" style={{ fontSize: 12.5 }}>
                 {quote.userId ? quote.userId.slice(0, 8) : '—'}
               </div>
             </div>
             <div>
-              <div className="adm-meta-label">Vendeur</div>
+              <div className="adm-meta-label">{t('admin.quotes.seller')}</div>
               <div className="adm-meta-value">{quote.sellerName || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Produit</div>
+              <div className="adm-meta-label">{t('admin.quotes.product')}</div>
               <div className="adm-meta-value">{quote.productTitle || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Quantité</div>
+              <div className="adm-meta-label">{t('admin.quotes.quantity')}</div>
               <div className="adm-meta-value">{quote.quantity ? `${quote.quantity} ${quote.unit || ''}`.trim() : '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Commande liée</div>
+              <div className="adm-meta-label">{t('admin.quotes.linkedOrder')}</div>
               <div className="adm-meta-value">{quote.orderNumber || '—'}</div>
             </div>
           </div>
 
           {quote.message && (
             <>
-              <h4 style={sectionTitleStyle}>Message du client</h4>
+              <h4 style={sectionTitleStyle}>{t('admin.quotes.clientMessage')}</h4>
               <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--adm-text)', margin: '0 0 18px' }}>{quote.message}</p>
             </>
           )}
 
-          <h4 style={sectionTitleStyle}>Réponse du vendeur</h4>
+          <h4 style={sectionTitleStyle}>{t('admin.quotes.sellerResponse')}</h4>
           {quote.response ? (
             <div className="adm-quote-response">
               <div style={{ fontSize: 22, fontWeight: 700 }}>{formatEUR(quote.response.priceEur)}</div>
               {quote.response.unit && (
                 <div className="adm-cell-dim" style={{ fontSize: 12.5 }}>
-                  par {quote.response.unit}{quote.response.delay ? ` · délai : ${quote.response.delay}` : ''}
+                  {t('admin.quotes.perUnit', { unit: quote.response.unit })}{quote.response.delay ? ` · ${t('admin.quotes.delay', { delay: quote.response.delay })}` : ''}
                 </div>
               )}
               {quote.response.message && (
@@ -238,7 +245,7 @@ const QuoteDetailModal = ({ quote }) => {
             </div>
           ) : (
             <p className="adm-cell-dim" style={{ fontSize: 12.5, margin: '4px 0 0' }}>
-              Aucune réponse du vendeur pour l&apos;instant.
+              {t('admin.quotes.noResponse')}
             </p>
           )}
         </Modal>

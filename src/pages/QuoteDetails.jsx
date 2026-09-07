@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchQuoteRequestByNumber, acceptQuote, declineQuote } from '../services/quotes';
+import { useLang } from '../context/LangContext';
+import { formatDate } from '../i18n';
 import { ArrowLeft, FileText, MessageSquare, Clock, CheckCircle2, XCircle, Loader2, PackageCheck, UserRound } from 'lucide-react';
 import './animations.css';
-
-const STATUS_LABELS = {
-  pending: 'En attente de réponse',
-  responded: 'Réponse reçue',
-  accepted: 'Acceptée',
-  declined: 'Refusée',
-};
 
 const STATUS_COLORS = {
   pending: { background: 'var(--warning-bg)', color: 'var(--warning)' },
@@ -23,6 +18,7 @@ const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`
 const QuoteDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, lang } = useLang();
   const [quote, setQuote] = useState(null);
   const [action, setAction] = useState('idle');
   const [error, setError] = useState('');
@@ -45,7 +41,7 @@ const QuoteDetails = () => {
       navigate(`/order-confirmation?ref=${res.data.order_number}`);
       return;
     }
-    setError(res.error?.message || "Impossible d'accepter cette offre.");
+    setError(res.error?.message || t('quotePage.acceptError'));
     setAction('idle');
   };
 
@@ -60,7 +56,7 @@ const QuoteDetails = () => {
       setAction('idle');
       return;
     }
-    setError(res.error?.message || 'Impossible de refuser cette offre.');
+    setError(res.error?.message || t('quotePage.declineError'));
     setAction('idle');
   };
 
@@ -71,18 +67,18 @@ const QuoteDetails = () => {
           <div className="page-hero-content">
             <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
               <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
                 <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-                <li style={{ color: '#fff', fontWeight: 500 }}>Demande de devis introuvable</li>
+                <li style={{ color: '#fff', fontWeight: 500 }}>{t('quotePage.notFound')}</li>
               </ol>
             </nav>
-            <span className="page-hero-surtitre anim-fade-up stagger-1">Erreur</span>
-            <h1 className="page-hero-title anim-fade-up stagger-2">Demande introuvable</h1>
-            <p className="page-hero-subtitle anim-fade-up stagger-3">La demande de devis demandée n'existe pas.</p>
+            <span className="page-hero-surtitre anim-fade-up stagger-1">{t('order.error')}</span>
+            <h1 className="page-hero-title anim-fade-up stagger-2">{t('quotePage.notFoundTitle')}</h1>
+            <p className="page-hero-subtitle anim-fade-up stagger-3">{t('quotePage.notFoundText')}</p>
           </div>
         </section>
         <div className="scroll-animate" style={{ padding: '40px 0' }}>
-          <Link to="/my-quotes" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Retour à mes devis</Link>
+          <Link to="/my-quotes" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{t('quotePage.backToQuotes')}</Link>
         </div>
       </div>
     );
@@ -100,28 +96,28 @@ const QuoteDetails = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li><Link to="/my-quotes" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Mes devis</Link></li>
+              <li><Link to="/my-quotes" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('account.myQuotes')}</Link></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
               <li style={{ color: '#fff', fontWeight: 500 }}>{quote.id}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Devis</span>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('quotePage.quotes')}</span>
           <h1 className="page-hero-title anim-fade-up stagger-2">{quote.id}</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Demandée le {quote.date}</p>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('quotePage.requestedOn')} {formatDate(quote.date, lang)}</p>
         </div>
       </section>
       <Link to="/my-quotes" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: 600, fontSize: '14px', marginBottom: '24px', textDecoration: 'none' }}>
-        <ArrowLeft size={16} /> Retour aux devis
+        <ArrowLeft size={16} /> {t('quotePage.backToQuotes')}
       </Link>
 
       <div className="scroll-animate" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-dark)' }}>{quote.id}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Demandée le {quote.date} — {quote.productTitle}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('quotePage.requestedOn')} {formatDate(quote.date, lang)} — {quote.productTitle}</p>
         </div>
-        <span className="status-badge" style={{ background: statusColors.background, color: statusColors.color, padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{quote.statusLabel || STATUS_LABELS[quote.status] || quote.status}</span>
+        <span className="status-badge" style={{ background: statusColors.background, color: statusColors.color, padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{quote.statusLabel || t('status.' + quote.status)}</span>
       </div>
 
       {error && (
@@ -131,24 +127,24 @@ const QuoteDetails = () => {
       {/* Demande */}
       <div className="scroll-animate premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
-          <FileText size={18} style={{ color: 'var(--primary)' }} /> Votre demande
+          <FileText size={18} style={{ color: 'var(--primary)' }} /> {t('quotePage.yourRequest')}
         </h3>
         <div className="quote-detail-grid">
           <div>
-            <div className="quote-detail-label">Produit</div>
+            <div className="quote-detail-label">{t('quote.product')}</div>
             <div className="quote-detail-value">{quote.productTitle}</div>
           </div>
           <div>
-            <div className="quote-detail-label">Vendeur</div>
+            <div className="quote-detail-label">{t('quotePage.seller')}</div>
             <div className="quote-detail-value">{quote.seller}</div>
           </div>
           <div>
-            <div className="quote-detail-label">Quantité</div>
+            <div className="quote-detail-label">{t('common.quantity')}</div>
             <div className="quote-detail-value">{quote.quantity} {quote.unit}</div>
           </div>
           <div>
-            <div className="quote-detail-label">Délai souhaité</div>
-            <div className="quote-detail-value">{quote.delayRequested || 'Non précisé'}</div>
+            <div className="quote-detail-label">{t('quote.delay')}</div>
+            <div className="quote-detail-value">{quote.delayRequested || t('quotePage.notSpecified')}</div>
           </div>
         </div>
         {quote.message && (
@@ -161,32 +157,32 @@ const QuoteDetails = () => {
       {/* Réponse vendeur */}
       <div className="scroll-animate premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
-          <UserRound size={18} style={{ color: 'var(--primary)' }} /> Offre du vendeur
+          <UserRound size={18} style={{ color: 'var(--primary)' }} /> {t('quotePage.sellerOffer')}
         </h3>
 
         {response ? (
           <>
             <div className="quote-detail-grid">
               <div>
-                <div className="quote-detail-label">Prix proposé</div>
+                <div className="quote-detail-label">{t('quotePage.proposedPrice')}</div>
                 <div className="quote-detail-value" style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatEUR(response.priceEUR)} / {response.unit}</div>
               </div>
               <div>
-                <div className="quote-detail-label">Sous-total</div>
+                <div className="quote-detail-label">{t('quotePage.subtotal')}</div>
                 <div className="quote-detail-value">{formatEUR(subtotal)}</div>
               </div>
               <div>
-                <div className="quote-detail-label">Livraison</div>
-                <div className="quote-detail-value">{shipping === 0 ? 'Offerte' : formatEUR(shipping)}</div>
+                <div className="quote-detail-label">{t('quotePage.shipping')}</div>
+                <div className="quote-detail-value">{shipping === 0 ? t('quotePage.free') : formatEUR(shipping)}</div>
               </div>
               <div>
-                <div className="quote-detail-label">Total estimé</div>
+                <div className="quote-detail-label">{t('quotePage.totalEstimate')}</div>
                 <div className="quote-detail-value" style={{ fontWeight: 700 }}>{formatEUR(subtotal + shipping)}</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-              {response.delay && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={15} style={{ color: 'var(--primary)' }} /> Délai : {response.delay}</span>}
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MessageSquare size={15} style={{ color: 'var(--primary)' }} /> Répondu le {response.date}</span>
+              {response.delay && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={15} style={{ color: 'var(--primary)' }} /> {t('quotePage.delayLabel')} {response.delay}</span>}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MessageSquare size={15} style={{ color: 'var(--primary)' }} /> {t('quotePage.respondedOn')} {formatDate(response.date, lang)}</span>
             </div>
             {response.message && (
               <div style={{ marginTop: '16px', padding: '12px 16px', background: 'var(--bg-cream)', borderRadius: '8px', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
@@ -197,10 +193,10 @@ const QuoteDetails = () => {
             {quote.status === 'responded' && (
               <div className="quote-detail-actions">
                 <button className="btn btn-primary" onClick={handleAccept} disabled={action !== 'idle'} style={{ textDecoration: 'none' }}>
-                  {action === 'accepting' ? <><Loader2 size={16} className="spin" /> Création de la commande…</> : <><PackageCheck size={16} /> Accepter l'offre</>}
+                  {action === 'accepting' ? <><Loader2 size={16} className="spin" /> {t('quotePage.creatingOrder')}</> : <><PackageCheck size={16} /> {t('quotePage.acceptOffer')}</>}
                 </button>
                 <button className="btn btn-outline" onClick={handleDecline} disabled={action !== 'idle'} style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>
-                  {action === 'declining' ? <><Loader2 size={16} className="spin" /> Refus…</> : <><XCircle size={16} /> Refuser l'offre</>}
+                  {action === 'declining' ? <><Loader2 size={16} className="spin" /> {t('quotePage.declining')}</> : <><XCircle size={16} /> {t('quotePage.declineOffer')}</>}
                 </button>
               </div>
             )}
@@ -208,14 +204,14 @@ const QuoteDetails = () => {
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'var(--warning-bg)', borderRadius: '8px', fontSize: '14px', color: 'var(--warning)' }}>
             <Clock size={20} />
-            <span>En attente de la réponse du vendeur. Vous serez notifié dès qu'une offre sera disponible.</span>
+            <span>{t('quotePage.waitingResponse')}</span>
           </div>
         )}
 
         {quote.status === 'accepted' && (
           <div style={{ marginTop: '16px', padding: '16px', background: 'var(--success-bg)', borderRadius: '8px', fontSize: '14px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <CheckCircle2 size={20} />
-            <span>Vous avez accepté cette offre. Une commande a été créée :</span>
+            <span>{t('quotePage.acceptedText')}</span>
             <Link to={`/order/${quote.orderNumber}`} style={{ fontWeight: 700, textDecoration: 'none', color: 'var(--success)' }}>{quote.orderNumber}</Link>
           </div>
         )}
@@ -223,7 +219,7 @@ const QuoteDetails = () => {
         {quote.status === 'declined' && (
           <div style={{ marginTop: '16px', padding: '16px', background: 'var(--danger-bg)', borderRadius: '8px', fontSize: '14px', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <XCircle size={20} />
-            <span>Vous avez refusé cette offre. La demande de devis est clôturée.</span>
+            <span>{t('quotePage.declinedText')}</span>
           </div>
         )}
       </div>

@@ -72,10 +72,10 @@ const ProducerShop = () => {
     return (
       <div className="container page-container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>
-          {t('lang') === 'en' ? 'Loading…' : 'Chargement…'}
+          {t('producerShop.loading')}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          {t('lang') === 'en' ? 'Fetching seller information.' : 'Récupération du producteur.'}
+          {t('producerShop.loadingDesc')}
         </p>
       </div>
     );
@@ -85,13 +85,13 @@ const ProducerShop = () => {
     return (
       <div className="container page-container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>
-          {t('lang') === 'en' ? 'Seller not found' : 'Producteur introuvable'}
+          {t('producerShop.notFound')}
         </h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-          {t('lang') === 'en' ? 'The seller you are looking for does not exist.' : 'Le producteur que vous recherchez n\'existe pas.'}
+          {t('producerShop.notFoundDesc')}
         </p>
         <Link to="/producteurs" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>
-          {t('lang') === 'en' ? 'Back to suppliers' : 'Retour aux producteurs'}
+          {t('producerShop.backToSuppliers')}
         </Link>
       </div>
     );
@@ -125,7 +125,7 @@ const ProducerShop = () => {
 
       <div className="container page-container">
         <Link to="/producteurs" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: 600, fontSize: '14px', marginBottom: '32px', textDecoration: 'none' }}>
-          <ArrowLeft size={16} /> {t('lang') === 'en' ? 'Back to suppliers' : 'Retour aux producteurs'}
+          <ArrowLeft size={16} /> {t('producerShop.backToSuppliers')}
         </Link>
 
         {/* Profile + Actions */}
@@ -213,7 +213,7 @@ const ProducerShop = () => {
                   <button
                     className="j-pill-btn j-pill-btn--primary"
                     disabled
-                    title="Ce vendeur n'est pas encore disponible sur la messagerie."
+                    title={t('producerShop.sellerUnavailableDesc')}
                   >
                     <MessageSquare size={15} /> {t('shop.contact_unavailable') || 'Vendeur indisponible'}
                   </button>
@@ -227,7 +227,7 @@ const ProducerShop = () => {
               </div>
               {!producer.sellerAvailable && (
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  Ce vendeur n'est pas encore disponible sur la messagerie.
+                  {t('producerShop.sellerUnavailableDesc')}
                 </p>
               )}
             </div>
@@ -248,7 +248,7 @@ const ProducerShop = () => {
                 )}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                {hasReviews ? `${displayReviewCount} avis` : t('shop.stats.no_reviews')}
+                {hasReviews ? `${displayReviewCount} ${t('product.reviews')}` : t('shop.stats.no_reviews')}
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -311,7 +311,7 @@ const ProducerShop = () => {
                         className="j-pill-btn j-pill-btn--primary"
                         onClick={() => setContactModal({ mode: 'contact' })}
                         disabled={!producer.sellerAvailable}
-                        title={producer.sellerAvailable ? undefined : "Ce vendeur n'est pas encore disponible sur la messagerie."}
+                        title={producer.sellerAvailable ? undefined : t('producerShop.sellerUnavailableDesc')}
                       >
                         <MessageSquare size={15} /> {t('shop.empty.cta')}
                       </button>
@@ -441,22 +441,22 @@ const ProducerShop = () => {
               </p>
               {producer.location && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                  <MapPin size={15} color="var(--primary)" /> <strong>Localisation :</strong> {producer.location}
+                  <MapPin size={15} color="var(--primary)" /> <strong>{t('producerShop.location')} :</strong> {producer.location}
                 </div>
               )}
               {producer.established && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                  <Award size={15} color="var(--primary)" /> <strong>Créée en</strong> {producer.established}
+                  <Award size={15} color="var(--primary)" /> <strong>{t('producerShop.established')}</strong> {producer.established}
                 </div>
               )}
               {producer.contactEmail && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                  <MessageSquare size={15} color="var(--primary)" /> <strong>Email :</strong> {producer.contactEmail}
+                  <MessageSquare size={15} color="var(--primary)" /> <strong>{t('producerShop.email')} :</strong> {producer.contactEmail}
                 </div>
               )}
               {producer.certifications?.length > 0 && (
                 <div style={{ marginTop: '1.5rem' }}>
-                  <strong style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Certifications</strong>
+                  <strong style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{t('producerShop.certifications')}</strong>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {producer.certifications.map((cert, i) => (
                       <span key={i} style={{

@@ -2,9 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { blogPosts } from '../data/blog';
 import { ArrowRight, Calendar, User } from 'lucide-react';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const Blog = () => {
+  const { t } = useLang();
   return (
     <div className="blog-page">
       {/* Premium Hero */}
@@ -12,14 +14,14 @@ const Blog = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li style={{ color: '#fff', fontWeight: 500 }}>Blog</li>
+              <li style={{ color: '#fff', fontWeight: 500 }}>{t('blog.breadcrumb')}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Blog</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Blog</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Découvrez nos derniers articles sur les matières premières, les producteurs et l'univers Jerossa.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('blog.surtitre')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('blog.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('blog.desc')}</p>
         </div>
       </section>
 
@@ -41,7 +43,7 @@ const Blog = () => {
                   <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)', lineHeight: 1.4 }}>{post.title}</h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, flexGrow: 1 }}>{post.excerpt}</p>
                   <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: 600, fontSize: '13px' }}>
-                    Lire la suite <ArrowRight size={14} />
+                    {t('blog.readMore')} <ArrowRight size={14} />
                   </div>
                 </div>
               </div>

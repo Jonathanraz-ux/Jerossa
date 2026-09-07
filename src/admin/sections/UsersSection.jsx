@@ -3,8 +3,10 @@ import { Search, UserRound } from 'lucide-react';
 import { fetchAdminUsers, updateUserRole } from '../../services/admin';
 import { formatDate, formatInt } from '../format';
 import { PageHead, EmptyState, RoleBadge, Avatar } from '../ui';
+import { useLang } from '../../context/LangContext';
 
 const UsersSection = () => {
+  const { t, lang } = useLang();
   const [users, setUsers] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -40,28 +42,28 @@ const UsersSection = () => {
     [users]
   );
 
-  if (loadingData) return <UsersSkeleton title="Utilisateurs" />;
+  if (loadingData) return <UsersSkeleton />;
 
   return (
     <div>
       <PageHead
-        eyebrow="Communauté"
-        title="Utilisateurs"
-        subtitle={`${formatInt(users.length)} comptes inscrits sur la plateforme`}
+        eyebrow={t('admin.nav.community')}
+        title={t('admin.users.title')}
+        subtitle={t('admin.users.subtitle', { count: formatInt(users.length) })}
       />
 
       <div className="adm-panel" style={{ marginBottom: 16 }}>
         <div className="adm-stat-strip">
           <div className="adm-strip-cell">
-            <div className="adm-strip-label">Administrateurs</div>
+            <div className="adm-strip-label">{t('admin.users.admins')}</div>
             <div className="adm-strip-value">{formatInt(counts.admin)}</div>
           </div>
           <div className="adm-strip-cell">
-            <div className="adm-strip-label">Vendeurs</div>
+            <div className="adm-strip-label">{t('admin.users.sellers')}</div>
             <div className="adm-strip-value">{formatInt(counts.seller)}</div>
           </div>
           <div className="adm-strip-cell">
-            <div className="adm-strip-label">Clients</div>
+            <div className="adm-strip-label">{t('admin.users.clients')}</div>
             <div className="adm-strip-value">{formatInt(counts.customer)}</div>
           </div>
         </div>
@@ -69,10 +71,11 @@ const UsersSection = () => {
 
       <UserTable
         users={filtered}
+        lang={lang}
         search={search}
         setSearch={setSearch}
-        searchLabel="Rechercher un utilisateur…"
-        emptyText="Aucun compte ne correspond à cette recherche."
+        searchLabel={t('admin.users.searchPlaceholder')}
+        emptyText={t('admin.users.noMatch')}
         onRoleChange={handleRoleChange}
         showRoleSelect
         totalCount={users.length}
@@ -84,9 +87,11 @@ const UsersSection = () => {
 // ── Table partagée Users / Clients ────────────────────────
 
 export const UserTable = ({
-  users, search, setSearch, searchLabel, emptyText,
+  users, lang, search, setSearch, searchLabel, emptyText,
   onRoleChange, showRoleSelect, totalCount,
-}) => (
+}) => {
+  const { t } = useLang();
+  return (
   <>
     <div className="adm-toolbar">
       <label className="adm-field" style={{ flex: 1, maxWidth: 340 }}>
@@ -99,24 +104,24 @@ export const UserTable = ({
         />
       </label>
       <span className="adm-cell-dim" style={{ marginLeft: 'auto' }}>
-        {users.length} affiché{users.length > 1 ? 's' : ''}
-        {typeof totalCount === 'number' && ` sur ${formatInt(totalCount)}`}
+        {t('admin.users.shown', { count: users.length })}
+        {typeof totalCount === 'number' && ` ${t('admin.users.of', { count: formatInt(totalCount) })}`}
       </span>
     </div>
 
     <div className="adm-panel">
       {users.length === 0 ? (
-        <EmptyState icon={UserRound} title="Aucun utilisateur trouvé" text={emptyText} compact />
+        <EmptyState icon={UserRound} title={t('admin.users.emptyTitle')} text={emptyText} compact />
       ) : (
         <div className="adm-table-wrap">
           <table className="adm-table">
             <thead>
               <tr>
-                <th>Identité</th>
-                <th>Rôle</th>
-                <th>Pays</th>
-                <th>Téléphone</th>
-                <th>Inscrit le</th>
+                <th>{t('admin.users.identity')}</th>
+                <th>{t('admin.users.role')}</th>
+                <th>{t('admin.users.country')}</th>
+                <th>{t('common.phone')}</th>
+                <th>{t('admin.users.registered')}</th>
                 {showRoleSelect && <th />}
               </tr>
             </thead>
@@ -129,10 +134,10 @@ export const UserTable = ({
                       <div className="adm-prod-meta">
                         <span className="adm-prod-name">{u.fullName || '—'}</span>
                         {u.role === 'seller' && (
-                          <span className="adm-prod-code">Compte professionnel</span>
+                          <span className="adm-prod-code">{t('admin.users.proAccounts')}</span>
                         )}
                         {u.role === 'admin' && (
-                          <span className="adm-prod-code">Équipe Jerossa</span>
+                          <span className="adm-prod-code">{t('admin.users.jerossaTeam')}</span>
                         )}
                       </div>
                     </div>
@@ -140,18 +145,18 @@ export const UserTable = ({
                   <td><RoleBadge role={u.role} /></td>
                   <td style={{ fontSize: 12.5 }}>{u.country || '—'}</td>
                   <td className="num" style={{ fontSize: 12.5 }}>{u.phone || '—'}</td>
-                  <td className="adm-cell-dim">{formatDate(u.createdAt)}</td>
+                  <td className="adm-cell-dim">{formatDate(u.createdAt, lang)}</td>
                   {showRoleSelect && (
                     <td>
                       <select
                         className="adm-inline-select"
                         value={u.role}
                         onChange={(e) => onRoleChange(u.id, e.target.value)}
-                        aria-label={`Rôle de ${u.fullName || 'utilisateur'}`}
+                        aria-label={t('admin.users.roleOf', { name: u.fullName || t('admin.users.user') })}
                       >
-                        <option value="customer">Client</option>
-                        <option value="seller">Vendeur</option>
-                        <option value="admin">Administrateur</option>
+                        <option value="customer">{t('role.customer')}</option>
+                        <option value="seller">{t('role.seller')}</option>
+                        <option value="admin">{t('role.admin')}</option>
                       </select>
                     </td>
                   )}
@@ -163,7 +168,8 @@ export const UserTable = ({
       )}
     </div>
   </>
-);
+  );
+};
 
 const UsersSkeleton = () => (  <div aria-hidden="true">
     <div style={{ marginBottom: 26 }}>

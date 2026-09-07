@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Star, ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
+import { localeFor } from '../i18n';
 import { fetchPublicReviews, submitSellerReview, fetchCompletedOrdersForSeller } from '../services/reviews';
 
 const SellerReviews = ({ sellerId }) => {
   const { user, isAuthenticated } = useAuth();
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -50,7 +51,7 @@ const SellerReviews = ({ sellerId }) => {
 
   const handleSubmit = async () => {
     if (!selectedOrder || !rating) {
-      setError('Veuillez sélectionner une commande et attribuer une note.');
+      setError(t('sellerReviews.selectError'));
       return;
     }
     setSubmitting(true);
@@ -98,7 +99,7 @@ const SellerReviews = ({ sellerId }) => {
               {avgRating}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              / 5 · {reviews.length} avis
+              {t('sellerReviews.summaryCount', { n: reviews.length })}
             </div>
           </div>
         )}
@@ -176,7 +177,7 @@ const SellerReviews = ({ sellerId }) => {
                 <option value="">{t('reviews.select_order')}</option>
                 {myOrders.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.orderNumber} — {new Date(o.createdAt).toLocaleDateString('fr-FR')}
+                    {o.orderNumber} — {new Date(o.createdAt).toLocaleDateString(localeFor(lang))}
                   </option>
                 ))}
               </select>
@@ -225,7 +226,7 @@ const SellerReviews = ({ sellerId }) => {
               rows={3}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Partagez votre expérience…"
+              placeholder={t('sellerReviews.commentPlaceholder')}
               style={{
                 width: '100%', padding: '0.6rem 0.85rem', border: '1px solid var(--border)',
                 borderRadius: 8, fontSize: '0.85rem', fontFamily: 'inherit', resize: 'vertical',
@@ -249,7 +250,7 @@ const SellerReviews = ({ sellerId }) => {
               onClick={() => { setShowForm(false); setError(''); }}
               disabled={submitting}
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               className="btn btn-primary"
@@ -292,7 +293,7 @@ const SellerReviews = ({ sellerId }) => {
               }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                    {review.buyer_name || 'Client'}
+                    {review.buyer_name || t('sellerReviews.buyerName')}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                     <div style={{ display: 'flex', gap: '1px' }}>
@@ -317,7 +318,7 @@ const SellerReviews = ({ sellerId }) => {
                   </div>
                 </div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {new Date(review.created_at).toLocaleDateString('fr-FR', {
+                  {new Date(review.created_at).toLocaleDateString(localeFor(lang), {
                     day: 'numeric', month: 'long', year: 'numeric',
                   })}
                 </span>

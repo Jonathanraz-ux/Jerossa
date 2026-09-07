@@ -51,6 +51,22 @@
   --adm-t-fast: 150ms var(--adm-ease);
   --adm-t-med: 240ms var(--adm-ease);
 
+  /* Zones paramétrables (surfaces overlays, pilules, badges…) */
+  --adm-topbar-bg: rgba(243, 240, 234, 0.82);
+  --adm-notif-border: var(--adm-bg-raised);
+  --adm-overlay: rgba(23, 22, 20, 0.42);
+  --adm-backdrop: rgba(23, 22, 20, 0.4);
+  --adm-row-hover: rgba(168, 121, 69, 0.035);
+  --adm-pill-bg: var(--adm-ink);
+  --adm-pill-fg: #f5f1e8;
+  --adm-badge-ink-bg: var(--adm-ink);
+  --adm-badge-ink-fg: #f5f1e8;
+  --adm-tip-bg: var(--adm-ink);
+  --adm-tip-fg: #f5f1e8;
+  --adm-tip-fg-mut: rgba(245, 241, 232, 0.6);
+  --adm-shimmer: rgba(255, 255, 255, 0.65);
+  --adm-select-arrow: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23857f72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+
   display: flex;
   min-height: 100vh;
   background:
@@ -342,7 +358,7 @@
   gap: 16px;
   height: 64px;
   padding: 0 28px;
-  background: rgba(243, 240, 234, 0.82);
+  background: var(--adm-topbar-bg);
   backdrop-filter: blur(14px) saturate(1.4);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   border-bottom: 1px solid var(--adm-line);
@@ -437,7 +453,7 @@
   padding: 0 4px;
   border-radius: 8px;
   background: var(--adm-red);
-  border: 2px solid var(--adm-bg-raised);
+  border: 2px solid var(--adm-notif-border);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
@@ -505,12 +521,44 @@
 .adm-menu-item--danger:hover svg { color: var(--adm-red); }
 .adm-menu-sep { height: 1px; background: var(--adm-line); margin: 6px 0; }
 
+/* Sélecteur de thème (menu profil) */
+.adm-theme-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--adm-line);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--adm-font-ui);
+  cursor: pointer;
+  transition: background var(--adm-t-fast), border-color var(--adm-t-fast), color var(--adm-t-fast);
+}
+.adm-theme-option:hover { border-color: var(--adm-bronze); color: var(--adm-ink); }
+.adm-theme-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.adm-theme-swatch--light {
+  background: linear-gradient(160deg, #ffffff 0%, #d9d0bd 100%);
+}
+.adm-theme-swatch--night {
+  background: linear-gradient(160deg, #2a2c34 0%, #131418 100%);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
 /* Palette de commandes */
 .adm-palette-overlay {
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(23, 22, 20, 0.35);
+  background: var(--adm-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -917,9 +965,9 @@
 }
 .adm-pill:hover { border-color: var(--adm-line-strong); color: var(--adm-ink); }
 .adm-pill--active {
-  background: var(--adm-ink);
+  background: var(--adm-pill-bg);
   border-color: var(--adm-ink);
-  color: #f5f1e8;
+  color: var(--adm-pill-fg);
   font-weight: 600;
 }
 .adm-pill-count { font-size: 11px; font-weight: 700; opacity: 0.65; }
@@ -951,7 +999,7 @@
 }
 .adm-table tbody tr:last-child td { border-bottom: none; }
 .adm-table tbody tr { transition: background var(--adm-t-fast); }
-.adm-table tbody tr:hover { background: rgba(168, 121, 69, 0.035); }
+.adm-table tbody tr:hover { background: var(--adm-row-hover); }
 .adm-table .num { font-variant-numeric: tabular-nums; }
 
 .adm-cell-strong { font-weight: 600; color: var(--adm-ink); }
@@ -1022,7 +1070,7 @@
 .adm-badge--amber { background: var(--adm-amber-soft); color: var(--adm-amber); }
 .adm-badge--blue { background: var(--adm-blue-soft); color: var(--adm-blue); }
 .adm-badge--bronze { background: var(--adm-bronze-soft); color: var(--adm-bronze-ink); }
-.adm-badge--ink { background: var(--adm-ink); color: #f5f1e8; }
+.adm-badge--ink { background: var(--adm-badge-ink-bg); color: var(--adm-badge-ink-fg); }
 
 .adm-chip {
   display: inline-flex;
@@ -1061,7 +1109,7 @@
   padding: 0 26px 0 10px;
   border-radius: 8px;
   border: 1px solid var(--adm-line);
-  background: var(--adm-surface) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23857f72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  background: var(--adm-surface) var(--adm-select-arrow) no-repeat right 10px center;
   font-family: var(--adm-font-ui);
   font-size: 12px;
   font-weight: 500;
@@ -1080,8 +1128,8 @@
   position: absolute;
   pointer-events: none;
   transform: translate(-50%, calc(-100% - 14px));
-  background: var(--adm-ink);
-  color: #f5f1e8;
+  background: var(--adm-tip-bg);
+  color: var(--adm-tip-fg);
   border-radius: 9px;
   padding: 7px 11px;
   font-size: 12px;
@@ -1091,7 +1139,7 @@
   z-index: 5;
 }
 .adm-chart-tip-label {
-  color: rgba(245, 241, 232, 0.6);
+  color: var(--adm-tip-fg-mut);
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1202,7 +1250,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  background: linear-gradient(90deg, transparent, var(--adm-shimmer), transparent);
   animation: adm-shimmer 1.4s infinite;
 }
 
@@ -1212,7 +1260,7 @@
   position: fixed;
   inset: 0;
   z-index: 150;
-  background: rgba(23, 22, 20, 0.42);
+  background: var(--adm-overlay);
   backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
@@ -1463,7 +1511,7 @@ textarea.adm-input { height: auto; min-height: 84px; padding: 10px 13px; resize:
   transition: background var(--adm-t-fast);
 }
 .adm-msg-row:last-child { border-bottom: none; }
-.adm-msg-row:hover { background: rgba(168, 121, 69, 0.035); }
+.adm-msg-row:hover { background: var(--adm-row-hover); }
 
 .adm-unread-dot {
   width: 7px;
@@ -1517,7 +1565,7 @@ textarea.adm-input { height: auto; min-height: 84px; padding: 10px 13px; resize:
   position: fixed;
   inset: 0;
   z-index: 55;
-  background: rgba(23, 22, 20, 0.4);
+  background: var(--adm-backdrop);
   backdrop-filter: blur(2px);
   animation: adm-fade-in 180ms ease both;
 }
@@ -1576,5 +1624,86 @@ textarea.adm-input { height: auto; min-height: 84px; padding: 10px 13px; resize:
   .adm-setting-row { flex-direction: column; }
   .adm-setting-control { width: 100%; }
   .adm-strip-cell { padding: 12px 14px; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   THÈME NIGHT — périmètre administration uniquement
+   Anthracite profond · cartes charbon · accents bronze Jerossa
+   Appliqué via l'attribut <html data-jerossa-admin-theme>
+   ════════════════════════════════════════════════════════════ */
+
+html[data-jerossa-admin-theme='night'] .adm-scope {
+  --adm-bg: #1b1c21;
+  --adm-bg-raised: #17181d;
+  --adm-surface: #23252c;
+  --adm-surface-subtle: #2a2c34;
+  --adm-ink: #f1ece1;
+  --adm-ink-2: #d2cbbb;
+  --adm-muted: #a29b8c;
+  --adm-faint: #7d786c;
+  --adm-line: #34363f;
+  --adm-line-strong: #454751;
+
+  --adm-bronze: #c99660;
+  --adm-bronze-deep: #d3a06a;
+  --adm-bronze-ink: #e0b183;
+  --adm-bronze-soft: rgba(201, 150, 96, 0.14);
+  --adm-bronze-softer: rgba(201, 150, 96, 0.08);
+
+  --adm-green: #8bc4a2;
+  --adm-green-soft: rgba(139, 196, 162, 0.16);
+  --adm-red: #e0837b;
+  --adm-red-soft: rgba(224, 131, 123, 0.16);
+  --adm-amber: #d7ab4e;
+  --adm-amber-soft: rgba(215, 171, 78, 0.16);
+  --adm-blue: #86aacd;
+  --adm-blue-soft: rgba(134, 170, 205, 0.16);
+
+  --adm-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --adm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.28);
+  --adm-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.38), 0 12px 32px rgba(0, 0, 0, 0.42);
+  --adm-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.42), 0 24px 64px rgba(0, 0, 0, 0.5);
+
+  --adm-topbar-bg: rgba(27, 28, 33, 0.82);
+  --adm-notif-border: #141519;
+  --adm-overlay: rgba(8, 8, 10, 0.68);
+  --adm-backdrop: rgba(8, 8, 10, 0.55);
+  --adm-row-hover: rgba(201, 150, 96, 0.07);
+  --adm-pill-bg: var(--adm-bronze);
+  --adm-pill-fg: #241c12;
+  --adm-badge-ink-bg: var(--adm-bronze);
+  --adm-badge-ink-fg: #241c12;
+  --adm-tip-bg: #101114;
+  --adm-tip-fg: #f5f1e8;
+  --adm-tip-fg-mut: rgba(245, 241, 232, 0.62);
+  --adm-shimmer: rgba(255, 255, 255, 0.09);
+  --adm-select-arrow: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a29b8c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(201, 150, 96, 0.06), transparent 60%),
+    var(--adm-bg);
+}
+
+/* Contours de focus plus visibles en sombre */
+html[data-jerossa-admin-theme='night'] .adm-scope :focus-visible {
+  outline-color: var(--adm-bronze);
+  outline-offset: 2px;
+}
+
+/* Sélection plus contrastée */
+html[data-jerossa-admin-theme='night'] .adm-scope ::selection {
+  background: rgba(201, 150, 96, 0.4);
+}
+
+/* La hero KPI reste identique (déjà sombre par design) */
+
+/* Scrollbars adaptées */
+html[data-jerossa-admin-theme='night'] .adm-scope .adm-nav {
+  scrollbar-color: var(--adm-line-strong) transparent;
+}
+
+/* Images avec fond translucide */
+html[data-jerossa-admin-theme='night'] .adm-scope img.adm-thumb {
+  background: var(--adm-surface-subtle);
 }
 

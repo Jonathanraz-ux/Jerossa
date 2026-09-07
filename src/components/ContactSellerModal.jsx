@@ -93,7 +93,7 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
               background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <X size={16} />
           </button>
@@ -116,7 +116,7 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
               onClick={onClose}
               style={{ marginTop: '1rem' }}
             >
-              Fermer
+              {t('common.close')}
             </button>
           </div>
         ) : (
@@ -269,7 +269,7 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
                 onClick={onClose}
                 disabled={submitting}
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 className="btn btn-primary"

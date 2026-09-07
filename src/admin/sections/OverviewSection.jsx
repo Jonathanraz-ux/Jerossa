@@ -10,17 +10,19 @@ import {
 import { formatEUR, formatInt, formatDate, timeAgo, clientLabel } from '../format';
 import { PageHead, Panel, EmptyState, StatusBadge, Thumb } from '../ui';
 import { RevenueAreaChart, Sparkline } from '../charts';
+import { useLang } from '../../context/LangContext';
+import { localeFor } from '../../i18n';
 
 const DAY_MS = 86400000;
 
-const buildDailySeries = (days) => {
+const buildDailySeries = (days, locale) => {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const buckets = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(start.getTime() - i * DAY_MS);
     buckets.push({
-      label: d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+      label: d.toLocaleDateString(locale, { day: '2-digit', month: 'short' }),
       value: 0,
       start: d.getTime(),
       end: d.getTime() + DAY_MS,
@@ -29,13 +31,13 @@ const buildDailySeries = (days) => {
   return buckets;
 };
 
-const buildMonthlySeries = () => {
+const buildMonthlySeries = (locale) => {
   const now = new Date();
   const buckets = [];
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     buckets.push({
-      label: d.toLocaleDateString('fr-FR', { month: 'short' }),
+      label: d.toLocaleDateString(locale, { month: 'short' }),
       value: 0,
       year: d.getFullYear(),
       month: d.getMonth(),
@@ -45,13 +47,13 @@ const buildMonthlySeries = () => {
 };
 
 const STATUS_META = [
-  { key: 'pending', color: '#c9a23f', label: 'En attente' },
-  { key: 'confirmed', color: '#46688c', label: 'Confirmée' },
-  { key: 'paid', color: '#a87945', label: 'Payée' },
-  { key: 'shipped', color: '#7a94b3', label: 'Expédiée' },
-  { key: 'delivered', color: '#33714f', label: 'Livrée' },
-  { key: 'cancelled', color: '#a63d35', label: 'Annulée' },
-  { key: 'refunded', color: '#857f72', label: 'Remboursée' },
+  { key: 'pending', color: '#c9a23f' },
+  { key: 'confirmed', color: '#46688c' },
+  { key: 'paid', color: '#a87945' },
+  { key: 'shipped', color: '#7a94b3' },
+  { key: 'delivered', color: '#33714f' },
+  { key: 'cancelled', color: '#a63d35' },
+  { key: 'refunded', color: '#857f72' },
 ];
 
 // Icônes selon le type réel de notification
@@ -78,6 +80,7 @@ const KpiTile = ({ icon, tone, name, value, note, delay }) => (
 );
 
 const OverviewSection = ({ setActiveSection }) => {
+  const { t, lang } = useLang();
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -114,14 +117,14 @@ const OverviewSection = ({ setActiveSection }) => {
   const analytics = useMemo(() => {
     const paid = allOrders.filter((o) => o.paymentStatus === 'paid');
 
-    const daily30 = buildDailySeries(30);
+    const daily30 = buildDailySeries(30, localeFor(lang));
     paid.forEach((o) => {
       const t = new Date(o.createdAt).getTime();
       const b = daily30.find((x) => t >= x.start && t < x.end);
       if (b) b.value += Number(o.total) || 0;
     });
 
-    const monthly = buildMonthlySeries();
+    const monthly = buildMonthlySeries(localeFor(lang));
     paid.forEach((o) => {
       const d = new Date(o.createdAt);
       const b = monthly.find((x) => x.year === d.getFullYear() && x.month === d.getMonth());
@@ -161,7 +164,7 @@ const OverviewSection = ({ setActiveSection }) => {
       pendingCount: statusCounts.pending || 0,
       statusCounts,
     };
-  }, [allOrders, period]);
+  }, [allOrders, period, lang]);
 
   if (loadingData || !stats) {
     return (
@@ -186,7 +189,7 @@ const OverviewSection = ({ setActiveSection }) => {
     );
   }
 
-  const todayLabel = new Date().toLocaleDateString('fr-FR', {
+  const todayLabel = new Date().toLocaleDateString(localeFor(lang), {
     weekday: 'long', day: 'numeric', month: 'long',
   });
   const activeProducts = products.filter((p) => p.active).length;
@@ -194,9 +197,9 @@ const OverviewSection = ({ setActiveSection }) => {
   return (
     <div>
       <PageHead
-        eyebrow="Vue d'ensemble"
-        title="Tableau de bord"
-        subtitle="La vitalité de votre maison, en un regard."
+        eyebrow={t('admin.nav.overview')}
+        title={t('admin.overview.dashboard')}
+        subtitle={t('admin.overview.dashboardSub')}
         meta={
           <span className="adm-head-meta">
             {todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}
@@ -207,14 +210,14 @@ const OverviewSection = ({ setActiveSection }) => {
       <div className="adm-kpi-band">
         <div className="adm-kpi-hero">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-            <span className="adm-kpi-hero-label">Revenus</span>
+            <span className="adm-kpi-hero-label">{t('admin.overview.revenue')}</span>
             <DollarSign size={16} strokeWidth={1.75} style={{ color: 'rgba(212,163,115,0.8)' }} />
           </div>
           <div className="adm-kpi-hero-value">{formatEUR(stats.totalRevenue)}</div>
           <div className="adm-kpi-hero-sub">
             {analytics.hasRevenue ? (
               <>
-                Commandes payées confondues
+                {t('admin.overview.paidOrders')}
                 {analytics.trendPct !== null && (
                   <span
                     style={{
@@ -223,12 +226,12 @@ const OverviewSection = ({ setActiveSection }) => {
                       marginLeft: 8,
                     }}
                   >
-                    {analytics.trendPct >= 0 ? '↑' : '↓'} {Math.abs(analytics.trendPct).toFixed(1)} % vs période précédente
+                    {analytics.trendPct >= 0 ? '↑' : '↓'} {Math.abs(analytics.trendPct).toFixed(1)} % {t('admin.overview.vsPrev')}
                   </span>
                 )}
               </>
             ) : (
-              'Les revenus apparaîtront dès la première commande payée.'
+              t('admin.overview.noRevenue')
             )}
           </div>
           {analytics.hasRevenue && (
@@ -242,35 +245,35 @@ const OverviewSection = ({ setActiveSection }) => {
           delay={60}
           icon={<ShoppingCart size={17} strokeWidth={1.75} />}
           tone="bronze"
-          name="Commandes"
+          name={t('admin.overview.orders')}
           value={formatInt(stats.totalOrders)}
-          note={stats.totalOrders > 0 ? `${formatInt(analytics.pendingCount)} en attente` : undefined}
+          note={stats.totalOrders > 0 ? t('admin.overview.pending', { count: formatInt(analytics.pendingCount) }) : undefined}
         />
         <KpiTile
           delay={120}
           icon={<Users size={17} strokeWidth={1.75} />}
           tone="blue"
-          name="Utilisateurs"
+          name={t('admin.overview.users')}
           value={formatInt(stats.totalUsers)}
-          note={stats.totalUsers > 0 ? 'comptes inscrits' : undefined}
+          note={stats.totalUsers > 0 ? t('admin.overview.registered') : undefined}
         />
         <KpiTile
           delay={180}
           icon={<Package size={17} strokeWidth={1.75} />}
           tone="amber"
-          name="Produits"
+          name={t('admin.overview.products')}
           value={formatInt(stats.totalProducts)}
-          note={stats.totalProducts > 0 ? `${formatInt(activeProducts)} actifs` : undefined}
+          note={stats.totalProducts > 0 ? t('admin.overview.active', { count: formatInt(activeProducts) }) : undefined}
         />
       </div>
 
       <div className="adm-grid-main">
         <Panel
-          title="Évolution des revenus"
-          subtitle="Total des commandes payées sur la période"
+          title={t('admin.overview.revenueEvolution')}
+          subtitle={t('admin.overview.revenueSub')}
           action={
-            <div className="adm-seg" role="tablist" aria-label="Période">
-              {[['7d', '7 jours'], ['30d', '30 jours'], ['12m', '12 mois']].map(([key, lbl]) => (
+            <div className="adm-seg" role="tablist" aria-label={t('admin.overview.period')}>
+              {[['7d', t('admin.overview.period7d')], ['30d', t('admin.overview.period30d')], ['12m', t('admin.overview.period12m')]].map(([key, lbl]) => (
                 <button
                   key={key}
                   role="tab"
@@ -289,22 +292,22 @@ const OverviewSection = ({ setActiveSection }) => {
           ) : (
             <EmptyState
               icon={DollarSign}
-              title="Votre activité commencera ici"
-              text="Le graphique des revenus se dessinera automatiquement dès qu'un client passera et réglera sa première commande."
+              title={t('admin.overview.activityHere')}
+              text={t('admin.overview.activityHereText')}
             />
           )}
         </Panel>
 
         <Panel
-          title="Répartition des commandes"
-          subtitle={`${formatInt(allOrders.length)} commande${allOrders.length > 1 ? 's' : ''} au total`}
+          title={t('admin.overview.orderBreakdown')}
+          subtitle={t('admin.overview.orderBreakdownSub', { count: formatInt(allOrders.length) })}
         >
           {allOrders.length === 0 ? (
             <EmptyState
               icon={ShoppingCart}
               compact
-              title="Aucune commande pour l'instant"
-              text="Les statuts apparaîtront avec vos premières ventes."
+              title={t('admin.overview.noOrders')}
+              text={t('admin.overview.noOrdersText')}
             />
           ) : (
             <div className="adm-bars">
@@ -313,7 +316,7 @@ const OverviewSection = ({ setActiveSection }) => {
                 const pct = Math.round((count / allOrders.length) * 100);
                 return (
                   <div className="adm-bar-row" key={s.key}>
-                    <span className="adm-bar-label">{s.label}</span>
+                    <span className="adm-bar-label">{t('status.' + s.key)}</span>
                     <span className="adm-bar-track">
                       <span
                         className="adm-bar-fill"
@@ -333,30 +336,30 @@ const OverviewSection = ({ setActiveSection }) => {
 
       <div className="adm-grid-duo">
         <Panel
-          title="Commandes récentes"
-          subtitle="Les dernières commandes passées sur la boutique"
+          title={t('admin.overview.recentOrders')}
+          subtitle={t('admin.overview.recentOrdersSub')}
           action={
             <button className="adm-panel-link" onClick={() => setActiveSection('orders')}>
-              Voir tout <ArrowRight size={13} />
+              {t('common.seeAll')} <ArrowRight size={13} />
             </button>
           }
         >
           {recentOrders.length === 0 ? (
             <EmptyState
               icon={ShoppingCart}
-              title="Aucune commande pour le moment"
-              text="Les commandes apparaîtront automatiquement lorsqu'un client passera sa première commande."
+              title={t('admin.overview.noOrders')}
+              text={t('admin.overview.noOrdersText')}
             />
           ) : (
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead>
                   <tr>
-                    <th>Commande</th>
-                    <th>Client</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Statut</th>
+                    <th>{t('admin.overview.colOrder')}</th>
+                    <th>{t('admin.client')}</th>
+                    <th>{t('common.date')}</th>
+                    <th>{t('common.total')}</th>
+                    <th>{t('common.status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -373,13 +376,13 @@ const OverviewSection = ({ setActiveSection }) => {
                               {order.orderNumber}
                             </span>
                             <span className="adm-prod-code">
-                              {order.items?.length} article{order.items?.length > 1 ? 's' : ''}
+                              {t('admin.articles', { count: order.items?.length })}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td style={{ fontSize: 12.5 }}>{clientLabel(order) || '—'}</td>
-                      <td className="adm-cell-dim">{formatDate(order.createdAt)}</td>
+                      <td className="adm-cell-dim">{formatDate(order.createdAt, lang)}</td>
                       <td className="num adm-cell-strong">{formatEUR(order.total)}</td>
                       <td><StatusBadge status={order.status} /></td>
                     </tr>
@@ -391,12 +394,12 @@ const OverviewSection = ({ setActiveSection }) => {
         </Panel>
 
         <Panel
-          title="Activité récente"
-          subtitle="Ce qui bouge sur la plateforme"
+          title={t('admin.overview.recentActivity')}
+          subtitle={t('admin.overview.recentActivitySub')}
           action={
             notifications.length > 0 ? (
               <button className="adm-panel-link" onClick={() => setActiveSection('messages')}>
-                Tout voir <ArrowRight size={13} />
+                {t('common.seeAll')} <ArrowRight size={13} />
               </button>
             ) : null
           }
@@ -404,8 +407,8 @@ const OverviewSection = ({ setActiveSection }) => {
           {notifications.length === 0 ? (
             <EmptyState
               icon={Bell}
-              title="Rien à signaler, pour l'instant"
-              text="Chaque événement de la boutique — commande, inscription, remboursement — apparaîtra dans ce fil d'activité."
+              title={t('admin.overview.nothingToReport')}
+              text={t('admin.overview.nothingToReportText')}
             />
           ) : (
             <div className="adm-timeline">
@@ -427,7 +430,7 @@ const OverviewSection = ({ setActiveSection }) => {
                       <div className="adm-tl-title">{n.title}</div>
                       <div className="adm-tl-desc">{n.body || '—'}</div>
                     </div>
-                    <span className="adm-tl-time">{timeAgo(n.created_at)}</span>
+                    <span className="adm-tl-time">{timeAgo(n.created_at, lang)}</span>
                   </div>
                 );
               })}

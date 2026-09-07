@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const isInternalPath = (path) => typeof path === 'string' && path.startsWith('/') && !path.startsWith('//');
@@ -10,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn } = useAuth();
+  const { t } = useLang();
   const redirectTo = isInternalPath(location.state?.from) ? location.state.from : '/my-account';
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -40,14 +42,14 @@ const Login = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
   <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
     <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-    <li style={{ color: '#fff', fontWeight: 500 }}>Connexion</li>
+    <li style={{ color: '#fff', fontWeight: 500 }}>{t('auth.login')}</li>
   </ol>
 </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Connexion</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Retrouvez votre compte</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Accédez à votre espace Jerossa.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('auth.login')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('auth.login.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('auth.login.subtitle')}</p>
         </div>
       </section>
 
@@ -58,8 +60,8 @@ const Login = () => {
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <User size={28} style={{ color: 'var(--primary)' }} />
               </div>
-              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)' }}>Connexion</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Retrouvez votre compte Jerossa</p>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)' }}>{t('auth.login')}</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('auth.login.welcome')}</p>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -69,7 +71,7 @@ const Login = () => {
                 </div>
               )}
               <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Adresse email</label>
+                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.email')}</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type="email" name="email" className="form-input" placeholder="votre@email.com" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '12px 14px 12px 40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)', background: 'var(--bg-white)' }} />
@@ -77,7 +79,7 @@ const Login = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Mot de passe</label>
+                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.password')}</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type={showPassword ? 'text' : 'password'} name="password" className="form-input" placeholder="••••••••" value={formData.password} onChange={handleChange} style={{ width: '100%', padding: '12px 14px 12px 40px', paddingRight: '40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)', background: 'var(--bg-white)' }} />
@@ -89,17 +91,17 @@ const Login = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', fontSize: '13px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}>
-                  <input type="checkbox" style={{ accentColor: 'var(--primary)' }} /> Se souvenir de moi
+                  <input type="checkbox" style={{ accentColor: 'var(--primary)' }} /> {t('auth.rememberMe')}
                 </label>
-                <Link to="/forgot-password" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none', fontSize: '13px' }}>Mot de passe oublié ?</Link>
+                <Link to="/forgot-password" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none', fontSize: '13px' }}>{t('auth.forgotPassword')}</Link>
               </div>
 
-              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? 'Connexion…' : 'Se connecter'}</button>
+              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? t('auth.loggingIn') : t('auth.login')}</button>
             </form>
 
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)' }}>
-              Pas encore de compte ?{' '}
-              <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Créer un compte</Link>
+              {t('auth.noAccount')}{' '}
+              <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{t('auth.createAccount')}</Link>
             </div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../admin/admin.css';
 import { Sidebar, NotificationsBell, ProfileMenu, CommandPalette } from '../admin/chrome';
-import { SECTION_LABELS } from '../admin/nav';
+import { useLang } from '../context/LangContext';
+import { readHtmlTheme } from '../admin/theme';
 import OverviewSection from '../admin/sections/OverviewSection';
 import ProductsSection from '../admin/sections/ProductsSection';
 import CategoriesSection from '../admin/sections/CategoriesSection';
@@ -13,12 +14,22 @@ import ClientsSection from '../admin/sections/ClientsSection';
 import SellersSection from '../admin/sections/SellersSection';
 import MessagesSection from '../admin/sections/MessagesSection';
 import SettingsSection from '../admin/sections/SettingsSection';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const AdminDashboard = () => {
+  const { t } = useLang();
   const [activeSection, setActiveSection] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Restaure le thème admin avant le premier rendu visible (anti-flash).
+  useEffect(() => {
+    const theme = readHtmlTheme();
+    if (theme === 'night') {
+      document.documentElement.setAttribute('data-jerossa-admin-theme', 'night');
+    }
+  }, []);
 
   // Auto-collapse sur écran étroit
   useEffect(() => {
@@ -62,7 +73,7 @@ const AdminDashboard = () => {
 
       <main className={`adm-main ${sidebarCollapsed ? 'adm-main--collapsed' : ''}`}>
         <Topbar
-          sectionLabel={SECTION_LABELS[activeSection] || ''}
+          sectionLabel={t('admin.nav.' + activeSection)}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed((v) => !v)}
           onOpenMobile={() => setMobileNavOpen(true)}
@@ -95,15 +106,17 @@ const Topbar = ({
   onOpenMobile,
   onOpenPalette,
   onSelectSection,
-}) => (
+}) => {
+  const { t } = useLang();
+  return (
   <header className="adm-topbar">
     <div className="adm-topbar-left">
       {/* Toggle desktop */}
       <button
         className="adm-icon-btn adm-collapse-desktop"
         onClick={onToggleSidebar}
-        aria-label={sidebarCollapsed ? 'Déplier la navigation' : 'Replier la navigation'}
-        title={sidebarCollapsed ? 'Déplier' : 'Replier'}
+        aria-label={sidebarCollapsed ? t('admin.expandNav') : t('admin.collapseNav')}
+        title={sidebarCollapsed ? t('admin.expand') : t('admin.collapse')}
       >
         {sidebarCollapsed ? (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/><path d="M15 10l2 2-2 2"/></svg>
@@ -115,13 +128,13 @@ const Topbar = ({
       <button
         className="adm-icon-btn adm-burger-mobile"
         onClick={onOpenMobile}
-        aria-label="Ouvrir la navigation"
+        aria-label={t('admin.openNav')}
       >
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
       </button>
 
       <div className="adm-breadcrumb">
-        <span className="adm-breadcrumb-root">Administration</span>
+        <span className="adm-breadcrumb-root">{t('app.admin')}</span>
         <span className="adm-breadcrumb-sep">/</span>
         <span className="adm-breadcrumb-current">{sectionLabel}</span>
       </div>
@@ -132,7 +145,7 @@ const Topbar = ({
         <circle cx="11" cy="11" r="7" />
         <path d="M21 21l-4.3-4.3" />
       </svg>
-      <span style={{ fontSize: 12.5 }}>Rechercher…</span>
+      <span style={{ fontSize: 12.5 }}>{t('admin.search')}</span>
       <span className="adm-search-hint">
         <span className="adm-kbd">⌘</span>
         <span className="adm-kbd">K</span>
@@ -140,11 +153,13 @@ const Topbar = ({
     </button>
 
     <div className="adm-topbar-right">
+      <LanguageSwitcher compact />
       <NotificationsBell onSelectSection={onSelectSection} />
       <ProfileMenu />
     </div>
   </header>
-);
+  );
+};
 
 // ── Content router (mêmes sections qu'avant) ──────────────
 

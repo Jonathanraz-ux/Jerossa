@@ -6,11 +6,13 @@ import {
 } from 'lucide-react';
 import { fetchMyProducts, fetchMyOrders, fetchMyQuotes } from '../services/seller';
 import { formatEUR } from '../admin/format';
+import { useLang } from '../context/LangContext';
 
 const formatEURFull = (n) => `${Number(n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
 const SellerStats = () => {
   const { producer } = useOutletContext();
+  const { t } = useLang();
   const [data, setData] = useState({ products: [], orders: [], quotes: [] });
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +52,7 @@ const SellerStats = () => {
     return (
       <div className="sv-loader">
         <div className="sv-loader-spinner" />
-        <p>Calcul des statistiques…</p>
+        <p>{t('seller.stats.loading')}</p>
       </div>
     );
   }
@@ -59,37 +61,37 @@ const SellerStats = () => {
     <div>
       <div style={{ marginBottom: '1.25rem' }}>
         <h2 className="sv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <TrendingUp size={20} color="var(--primary)" /> Statistiques & Performances
+          <TrendingUp size={20} color="var(--primary)" /> {t('seller.stats.title')}
         </h2>
         <p className="sv-dim">
-          Indicateurs clés de votre activité commerciale, commandes, devis et dynamisme de votre boutique.
+          {t('seller.stats.subtitle')}
         </p>
       </div>
 
       {/* Main KPIs */}
       <div className="sv-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><Euro size={13} /> Chiffre d'affaires payé</span>
+          <span className="sv-kpi-label"><Euro size={13} /> {t('seller.stats.paidRevenue')}</span>
           <div className="sv-kpi-value">{formatEURFull(totalRevenue)}</div>
-          <div className="sv-kpi-sub">Total encaissé via Jerossa</div>
+          <div className="sv-kpi-sub">{t('seller.stats.totalCollected')}</div>
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><ShoppingCart size={13} /> Panier moyen</span>
+          <span className="sv-kpi-label"><ShoppingCart size={13} /> {t('seller.stats.avgCart')}</span>
           <div className="sv-kpi-value">{formatEUR(avgOrderValue)}</div>
-          <div className="sv-kpi-sub">Par commande payée</div>
+          <div className="sv-kpi-sub">{t('seller.stats.perPaidOrder')}</div>
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><FileText size={13} /> Conversion Devis</span>
+          <span className="sv-kpi-label"><FileText size={13} /> {t('seller.stats.quoteConversion')}</span>
           <div className="sv-kpi-value">{quoteConversion}%</div>
-          <div className="sv-kpi-sub">{data.quotes.filter(q => q.status === 'accepted').length} devis accepté(s)</div>
+          <div className="sv-kpi-sub">{t('seller.stats.quotesAccepted', { count: data.quotes.filter(q => q.status === 'accepted').length })}</div>
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><CheckCircle2 size={13} /> Commandes honorées</span>
+          <span className="sv-kpi-label"><CheckCircle2 size={13} /> {t('seller.stats.fulfilledOrders')}</span>
           <div className="sv-kpi-value">{deliveredOrders}</div>
-          <div className="sv-kpi-sub">{data.orders.length} commande(s) au total</div>
+          <div className="sv-kpi-sub">{t('seller.stats.totalOrders', { count: data.orders.length })}</div>
         </div>
       </div>
 
@@ -98,15 +100,15 @@ const SellerStats = () => {
         {/* Status Breakdown */}
         <section className="sv-panel" style={{ marginBottom: 0 }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <BarChart3 size={16} /> Répartition des commandes
+            <BarChart3 size={16} /> {t('seller.stats.orderBreakdown')}
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {[
-              { label: 'Livrées avec succès', count: data.orders.filter(o => o.status === 'delivered').length, color: 'var(--brand-green)' },
-              { label: 'Expédiées / En transit', count: data.orders.filter(o => o.status === 'shipped').length, color: '#3b82f6' },
-              { label: 'Payées / En préparation', count: data.orders.filter(o => o.status === 'paid' || o.status === 'confirmed').length, color: 'var(--accent)' },
-              { label: 'En attente de paiement', count: data.orders.filter(o => o.status === 'pending').length, color: 'var(--text-muted)' },
+              { label: t('seller.stats.deliveredSuccess'), count: data.orders.filter(o => o.status === 'delivered').length, color: 'var(--brand-green)' },
+              { label: t('seller.stats.shippedTransit'), count: data.orders.filter(o => o.status === 'shipped').length, color: '#3b82f6' },
+              { label: t('seller.stats.paidPreparing'), count: data.orders.filter(o => o.status === 'paid' || o.status === 'confirmed').length, color: 'var(--accent)' },
+              { label: t('seller.stats.pendingPayment'), count: data.orders.filter(o => o.status === 'pending').length, color: 'var(--text-muted)' },
             ].map(({ label, count, color }) => {
               const total = data.orders.length || 1;
               const pct = Math.round((count / total) * 100);
@@ -126,32 +128,32 @@ const SellerStats = () => {
         </section>
 
         {/* Quotes & Responsiveness */}
-        <section className="sv-panel" style={{ marginBottom: 0 }}>
+                <section className="sv-panel" style={{ marginBottom: 0 }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={16} /> Efficacité commerciale
+            <Clock size={16} /> {t('seller.stats.commercialEfficiency')}
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: '#faf9f7', borderRadius: '8px', border: '1px solid var(--border)' }}>
               <div>
-                <strong style={{ fontSize: '0.85rem' }}>Délai moyen de réponse</strong>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Aux messages & devis acheteurs</div>
+                <strong style={{ fontSize: '0.85rem' }}>{t('seller.stats.avgResponseTime')}</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('seller.stats.avgResponseTimeHint')}</div>
               </div>
               <span className="sv-badge sv-badge--green">{producer.response_time || '< 2 heures'}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: '#faf9f7', borderRadius: '8px', border: '1px solid var(--border)' }}>
               <div>
-                <strong style={{ fontSize: '0.85rem' }}>Taux de réponse global</strong>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Messages traités sous 24h</div>
+                <strong style={{ fontSize: '0.85rem' }}>{t('seller.stats.globalResponseRate')}</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('seller.stats.messages24h')}</div>
               </div>
               <span className="sv-badge sv-badge--green">{producer.response_rate || '100%'}</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: '#faf9f7', borderRadius: '8px', border: '1px solid var(--border)' }}>
               <div>
-                <strong style={{ fontSize: '0.85rem' }}>Catalogue actif</strong>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Offres publiées en ligne</div>
+                <strong style={{ fontSize: '0.85rem' }}>{t('seller.stats.activeCatalog')}</strong>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('seller.stats.offersOnline')}</div>
               </div>
               <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{activeProducts} / {data.products.length}</span>
             </div>
@@ -166,9 +168,9 @@ const SellerStats = () => {
             <Award size={20} />
           </div>
           <div>
-            <h4 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 600 }}>Optimisez vos ventes sur l'axe Madagascar ↔ Maurice</h4>
+            <h4 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 600 }}>{t('seller.stats.tipTitle')}</h4>
             <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-dark)', lineHeight: 1.5 }}>
-              Les acheteurs professionnels privilégient les fiches produits détaillées avec photos réelles, origines régionales certifiées (SAVA, Sambirano, etc.) et des réponses aux demandes de devis formulées en moins de 4 heures.
+              {t('seller.stats.tipText')}
             </p>
           </div>
         </div>

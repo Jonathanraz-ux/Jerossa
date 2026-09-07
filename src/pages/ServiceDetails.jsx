@@ -6,19 +6,21 @@ import {
 } from 'lucide-react';
 import { servicesData, getServiceCategory } from '../data/services';
 import { useCurrency, CURRENCY_NOTE } from '../context/CurrencyContext';
+import { useLang } from '../context/LangContext';
 
 const ServiceDetails = () => {
   const { id } = useParams();
+  const { t } = useLang();
   const { convert, currency } = useCurrency();
   const svc = servicesData.find((s) => s.id === id);
 
   if (!svc) {
     return (
       <div className="container" style={{ padding: '5rem 2rem', textAlign: 'center' }}>
-        <h1>Service introuvable</h1>
-        <p style={{ color: 'var(--text-muted)' }}>Ce service n'existe pas ou n'est plus disponible.</p>
+        <h1>{t('services.detail.notFoundTitle')}</h1>
+        <p style={{ color: 'var(--text-muted)' }}>{t('services.detail.notFoundText')}</p>
         <Link to="/services" className="j-pill-btn j-pill-btn--primary" style={{ marginTop: '1rem' }}>
-          Retour aux services
+          {t('services.detail.backServices')}
         </Link>
       </div>
     );
@@ -40,9 +42,9 @@ const ServiceDetails = () => {
         <div className="svc-hero-overlay"></div>
         <div className="container svc-hero-content">
           <nav className="svc-breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('nav.home')}</Link>
             <span>/</span>
-            <Link to="/services">Services</Link>
+            <Link to="/services">{t('services.breadcrumb')}</Link>
             <span>/</span>
             <span>{svc.subcategory}</span>
           </nav>
@@ -60,52 +62,52 @@ const ServiceDetails = () => {
         <div className="svc-layout">
           <div className="svc-main">
             <section className="svc-block">
-              <h2>À propos de ce service</h2>
+              <h2>{t('services.detail.about')}</h2>
               <p className="svc-desc">{svc.description}</p>
               <div className="svc-facts">
                 <div className="svc-fact">
                   <CheckCircle2 size={16} />
-                  <span><strong>Spécialité</strong>{svc.subcategory}</span>
+                  <span><strong>{t('services.detail.specialty')}</strong>{svc.subcategory}</span>
                 </div>
                 <div className="svc-fact">
                   <MapPin size={16} />
-                  <span><strong>Zone d'intervention</strong>{svc.location}</span>
+                  <span><strong>{t('services.detail.zone')}</strong>{svc.location}</span>
                 </div>
                 <div className="svc-fact">
                   <Calendar size={16} />
-                  <span><strong>Disponibilité</strong>{svc.availability}</span>
+                  <span><strong>{t('services.detail.availability')}</strong>{svc.availability}</span>
                 </div>
                 <div className="svc-fact">
                   <Clock size={16} />
-                  <span><strong>Délai de réponse</strong>{svc.responseTime}</span>
+                  <span><strong>{t('services.detail.responseDelay')}</strong>{svc.responseTime}</span>
                 </div>
               </div>
             </section>
 
             <section className="svc-block svc-pricing-block">
-              <h2>Tarif</h2>
+              <h2>{t('services.detail.price')}</h2>
               {svc.quoteOnly ? (
                 <div className="svc-quote">
-                  <strong>Sur devis</strong>
-                  <p>Contactez le professionnel pour obtenir un devis adapté à votre projet.</p>
+                  <strong>{t('services.detail.onQuote')}</strong>
+                  <p>{t('services.detail.quoteNote')}</p>
                 </div>
               ) : (
                 <div className="svc-price-row">
-                  <span className="svc-price">À partir de {convert(svc.priceEUR)}</span>
+                  <span className="svc-price">{t('services.detail.fromPrice', { price: convert(svc.priceEUR) })}</span>
                   <span className="svc-rate">{svc.rateLabel}</span>
                   <p className="j-currency-note">
                     <Shield size={13} />
-                    Devise : {currency} · {CURRENCY_NOTE}
+                    {t('services.detail.currencyLine', { currency, note: CURRENCY_NOTE })}
                   </p>
                 </div>
               )}
               <div className="svc-trust-row">
                 {[
-                  { icon: BadgeCheck, text: svc.verified ? 'Profil vérifié' : 'Profil en cours de vérification' },
-                  { icon: Shield, text: 'Échanges sécurisés Jerossa' },
-                  { icon: MessageSquare, text: 'Messagerie intégrée' },
-                ].map((t, i) => (
-                  <span key={i} className="svc-trust-item"><t.icon size={14} /> {t.text}</span>
+                  { icon: BadgeCheck, text: svc.verified ? t('services.detail.profileVerified') : t('services.detail.profilePending') },
+                  { icon: Shield, text: t('services.detail.secureExchange') },
+                  { icon: MessageSquare, text: t('services.detail.integratedMessaging') },
+                ].map((t2, i) => (
+                  <span key={i} className="svc-trust-item"><t2.icon size={14} /> {t2.text}</span>
                 ))}
               </div>
             </section>
@@ -117,7 +119,7 @@ const ServiceDetails = () => {
                 <span className="svc-provider-avatar">{svc.provider.split(' ').map((n) => n[0]).join('').slice(0, 2)}</span>
                 <div>
                   <strong>{svc.provider}</strong>
-                  <span className="j-verified-chip"><BadgeCheck size={13} /> {svc.verified ? 'Professionnel vérifié' : 'Prestataire'}</span>
+                  <span className="j-verified-chip"><BadgeCheck size={13} /> {svc.verified ? t('services.detail.verifiedPro') : t('services.detail.provider')}</span>
                 </div>
               </div>
               <div className="svc-provider-rating">
@@ -126,25 +128,24 @@ const ServiceDetails = () => {
                     <Star key={j} size={14} fill={j < Math.floor(svc.rating) ? '#d4a373' : 'rgba(212,163,115,0.25)'} color="#d4a373" />
                   ))}
                 </div>
-                <span>{svc.rating} · {svc.reviews} avis</span>
+                <span>{svc.rating} · {t('services.detail.reviewsCount', { n: svc.reviews })}</span>
               </div>
               <div className="svc-provider-stats">
-                <div><strong>{svc.experience} ans</strong><span>d'expérience</span></div>
-                <div><strong>{svc.responseTime}</strong><span>délai de réponse</span></div>
-                <div><strong>{svc.reviews}</strong><span>avis clients</span></div>
+                <div><strong>{t('services.detail.experienceYears', { n: svc.experience })}</strong><span>{t('services.detail.experienceLabel')}</span></div>
+                <div><strong>{svc.responseTime}</strong><span>{t('services.detail.responseTimeLabel')}</span></div>
+                <div><strong>{svc.reviews}</strong><span>{t('services.detail.reviewsLabel')}</span></div>
               </div>
               <button className="svc-contact-btn">
-                <MessageSquare size={16} /> Contacter le professionnel
+                <MessageSquare size={16} /> {t('services.detail.contactPro')}
               </button>
               <p className="svc-contact-note">
-                La messagerie Jerossa vous permet d'échanger sans partager vos coordonnées.
+                {t('services.detail.contactNote')}
               </p>
             </div>
 
             <div className="svc-side-note">
               <Shield size={15} />
-              Fonctionnalités de confiance prévues pour accompagner le développement de la plateforme :
-              avis, vérification renforcée et paiements sécurisés.
+              {t('services.detail.trustNote')}
             </div>
           </aside>
         </div>
@@ -154,10 +155,10 @@ const ServiceDetails = () => {
           <section className="svc-similar">
             <div className="section-header-row">
               <div>
-                <span className="section-surtitre">Dans la même catégorie</span>
-                <h2 className="section-title">Services similaires</h2>
+                <span className="section-surtitre">{t('services.detail.similarSurtitre')}</span>
+                <h2 className="section-title">{t('services.detail.similarTitle')}</h2>
               </div>
-              <Link to="/services" className="section-link">Tous les services <ArrowRight size={14} /></Link>
+              <Link to="/services" className="section-link">{t('services.detail.allServices')} <ArrowRight size={14} /></Link>
             </div>
             <div className="svc-similar-grid">
               {similar.map((s) => (
@@ -170,7 +171,7 @@ const ServiceDetails = () => {
                     <h3>{s.title}</h3>
                     <span className="svc-similar-loc"><MapPin size={11} /> {s.location}</span>
                     <span className="svc-similar-price">
-                      {s.quoteOnly ? 'Sur devis' : `À partir de ${convert(s.priceEUR)}`}
+                      {s.quoteOnly ? t('services.detail.onQuote') : t('services.detail.fromPrice', { price: convert(s.priceEUR) })}
                     </span>
                   </div>
                 </Link>
@@ -182,11 +183,11 @@ const ServiceDetails = () => {
         {/* Publish CTA */}
         <div className="svc-publish-cta">
           <div>
-            <h3>Vous proposez un service similaire ?</h3>
-            <p>Rejoignez la marketplace et faites-vous connaître des clients de Madagascar et de Maurice.</p>
+            <h3>{t('services.detail.publishTitle')}</h3>
+            <p>{t('services.detail.publishText')}</p>
           </div>
           <Link to="/publier?type=service" className="j-pill-btn j-pill-btn--gold">
-            <PlusCircle size={16} /> Publier mon service
+            <PlusCircle size={16} /> {t('services.detail.publishService')}
           </Link>
         </div>
       </div>

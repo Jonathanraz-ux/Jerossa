@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { X, Star, Truck, Package, ShieldCheck, ChevronRight, Check } from 'lucide-react';
 import { fetchProductByIdentifier } from '../services/catalog';
 import { useCart } from '../context/CartContext';
+import { useLang } from '../context/LangContext';
 import './ProductQuickView.css';
 import SmartImg from './common/SmartImg';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
@@ -12,6 +13,7 @@ const ProductQuickView = () => {
   const productId = searchParams.get('product');
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { t } = useLang();
   const [product, setProduct] = useState(null);
   const [added, setAdded] = useState(false);
 
@@ -71,7 +73,7 @@ const ProductQuickView = () => {
         aria-modal="true"
         aria-labelledby="quickview-title"
       >
-        <button className="quickview-close" onClick={closeQuickView} aria-label="Fermer">
+        <button className="quickview-close" onClick={closeQuickView} aria-label={t('common.close')}>
           <X size={24} />
         </button>
 
@@ -96,7 +98,7 @@ const ProductQuickView = () => {
                   />
                 ))}
               </div>
-              <span className="reviews-count">{product.rating} ({product.reviews} avis)</span>
+              <span className="reviews-count">{product.rating} ({product.reviews} {t('product.reviews')})</span>
             </div>
 
             <div className="quickview-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, 'EUR')}</div>
@@ -105,7 +107,7 @@ const ProductQuickView = () => {
 
             {product.variants && product.variants.length > 0 && (
               <div className="quickview-variants">
-                <h4>Options disponibles :</h4>
+                <h4>{t('product.optionsAvailable')} :</h4>
                 <div className="variants-list">
                   {product.variants.map((variant, idx) => (
                     <button key={idx} className={`variant-btn ${idx === 0 ? 'active' : ''}`}>
@@ -119,24 +121,24 @@ const ProductQuickView = () => {
             <div className="quickview-logistics">
               <div className="logistic-item">
                 <Package size={20} className="logistic-icon" />
-                <span><strong>Stock :</strong> {product.stock}</span>
+                <span><strong>{t('product.stock')} :</strong> {product.stock}</span>
               </div>
               <div className="logistic-item">
                 <Truck size={20} className="logistic-icon" />
-                <span><strong>Livraison :</strong> {product.delivery}</span>
+                <span><strong>{t('product.delivery')} :</strong> {product.delivery}</span>
               </div>
               <div className="logistic-item">
                 <ShieldCheck size={20} className="logistic-icon" />
-                <span>Garantie Qualité Jerossa & Paiement Sécurisé</span>
+                <span>{t('product.qualityGuarantee')}</span>
               </div>
             </div>
 
             <div className="quickview-actions">
               <button className="btn btn-primary quickview-btn-buy" onClick={handleBuyNow}>
-                Acheter maintenant
+                {t('cart.buyNow')}
               </button>
               <button className="btn btn-outline quickview-btn-cart" onClick={handleAddToCart}>
-                {added ? <><Check size={14} /> Ajouté</> : 'Ajouter au panier'}
+                {added ? <><Check size={14} /> {t('cart.added')}</> : t('cart.addToCart')}
               </button>
             </div>
             
@@ -147,7 +149,7 @@ const ProductQuickView = () => {
                 navigate(`/product/${product.id}`);
               }}
             >
-              Voir la page complète du produit <ChevronRight size={16} />
+              {t('product.viewFullPage')} <ChevronRight size={16} />
             </button>
           </div>
         </div>

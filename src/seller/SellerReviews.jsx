@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import { Star, MessageSquare, CheckCircle2, ThumbsUp, Sparkles } from 'lucide-react';
 import { fetchSellerStats, fetchPublicReviews } from '../services/reviews';
+import { formatDate } from '../i18n';
+import { useLang } from '../context/LangContext';
 
 const SellerReviews = () => {
   const { producer } = useOutletContext();
+  const { t, lang } = useLang();
   const [stats, setStats] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +55,7 @@ const SellerReviews = () => {
     return (
       <div className="sv-loader">
         <div className="sv-loader-spinner" />
-        <p>Chargement des avis…</p>
+        <p>{t('common.loading')}</p>
       </div>
     );
   }
@@ -62,15 +65,15 @@ const SellerReviews = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <h2 className="sv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Star size={20} color="var(--accent)" fill="var(--accent)" /> Avis et évaluations
+            <Star size={20} color="var(--accent)" fill="var(--accent)" /> {t('seller.reviews.title')}
           </h2>
           <p className="sv-dim">
-            Retours d'expérience et notes certifiées laissés par vos acheteurs après commande.
+            {t('seller.reviews.subtitle')}
           </p>
         </div>
         {producer.slug && (
           <Link to={`/producteur/${producer.slug}`} className="sv-btn sv-btn--ghost">
-            Voir ma boutique publique
+            {t('seller.viewPublicShop')}
           </Link>
         )}
       </div>
@@ -78,14 +81,14 @@ const SellerReviews = () => {
       {/* KPI Overview */}
       <div className="sv-kpis" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1.5rem' }}>
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><Star size={13} /> Note moyenne</span>
+          <span className="sv-kpi-label"><Star size={13} /> {t('seller.reviews.avgRating')}</span>
           <div className="sv-kpi-value" style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
             {avgRating ? (
               <>
                 {avgRating} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ 5</span>
               </>
             ) : (
-              <span style={{ fontSize: '1.1rem', color: 'var(--text-muted)' }}>Aucun avis</span>
+              <span style={{ fontSize: '1.1rem', color: 'var(--text-muted)' }}>{t('seller.reviews.noReviews')}</span>
             )}
           </div>
           {avgRating && (
@@ -103,23 +106,23 @@ const SellerReviews = () => {
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><MessageSquare size={13} /> Total des avis</span>
+          <span className="sv-kpi-label"><MessageSquare size={13} /> {t('seller.reviews.totalReviews')}</span>
           <div className="sv-kpi-value">{totalReviews}</div>
-          <div className="sv-kpi-sub">Achats 100% vérifiés</div>
+          <div className="sv-kpi-sub">{t('seller.reviews.verifiedPurchases')}</div>
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><ThumbsUp size={13} /> Taux de satisfaction</span>
+          <span className="sv-kpi-label"><ThumbsUp size={13} /> {t('seller.reviews.satisfactionRate')}</span>
           <div className="sv-kpi-value">
             {positiveRate !== null ? `${positiveRate}%` : '—'}
           </div>
-          <div className="sv-kpi-sub">Évaluations positives (4★ & 5★)</div>
+          <div className="sv-kpi-sub">{t('seller.reviews.positiveEvals')}</div>
         </div>
 
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><Sparkles size={13} /> Taux de réponse</span>
+          <span className="sv-kpi-label"><Sparkles size={13} /> {t('seller.reviews.responseRate')}</span>
           <div className="sv-kpi-value">{producer.response_rate || '—'}</div>
-          <div className="sv-kpi-sub">{producer.response_time ? `Délai moyen : ${producer.response_time}` : 'Non calculé'}</div>
+          <div className="sv-kpi-sub">{producer.response_time ? t('seller.reviews.avgResponseTime', { time: producer.response_time }) : t('seller.reviews.notCalculated')}</div>
         </div>
       </div>
 
@@ -127,7 +130,7 @@ const SellerReviews = () => {
       <div className="sv-grid-2" style={{ gridTemplateColumns: '320px 1fr', alignItems: 'start' }}>
         {/* Left: Star distribution */}
         <div className="sv-panel" style={{ marginBottom: 0 }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem' }}>Répartition des notes</h3>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem' }}>{t('seller.reviews.ratingBreakdown')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             {breakdown.map(({ stars, count, pct }) => (
               <button
@@ -157,7 +160,7 @@ const SellerReviews = () => {
           <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
             <p style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
               <CheckCircle2 size={14} color="var(--brand-green)" />
-              Seuls les clients ayant reçu une commande peuvent déposer un avis.
+              {t('seller.reviews.onlyVerifiedBuyers')}
             </p>
           </div>
         </div>
@@ -166,7 +169,7 @@ const SellerReviews = () => {
         <div className="sv-panel" style={{ marginBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>
-              Derniers avis reçus {filterRating !== 'all' && `(${filterRating}★)`}
+              {t('seller.reviews.latestReviews')} {filterRating !== 'all' && `(${filterRating}★)`}
             </h3>
             {filterRating !== 'all' && (
               <button
@@ -175,7 +178,7 @@ const SellerReviews = () => {
                 style={{ fontSize: '0.75rem', padding: '4px 8px' }}
                 onClick={() => setFilterRating('all')}
               >
-                Afficher tous les avis
+                {t('seller.reviews.showAll')}
               </button>
             )}
           </div>
@@ -183,9 +186,9 @@ const SellerReviews = () => {
           {filteredReviews.length === 0 ? (
             <div className="sv-empty" style={{ padding: '2.5rem 1rem' }}>
               <MessageSquare size={32} />
-              <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>Aucun avis pour ce filtre</p>
+              <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>{t('seller.reviews.emptyFilter')}</p>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Les évaluations et commentaires de vos clients apparaîtront ici.
+                {t('seller.reviews.emptyFilterHint')}
               </p>
             </div>
           ) : (
@@ -200,14 +203,14 @@ const SellerReviews = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
                     <div>
-                      <strong style={{ fontSize: '0.88rem' }}>{rev.buyer_name || rev.buyerName || 'Client vérifié'}</strong>
+                      <strong style={{ fontSize: '0.88rem' }}>{rev.buyer_name || rev.buyerName || t('seller.reviews.buyerFallback')}</strong>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                         <span className="sv-badge sv-badge--green" style={{ fontSize: '0.65rem' }}>
-                          <CheckCircle2 size={10} /> Achat certifié
+                          <CheckCircle2 size={10} /> {t('seller.reviews.certifiedPurchase')}
                         </span>
                         {rev.created_at && (
                           <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            · {new Date(rev.created_at).toLocaleDateString('fr-FR')}
+                            · {formatDate(rev.created_at, lang)}
                           </span>
                         )}
                       </div>
@@ -230,7 +233,7 @@ const SellerReviews = () => {
                     </p>
                   ) : (
                     <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                      Évaluation sans commentaire textuel.
+                      {t('seller.reviews.noComment')}
                     </p>
                   )}
                 </div>

@@ -7,10 +7,13 @@ import {
 } from '../services/messages';
 import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
+import { localeFor } from '../i18n';
 
 const MessagesPage = () => {
   const { id: conversationId } = useParams();
   const { user } = useAuth();
+  const { t, lang } = useLang();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(conversationId || null);
@@ -105,8 +108,8 @@ const MessagesPage = () => {
     const d = new Date(dateStr);
     const now = new Date();
     const isToday = d.toDateString() === now.toDateString();
-    if (isToday) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    if (isToday) return d.toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'short' });
   };
 
   return (
@@ -114,11 +117,11 @@ const MessagesPage = () => {
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            <Link to="/" style={{ color: 'var(--text-muted)' }}>Accueil</Link>
+            <Link to="/" style={{ color: 'var(--text-muted)' }}>{t('nav.home')}</Link>
             <span style={{ color: 'var(--border)' }}>/</span>
-            <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>Messages</span>
+            <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>{t('messages.title')}</span>
           </nav>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>Mes messages</h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>{t('account.messages')}</h1>
         </div>
 
         <div className={`msg-layout ${selectedConvo ? 'msg-layout--convo-active' : ''}`}>
@@ -131,12 +134,12 @@ const MessagesPage = () => {
             ) : conversations.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--text-muted)' }}>
                 <MessageSquare size={36} style={{ opacity: 0.3, marginBottom: '0.75rem' }} />
-                <p style={{ fontWeight: 600, color: 'var(--text-dark)' }}>Aucune conversation</p>
+                <p style={{ fontWeight: 600, color: 'var(--text-dark)' }}>{t('messages.no_conversations')}</p>
                 <p style={{ fontSize: '0.82rem', marginTop: '4px' }}>
-                  Vous n'avez encore aucun échange. Contactez un vendeur depuis la fiche d'un produit.
+                  {t('messages.no_conversations_text')}
                 </p>
                 <Link to="/boutique" className="btn btn-outline" style={{ marginTop: '1rem', display: 'inline-block' }}>
-                  Explorer le catalogue
+                  {t('myMessages.exploreCatalog')}
                 </Link>
               </div>
             ) : (
@@ -157,14 +160,14 @@ const MessagesPage = () => {
                   </div>
                   <div className="msg-item-content">
                     <div className="msg-item-header">
-                      <span className="msg-item-name">{convo.sellerName || 'Vendeur'}</span>
+                      <span className="msg-item-name">{convo.sellerName || t('role.seller')}</span>
                       <span className="msg-item-time">{formatTime(convo.lastMessageAt)}</span>
                     </div>
                     {convo.productTitle && (
                       <div className="msg-item-product">{convo.productTitle}</div>
                     )}
                     <div className="msg-item-preview">
-                      {convo.lastMessage || convo.subject || 'Nouveau message'}
+                      {convo.lastMessage || convo.subject || t('myMessages.newMessage')}
                     </div>
                   </div>
                   {convo.unreadCount > 0 && (
@@ -183,8 +186,8 @@ const MessagesPage = () => {
                 height: '100%', color: 'var(--text-muted)', textAlign: 'center', padding: '2rem',
               }}>
                 <MessageSquare size={40} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-                <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Sélectionnez une conversation</p>
-                <p style={{ fontSize: '0.85rem' }}>Choisissez un échange dans la liste pour afficher les messages.</p>
+                <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{t('myMessages.selectConversation')}</p>
+                <p style={{ fontSize: '0.85rem' }}>{t('myMessages.selectConversationText')}</p>
               </div>
             ) : loadingMessages ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -194,16 +197,16 @@ const MessagesPage = () => {
               <>
                 {/* Chat header */}
                 <div className="msg-chat-header">
-                  <button type="button" className="msg-back-btn" onClick={() => setSelectedConvo(null)} title="Retour">
+                  <button type="button" className="msg-back-btn" onClick={() => setSelectedConvo(null)} title={t('myMessages.back')}>
                     <ArrowLeft size={18} />
                   </button>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                      {selectedConvoData?.sellerName || 'Vendeur'}
+                      {selectedConvoData?.sellerName || t('role.seller')}
                     </div>
                     {selectedConvoData?.productTitle && (
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        Produit : {selectedConvoData.productTitle}
+                        {t('myMessages.product')} : {selectedConvoData.productTitle}
                       </div>
                     )}
                   </div>
@@ -215,7 +218,7 @@ const MessagesPage = () => {
                     <div key={msg.id} className={`msg-bubble ${msg.isOwn ? 'msg-bubble--own' : ''}`}>
                       <p>{msg.content}</p>
                       <span className="msg-time">
-                        {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.createdAt).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   ))}
@@ -228,7 +231,7 @@ const MessagesPage = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Écrivez votre message…"
+                    placeholder={t('messages.placeholder')}
                     rows={1}
                     className="msg-input"
                   />

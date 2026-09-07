@@ -3,8 +3,11 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Package, Check, X } from 'lucide-react';
 import { fetchMyProducts, updateMyProduct, deleteMyProduct } from '../services/seller';
 import { formatEUR } from '../admin/format';
+import { formatDate } from '../i18n';
+import { useLang } from '../context/LangContext';
 
 const SellerProducts = () => {
+  const { t, lang } = useLang();
   const { producer } = useOutletContext();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,15 +37,15 @@ const SellerProducts = () => {
   };
 
   if (loading) {
-    return <div className="sv-loader"><div className="sv-loader-spinner" /><p>Chargement…</p></div>;
+    return <div className="sv-loader"><div className="sv-loader-spinner" /><p>{t('common.loading')}</p></div>;
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
-        <h2 className="sv-section-title" style={{ marginBottom: 0 }}>Mes produits ({products.length})</h2>
+        <h2 className="sv-section-title" style={{ marginBottom: 0 }}>{t('seller.products.title', { count: products.length })}</h2>
         <Link to="/publier" className="sv-btn sv-btn--primary">
-          <Plus size={15} /> Ajouter un produit
+          <Plus size={15} /> {t('seller.products.add')}
         </Link>
       </div>
 
@@ -50,9 +53,9 @@ const SellerProducts = () => {
         {products.length === 0 ? (
           <div className="sv-empty">
             <Package size={30} />
-            <p>Aucun produit pour le moment.<br />Publiez votre première offre pour la voir apparaître dans votre boutique.</p>
+            <p>{t('seller.products.empty')}<br />{t('seller.products.emptyHint')}</p>
             <Link to="/publier" className="sv-btn sv-btn--primary" style={{ marginTop: '0.75rem' }}>
-              <Plus size={15} /> Publier une offre
+              <Plus size={15} /> {t('seller.products.publishOffer')}
             </Link>
           </div>
         ) : (
@@ -60,10 +63,10 @@ const SellerProducts = () => {
             <table className="sv-table">
               <thead>
                 <tr>
-                  <th>Produit</th>
-                  <th>Prix</th>
-                  <th>Statut</th>
-                  <th>Vérifié</th>
+                  <th>{t('seller.products.colProduct')}</th>
+                  <th>{t('seller.products.colPrice')}</th>
+                  <th>{t('seller.products.colStatus')}</th>
+                  <th>{t('seller.products.colVerified')}</th>
                   <th />
                 </tr>
               </thead>
@@ -79,7 +82,7 @@ const SellerProducts = () => {
                         )}
                         <div>
                           <span className="sv-prod-name">{p.title}</span>
-                          <span className="sv-dim">{p.origin || '—'} · ajouté le {new Date(p.createdAt).toLocaleDateString('fr-FR')}</span>
+                          <span className="sv-dim">{p.origin || '—'} · {t('seller.products.addedOn', { date: formatDate(p.createdAt, lang) })}</span>
                         </div>
                       </div>
                     </td>
@@ -88,24 +91,24 @@ const SellerProducts = () => {
                       <button
                         type="button"
                         title={p.verified
-                          ? 'Produit contrôlé : gestion du statut bloquée par la plateforme'
-                          : (p.active ? 'Mettre en pause' : 'Remettre en ligne')}
+                          ? t('seller.products.titleVerified')
+                          : (p.active ? t('seller.products.titleOnline') : t('seller.products.titlePaused'))}
                         onClick={() => toggleActive(p)}
                         className={`sv-badge sv-badge--${p.active ? 'green' : 'neutral'}`}
                         style={{ border: 'none', cursor: p.verified ? 'not-allowed' : 'pointer', opacity: p.verified ? 0.65 : 1 }}
                         disabled={p.verified}
                       >
-                        {p.active ? <>En ligne</> : <>En pause</>}
+                        {p.active ? <>{t('seller.products.statusOnline')}</> : <>{t('seller.products.statusPaused')}</>}
                       </button>
                     </td>
                     <td>
                       {p.verified
-                        ? <span className="sv-badge sv-badge--blue"><Check size={11} /> Contrôlé</span>
-                        : <span className="sv-badge sv-badge--amber"><X size={11} /> En attente</span>}
+                        ? <span className="sv-badge sv-badge--blue"><Check size={11} /> {t('seller.products.verified')}</span>
+                        : <span className="sv-badge sv-badge--amber"><X size={11} /> {t('seller.products.pending')}</span>}
                     </td>
                     <td>
                       <div className="sv-actions" style={{ justifyContent: 'flex-end' }}>
-                        <Link to={`/espace-vendeur/produits/${p.id}`} className="sv-icon-btn" title="Modifier">
+                        <Link to={`/espace-vendeur/produits/${p.id}`} className="sv-icon-btn" title={t('seller.products.edit')}>
                           <Pencil size={14} />
                         </Link>
                         {confirmId === p.id ? (
@@ -114,7 +117,7 @@ const SellerProducts = () => {
                             onClick={() => remove(p)}
                             onMouseLeave={() => setConfirmId(null)}
                             className="sv-icon-btn sv-icon-btn--danger"
-                            title="Confirmer la suppression"
+                            title={t('seller.products.confirmDelete')}
                             style={{ background: 'var(--danger)', borderColor: 'var(--danger)', color: '#fff' }}
                           >
                             <Trash2 size={14} />
@@ -124,7 +127,7 @@ const SellerProducts = () => {
                             type="button"
                             onClick={() => setConfirmId(p.id)}
                             className="sv-icon-btn sv-icon-btn--danger"
-                            title="Supprimer"
+                            title={t('seller.products.delete')}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -140,7 +143,7 @@ const SellerProducts = () => {
       </div>
 
       <p className="sv-dim" style={{ marginTop: '-0.5rem' }}>
-        Les produits « contrôlés » sont vérifiés par l'équipe Jerossa et ne sont plus modifiables directement — contactez le support pour toute correction.
+        {t('seller.products.noteVerified')}
       </p>
     </div>
   );

@@ -3,11 +3,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Search, ArrowRight, Star, MapPin, Clock, BadgeCheck, Award, Sparkles, Briefcase, PlusCircle, X, SlidersHorizontal } from 'lucide-react';
 import { servicesData, serviceCategories } from '../data/services';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLang } from '../context/LangContext';
 import './Services.css';
 
 const Services = () => {
   const [searchParams] = useSearchParams();
   const { convert } = useCurrency();
+  const { t } = useLang();
 
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [activeQuery, setActiveQuery] = useState(searchParams.get('q') || '');
@@ -37,11 +39,11 @@ const Services = () => {
   };
 
   const categoryNames = {
-    'construction-batiment': 'Construction & Bâtiment',
-    'maison-entretien': 'Maison & Entretien',
-    'automobile-transport': 'Automobile & Transport',
-    'services-professionnels': 'Services Professionnels',
-    'evenementiel-personnels': 'Événementiel & Personnels',
+    'construction-batiment': t('services.cat.construction'),
+    'maison-entretien': t('services.cat.maison'),
+    'automobile-transport': t('services.cat.auto'),
+    'services-professionnels': t('services.cat.pro'),
+    'evenementiel-personnels': t('services.cat.event'),
   };
 
   return (
@@ -50,15 +52,14 @@ const Services = () => {
       <section className="services-hero">
         <div className="container">
           <nav className="services-breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('nav.home')}</Link>
             <span>/</span>
-            <span>Services</span>
+            <span>{t('services.breadcrumb')}</span>
           </nav>
-          <span className="services-hero-tag">Marketplace Services</span>
-          <h1>Services & Professionnels</h1>
+          <span className="services-hero-tag">{t('services.tag')}</span>
+          <h1>{t('services.title')}</h1>
           <p>
-            Publiez, comparez et contactez des prestataires fiables à Maurice et à Madagascar :
-            construction, entretien, transport, comptabilité, développement web, événementiel et bien plus.
+            {t('services.desc')}
           </p>
 
           <form className="services-search" onSubmit={submit}>
@@ -66,7 +67,7 @@ const Services = () => {
               <Search size={17} strokeWidth={1.8} />
               <input
                 type="text"
-                placeholder="Maçon à Port-Louis, Plombier à Curepipe, transport de marchandises…"
+                placeholder={t('services.searchPlaceholder')}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -76,12 +77,12 @@ const Services = () => {
                 </button>
               )}
             </div>
-            <button type="submit" className="services-search-btn">Rechercher <ArrowRight size={15} /></button>
+            <button type="submit" className="services-search-btn">{t('services.search')} <ArrowRight size={15} /></button>
           </form>
 
           <div className="services-hero-actions">
             <Link to="/publier?type=service" className="services-hero-btn">
-              <PlusCircle size={16} /> Publier mon service
+              <PlusCircle size={16} /> {t('services.publishService')}
             </Link>
           </div>
         </div>
@@ -94,7 +95,7 @@ const Services = () => {
             className={`service-chip${category === 'all' ? ' is-active' : ''}`}
             onClick={() => setCategory('all')}
           >
-            Toutes les catégories
+            {t('services.allCategories')}
           </button>
           {serviceCategories.map((c) => (
             <button
@@ -111,22 +112,22 @@ const Services = () => {
         <div className="services-toolbar">
           <div className="services-filters">
             <select value={market} onChange={(e) => setMarket(e.target.value)} className="services-select">
-              <option value="all">Tous les marchés</option>
-              <option value="MG">🇲🇬 Madagascar</option>
-              <option value="MU">🇲🇺 Maurice</option>
-              <option value="INT">🌍 International</option>
+              <option value="all">{t('services.allMarkets')}</option>
+              <option value="MG">{t('services.market.mg')}</option>
+              <option value="MU">{t('services.market.mu')}</option>
+              <option value="INT">{t('services.market.int')}</option>
             </select>
             <label className="services-check">
               <input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} />
-              Professionnels vérifiés
+              {t('services.verifiedOnly')}
             </label>
             <button className="services-mobile-filters" onClick={() => setShowMobileFilters(!showMobileFilters)}>
-              <SlidersHorizontal size={15} /> Filtres
+              <SlidersHorizontal size={15} /> {t('services.filters')}
             </button>
           </div>
           <span className="services-count">
-            {filtered.length} service{filtered.length > 1 ? 's' : ''} disponible{filtered.length > 1 ? 's' : ''}
-            {category !== 'all' && <> dans <strong>{categoryNames[category]}</strong></>}
+            {t('services.count', { count: filtered.length })}
+            {category !== 'all' && <> {t('services.in')} <strong>{categoryNames[category]}</strong></>}
           </span>
         </div>
 
@@ -134,13 +135,13 @@ const Services = () => {
         {filtered.length === 0 ? (
           <div className="services-empty">
             <div className="services-empty-ico"><Briefcase size={26} /></div>
-            <h3>Aucun service trouvé</h3>
-            <p>Modifiez vos filtres ou élargissez votre recherche.</p>
+            <h3>{t('services.emptyTitle')}</h3>
+            <p>{t('services.emptyText')}</p>
             <button
               className="j-pill-btn j-pill-btn--outline-dark"
               onClick={() => { setCategory('all'); setMarket('all'); setVerifiedOnly(false); setActiveQuery(''); setQuery(''); }}
             >
-              Réinitialiser
+              {t('services.reset')}
             </button>
           </div>
         ) : (
@@ -175,16 +176,16 @@ const Services = () => {
                         ))}
                       </div>
                       <span>({svc.reviews})</span>
-                      <span className="services-result-time"><Clock size={12} /> Réponse {svc.responseTime}</span>
+                      <span className="services-result-time"><Clock size={12} /> {t('services.detail.responseTimeLabel')} {svc.responseTime}</span>
                     </div>
                     <div className="services-result-footer">
                       <span className="services-result-price">
                         {svc.quoteOnly
-                          ? <strong>Sur devis</strong>
-                          : <><strong>À partir de {convert(svc.priceEUR)}</strong> <em>{svc.rateLabel}</em></>}
+                          ? <strong>{t('services.onQuote')}</strong>
+                          : <><strong>{t('services.fromPrice', { price: convert(svc.priceEUR) })}</strong> <em>{svc.rateLabel}</em></>}
                       </span>
                       <span className="services-result-view">
-                        Voir le professionnel <ArrowRight size={13} />
+                        {t('services.viewPro')} <ArrowRight size={13} />
                       </span>
                     </div>
                   </div>
@@ -197,12 +198,12 @@ const Services = () => {
         {/* Publish CTA */}
         <div className="services-cta">
           <div>
-            <span className="services-cta-tag">Vous êtes prestataire ?</span>
-            <h3>Publiez votre service et développez votre clientèle</h3>
-            <p>Titre, catégorie, zone d'intervention, tarif, photos de réalisations : créez une offre complète en quelques minutes.</p>
+            <span className="services-cta-tag">{t('services.ctaTag')}</span>
+            <h3>{t('services.ctaTitle')}</h3>
+            <p>{t('services.ctaText')}</p>
           </div>
           <Link to="/publier?type=service" className="j-pill-btn j-pill-btn--gold">
-            <PlusCircle size={16} /> Publier mon service
+            <PlusCircle size={16} /> {t('services.publishService')}
           </Link>
         </div>
       </div>

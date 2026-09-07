@@ -5,20 +5,13 @@ import {
 } from 'lucide-react';
 import { fetchMyProducts, fetchMyOrders, fetchMyQuotes } from '../services/seller';
 import { formatEUR } from '../admin/format';
+import { formatDate } from '../i18n';
+import { useLang } from '../context/LangContext';
 
 const formatEURFull = (n) => `${Number(n || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
-const STATUS_FR = {
-  pending: 'En attente',
-  confirmed: 'Confirmée',
-  paid: 'Payée',
-  shipped: 'Expédiée',
-  delivered: 'Livrée',
-  cancelled: 'Annulée',
-  refunded: 'Remboursée',
-};
-
 const SellerDashboard = () => {
+  const { t, lang } = useLang();
   const { producer } = useOutletContext();
   const [data, setData] = useState({ products: [], orders: [], quotes: [] });
   const [loading, setLoading] = useState(true);
@@ -46,81 +39,81 @@ const SellerDashboard = () => {
   const pendingQuotes = data.quotes.filter((q) => q.status === 'pending').length;
 
   if (loading) {
-    return <div className="sv-loader"><div className="sv-loader-spinner" /><p>Chargement…</p></div>;
+    return <div className="sv-loader"><div className="sv-loader-spinner" /><p>{t('common.loading')}</p></div>;
   }
 
   return (
     <div>
       <div className="sv-kpis">
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><Package size={13} /> Produits en ligne</span>
+          <span className="sv-kpi-label"><Package size={13} /> {t('seller.dashboard.onlineProducts')}</span>
           <div className="sv-kpi-value">{activeProducts}</div>
-          <div className="sv-kpi-sub">{data.products.length} au total</div>
+          <div className="sv-kpi-sub">{t('seller.dashboard.totalProducts', { count: data.products.length })}</div>
         </div>
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><ShoppingCart size={13} /> Commandes reçues</span>
+          <span className="sv-kpi-label"><ShoppingCart size={13} /> {t('seller.dashboard.receivedOrders')}</span>
           <div className="sv-kpi-value">{data.orders.length}</div>
-          <div className="sv-kpi-sub">contenant vos articles</div>
+          <div className="sv-kpi-sub">{t('seller.dashboard.containingItems')}</div>
         </div>
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><Euro size={13} /> Chiffre d'affaires payé</span>
+          <span className="sv-kpi-label"><Euro size={13} /> {t('seller.dashboard.paidRevenue')}</span>
           <div className="sv-kpi-value">{formatEURFull(paidRevenue)}</div>
-          <div className="sv-kpi-sub">hors commission plateforme</div>
+          <div className="sv-kpi-sub">{t('seller.dashboard.exclCommission')}</div>
         </div>
         <div className="sv-kpi">
-          <span className="sv-kpi-label"><FileText size={13} /> Devis en attente</span>
+          <span className="sv-kpi-label"><FileText size={13} /> {t('seller.dashboard.pendingQuotes')}</span>
           <div className="sv-kpi-value">{pendingQuotes}</div>
-          <div className="sv-kpi-sub">{data.quotes.length} demande(s) au total</div>
+          <div className="sv-kpi-sub">{t('seller.dashboard.totalRequests', { count: data.quotes.length })}</div>
         </div>
       </div>
 
       <div className="sv-grid-2">
         <section className="sv-panel" style={{ marginBottom: 0 }}>
-          <h2 className="sv-section-title">Dernières commandes</h2>
+          <h2 className="sv-section-title">{t('seller.dashboard.title')}</h2>
           {data.orders.length === 0 ? (
-            <div className="sv-empty">Aucune commande pour le moment.</div>
+            <div className="sv-empty">{t('seller.dashboard.noOrders')}</div>
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {data.orders.slice(0, 4).map((o) => (
                 <li key={o.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.86rem' }}>
                   <div>
                     <strong>{o.orderNumber}</strong>
-                    <div className="sv-dim">{new Date(o.createdAt).toLocaleDateString('fr-FR')} · {o.items.length} article(s)</div>
+                    <div className="sv-dim">{formatDate(o.createdAt, lang)} · {t('seller.dashboard.items', { count: o.items.length })}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div className="sv-num" style={{ fontWeight: 700 }}>{formatEUR(o.itemsTotal)}</div>
-                    <div className="sv-dim">{STATUS_FR[o.status] || o.status}</div>
+                    <div className="sv-dim">{t('status.' + o.status) || o.status}</div>
                   </div>
                 </li>
               ))}
             </ul>
           )}
           <Link to="/espace-vendeur/commandes" className="sv-btn sv-btn--ghost" style={{ marginTop: '1rem' }}>
-            Toutes les commandes <ArrowRight size={14} />
+            {t('seller.dashboard.allOrders')} <ArrowRight size={14} />
           </Link>
         </section>
 
         <section className="sv-panel" style={{ marginBottom: 0 }}>
-          <h2 className="sv-section-title">Dernières demandes de devis</h2>
+          <h2 className="sv-section-title">{t('seller.dashboard.latestQuotes')}</h2>
           {data.quotes.length === 0 ? (
-            <div className="sv-empty">Aucune demande de devis pour le moment.</div>
+            <div className="sv-empty">{t('seller.dashboard.noQuotes')}</div>
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {data.quotes.slice(0, 4).map((q) => (
                 <li key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.86rem' }}>
                   <div style={{ minWidth: 0 }}>
                     <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{q.productTitle}</strong>
-                    <div className="sv-dim">{q.quantity} {q.unit} · {new Date(q.createdAt).toLocaleDateString('fr-FR')}</div>
+                    <div className="sv-dim">{q.quantity} {q.unit} · {formatDate(q.createdAt, lang)}</div>
                   </div>
                   <span className={`sv-badge sv-badge--${q.status === 'pending' ? 'amber' : q.status === 'responded' ? 'blue' : 'neutral'}`}>
-                    {{ pending: 'À répondre', responded: 'Répondu', accepted: 'Accepté', declined: 'Refusé' }[q.status]}
+                    {t('status.' + q.status) || q.status}
                   </span>
                 </li>
               ))}
             </ul>
           )}
           <Link to="/espace-vendeur/devis" className="sv-btn sv-btn--ghost" style={{ marginTop: '1rem' }}>
-            Tous les devis <ArrowRight size={14} />
+            {t('seller.dashboard.allQuotes')} <ArrowRight size={14} />
           </Link>
         </section>
       </div>

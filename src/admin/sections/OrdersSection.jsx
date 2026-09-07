@@ -5,8 +5,10 @@ import {
   STATUS_LABELS, formatEUR, formatInt, formatDate, formatDateTime, clientLabel,
 } from '../format';
 import { PageHead, EmptyState, StatusBadge, PaymentBadge, Thumb, Modal } from '../ui';
+import { useLang } from '../../context/LangContext';
 
 const OrdersSection = () => {
+  const { t, lang } = useLang();
   const [orders, setOrders] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -55,27 +57,27 @@ const OrdersSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Ventes"
-        title="Commandes"
-        subtitle={`${formatInt(orders.length)} commande${orders.length > 1 ? 's' : ''} au total`}
+        eyebrow={t('admin.nav.sales')}
+        title={t('admin.orders.title')}
+        subtitle={t('admin.orders.subtitle', { count: formatInt(orders.length) })}
       />
 
       <div className="adm-toolbar">
-        <div className="adm-pills" role="tablist" aria-label="Filtrer par statut">
+        <div className="adm-pills" role="tablist" aria-label={t('admin.orders.filterByStatus')}>
           <button
             className={`adm-pill ${statusFilter === 'all' ? 'adm-pill--active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            Tous <span className="adm-pill-count">{orders.length}</span>
+            {t('common.all')} <span className="adm-pill-count">{orders.length}</span>
           </button>
-          {Object.entries(STATUS_LABELS).map(([key, label]) =>
+          {Object.entries(STATUS_LABELS).map(([key]) =>
             key === 'all' || orders.some((o) => o.status === key) || statusFilter === key ? (
               <button
                 key={key}
                 className={`adm-pill ${statusFilter === key ? 'adm-pill--active' : ''}`}
                 onClick={() => setStatusFilter(key)}
               >
-                {label}
+                {t('status.' + key)}
                 {!!statusCounts[key] && <span className="adm-pill-count">{statusCounts[key]}</span>}
               </button>
             ) : null
@@ -88,13 +90,13 @@ const OrdersSection = () => {
           <Search size={15} strokeWidth={1.75} />
           <input
             type="text"
-            placeholder="N° de commande ou client…"
+            placeholder={t('admin.orders.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <span className="adm-cell-dim" style={{ marginLeft: 'auto' }}>
-          {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          {t('admin.orders.results', { count: filtered.length })}
           {filtered.length > 0 && <> · {formatEUR(totalFiltered)}</>}
         </span>
       </div>
@@ -103,28 +105,28 @@ const OrdersSection = () => {
         {orders.length === 0 ? (
           <EmptyState
             icon={ShoppingCart}
-            title="Aucune commande pour le moment"
-            text="Dès qu'un client passera commande — paiement à l'appui — elle apparaîtra ici avec tous ses détails."
+            title={t('admin.orders.emptyTitle')}
+            text={t('admin.orders.emptyText')}
           />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Search}
             compact
-            title="Aucun résultat"
-            text="Ajustez la recherche ou le filtre de statut."
+            title={t('common.noResults')}
+            text={t('admin.orders.noResultsText')}
           />
         ) : (
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
                 <tr>
-                  <th>Commande</th>
-                  <th>Client</th>
-                  <th>Date</th>
-                  <th>Articles</th>
-                  <th>Total</th>
-                  <th>Paiement</th>
-                  <th>Statut</th>
+                  <th>{t('admin.orders.colOrder')}</th>
+                  <th>{t('admin.client')}</th>
+                  <th>{t('common.date')}</th>
+                  <th>{t('admin.orders.colItems')}</th>
+                  <th>{t('common.total')}</th>
+                  <th>{t('admin.payment')}</th>
+                  <th>{t('common.status')}</th>
                   <th />
                 </tr>
               </thead>
@@ -135,9 +137,9 @@ const OrdersSection = () => {
                       <OrderCell order={o} />
                     </td>
                     <td style={{ fontSize: 12.5 }}>{clientLabel(o) || '—'}</td>
-                    <td className="adm-cell-dim">{formatDate(o.createdAt)}</td>
+                    <td className="adm-cell-dim">{formatDate(o.createdAt, lang)}</td>
                     <td className="num">
-                      {o.items.length} <span className="adm-cell-dim">art.</span>
+                      {o.items.length} <span className="adm-cell-dim">{t('admin.orders.art')}</span>
                     </td>
                     <td className="num adm-cell-strong">{formatEUR(o.total)}</td>
                     <td><PaymentBadge status={o.paymentStatus} /></td>
@@ -146,10 +148,10 @@ const OrdersSection = () => {
                         className="adm-inline-select"
                         value={o.status}
                         onChange={(e) => handleStatusChange(o.id, e.target.value)}
-                        aria-label={`Statut de la commande ${o.orderNumber}`}
+                        aria-label={t('admin.orders.statusOf', { number: o.orderNumber })}
                       >
-                        {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                          <option key={k} value={k}>{v}</option>
+                        {Object.entries(STATUS_LABELS).map(([k]) => (
+                          <option key={k} value={k}>{t('status.' + k)}</option>
                         ))}
                       </select>
                     </td>
@@ -188,45 +190,46 @@ const OrderCell = ({ order }) => (
 
 const OrderDetailsModal = ({ order }) => {
   const [open, setOpen] = useState(false);
+  const { t, lang } = useLang();
 
   return (
     <>
-      <button className="adm-action" title="Voir le détail" onClick={() => setOpen(true)}>
+      <button className="adm-action" title={t('admin.orders.viewDetail')} onClick={() => setOpen(true)}>
         <Eye size={15} strokeWidth={1.75} />
       </button>
 
       {open && (
         <Modal
-          title={`Commande ${order.orderNumber}`}
-          subtitle={`Passée le ${formatDateTime(order.createdAt)}`}
+          title={t('admin.orders.modalTitle', { number: order.orderNumber })}
+          subtitle={t('admin.orders.modalSub', { date: formatDateTime(order.createdAt, lang) })}
           onClose={() => setOpen(false)}
           footer={
             <button className="adm-btn adm-btn--ghost" onClick={() => setOpen(false)}>
-              Fermer
+              {t('common.close')}
             </button>
           }
         >
           <div className="adm-meta-grid" style={{ marginBottom: 18 }}>
             <div>
-              <div className="adm-meta-label">Client</div>
+              <div className="adm-meta-label">{t('admin.client')}</div>
               <div className="adm-meta-value">{clientLabel(order) || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Statut</div>
+              <div className="adm-meta-label">{t('common.status')}</div>
               <div style={{ marginTop: 2 }}><StatusBadge status={order.status} /></div>
             </div>
             <div>
-              <div className="adm-meta-label">Paiement</div>
+              <div className="adm-meta-label">{t('admin.payment')}</div>
               <div style={{ marginTop: 2 }}><PaymentBadge status={order.paymentStatus} /></div>
             </div>
             <div>
-              <div className="adm-meta-label">Suivi</div>
+              <div className="adm-meta-label">{t('admin.orders.tracking')}</div>
               <div className="adm-meta-value">{order.tracking || '—'}</div>
             </div>
           </div>
 
           <h4 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--adm-muted)', marginBottom: 4 }}>
-            Articles
+            {t('admin.orders.items')}
           </h4>
           <div style={{ marginBottom: 14 }}>
             {order.items.map((item, i) => (
@@ -245,10 +248,10 @@ const OrderDetailsModal = ({ order }) => {
           </div>
 
           <div>
-            <div className="adm-total-row"><span>Sous-total</span><span className="num">{formatEUR(order.subtotal)}</span></div>
-            <div className="adm-total-row"><span>Livraison</span><span className="num">{formatEUR(order.shippingFee)}</span></div>
+            <div className="adm-total-row"><span>{t('admin.orders.subtotal')}</span><span className="num">{formatEUR(order.subtotal)}</span></div>
+            <div className="adm-total-row"><span>{t('admin.orders.shipping')}</span><span className="num">{formatEUR(order.shippingFee)}</span></div>
             <div className="adm-total-row adm-total-row--grand">
-              <span>Total</span>
+              <span>{t('common.total')}</span>
               <span className="num">{formatEUR(order.total)}</span>
             </div>
           </div>

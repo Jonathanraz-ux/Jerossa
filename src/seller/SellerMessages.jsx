@@ -7,10 +7,13 @@ import {
 } from '../services/messages';
 import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
+import { localeFor } from '../i18n';
 
 const SellerMessages = () => {
   const { onConversationUpdated } = useOutletContext() || {};
   const { user } = useAuth();
+  const { t, lang } = useLang();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
@@ -110,18 +113,19 @@ const SellerMessages = () => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     const now = new Date();
+    const loc = localeFor(lang);
     const isToday = d.toDateString() === now.toDateString();
-    if (isToday) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    if (isToday) return d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString(loc, { day: 'numeric', month: 'short' });
   };
 
   return (
     <div>
       <h2 className="sv-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <MessageSquare size={18} /> Messages
+        <MessageSquare size={18} /> {t('seller.messages.title')}
       </h2>
       <p className="sv-dim" style={{ marginBottom: '1.25rem' }}>
-        Conversations avec vos acheteurs. Répondez pour améliorer votre taux de réponse.
+        {t('seller.messages.subtitle')}
       </p>
 
       <div className={`sv-msg-container ${selectedConvo ? 'sv-msg--convo-active' : ''}`}>
@@ -134,9 +138,9 @@ const SellerMessages = () => {
           ) : conversations.length === 0 ? (
             <div className="sv-empty" style={{ padding: '3rem 1rem' }}>
               <MessageSquare size={28} />
-              <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>Aucune conversation</p>
+              <p style={{ fontWeight: 600, marginTop: '0.5rem' }}>{t('seller.messages.noConversations')}</p>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Les messages de vos clients apparaîtront ici.
+                {t('seller.messages.noConversationsHint')}
               </p>
             </div>
           ) : (
@@ -152,7 +156,7 @@ const SellerMessages = () => {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.84rem', color: 'var(--text-dark)' }}>
-                      {convo.buyerName || 'Client'}
+                      {convo.buyerName || t('seller.messages.buyerFallback')}
                     </span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                       {formatTime(convo.lastMessageAt)}
@@ -164,7 +168,7 @@ const SellerMessages = () => {
                     </div>
                   )}
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {convo.lastMessage || convo.subject || 'Nouveau message'}
+                    {convo.lastMessage || convo.subject || t('seller.messages.newMessage')}
                   </div>
                 </div>
                 {convo.unreadCount > 0 && (
@@ -186,8 +190,8 @@ const SellerMessages = () => {
               textAlign: 'center', padding: '2rem',
             }}>
               <MessageSquare size={36} style={{ opacity: 0.2, marginBottom: '0.75rem' }} />
-              <p style={{ fontWeight: 600 }}>Sélectionnez une conversation</p>
-              <p style={{ fontSize: '0.8rem' }}>Choisissez un échange dans la liste pour y répondre.</p>
+              <p style={{ fontWeight: 600 }}>{t('seller.messages.selectConversation')}</p>
+              <p style={{ fontSize: '0.8rem' }}>{t('seller.messages.selectHint')}</p>
             </div>
           ) : loadingMessages ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 350 }}>
@@ -205,16 +209,16 @@ const SellerMessages = () => {
                   type="button"
                   onClick={() => setSelectedConvo(null)}
                   className="sv-msg-back-btn"
-                  title="Retour à la liste"
+                  title={t('seller.messages.backToList')}
                 >
                   <ArrowLeft size={16} />
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-dark)' }}>
-                    {selectedConvoData?.buyerName || 'Client'}
+                    {selectedConvoData?.buyerName || t('seller.messages.buyerFallback')}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {selectedConvoData?.productTitle ? `Produit : ${selectedConvoData.productTitle}` : selectedConvoData?.subject}
+                    {selectedConvoData?.productTitle ? t('seller.messages.productLabel', { title: selectedConvoData.productTitle }) : selectedConvoData?.subject}
                   </div>
                 </div>
               </div>
@@ -240,7 +244,7 @@ const SellerMessages = () => {
                       opacity: 0.7, textAlign: 'right',
                       color: msg.isOwn ? 'rgba(255,255,255,0.85)' : 'var(--text-muted)',
                     }}>
-                      {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(msg.createdAt).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 ))}
@@ -257,7 +261,7 @@ const SellerMessages = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Écrivez votre réponse au client…"
+                  placeholder={t('seller.messages.inputPlaceholder')}
                   rows={1}
                   style={{
                     flex: 1, padding: '0.6rem 0.85rem', border: '1px solid var(--border)',

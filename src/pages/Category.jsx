@@ -6,10 +6,12 @@ import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import { ProductGridSkeleton } from '../components/common/Skeletons';
 import EmptyState from '../components/common/EmptyState';
+import { useLang } from '../context/LangContext';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const Category = () => {
   const { slug } = useParams();
+  const { t } = useLang();
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,9 +44,9 @@ const Category = () => {
   if (notFound || !category) {
     return (
       <div className="container page-container" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>Catégorie introuvable</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>La catégorie que vous recherchez n\'existe pas.</p>
-        <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>Retour au catalogue</Link>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, marginBottom: '12px' }}>{t('category.notFoundTitle')}</h1>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{t('category.notFoundText')}</p>
+        <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>{t('category.backCatalogue')}</Link>
       </div>
     );
   }
@@ -56,12 +58,12 @@ const Category = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
   <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
     <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
     <li style={{ color: '#fff', fontWeight: 500 }}>{category.name}</li>
   </ol>
 </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Catégorie</span>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('category.surtitre')}</span>
           <h1 className="page-hero-title anim-fade-up stagger-2">{category.name}</h1>
           <p className="page-hero-subtitle anim-fade-up stagger-3">{category.description}</p>
         </div>
@@ -70,16 +72,16 @@ const Category = () => {
       <div className="container page-container">
         {/* Products */}
         <div className="scroll-animate" style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 600 }}>{category.productCount} produits</h2>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 600 }}>{t('category.productsCount', { count: category.productCount })}</h2>
         </div>
 
         {products.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title="Cette catégorie est encore vide"
-            text="Les produits seront publiés ici dès que les producteurs auront ajouté leurs offres."
+            title={t('category.emptyTitle')}
+            text={t('category.emptyText')}
             action={
-              <Link to="/boutique" className="btn btn-outline">Explorer tout le catalogue</Link>
+              <Link to="/boutique" className="btn btn-outline">{t('category.exploreAll')}</Link>
             }
           />
         ) : (
@@ -104,7 +106,7 @@ const Category = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>Voir <ArrowRight size={12} /></span>
+                      <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>{t('category.view')} <ArrowRight size={12} /></span>
                     </div>
                   </div>
                 </div>

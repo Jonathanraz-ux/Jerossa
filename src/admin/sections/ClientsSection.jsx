@@ -3,9 +3,11 @@ import { fetchAdminUsers } from '../../services/admin';
 import { formatInt } from '../format';
 import { PageHead } from '../ui';
 import { UserTable } from './UsersSection';
+import { useLang } from '../../context/LangContext';
 
 // Même logique que l'ancienne section : clients = profils de rôle « customer »
 const ClientsSection = () => {
+  const { t, lang } = useLang();
   const [users, setUsers] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,19 +35,20 @@ const ClientsSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Communauté"
-        title="Clients"
-        subtitle={`${formatInt(users.length)} client${users.length > 1 ? 's' : ''} inscrit${users.length > 1 ? 's' : ''} sur la boutique`}
+        eyebrow={t('admin.nav.community')}
+        title={t('admin.clients.title')}
+        subtitle={t('admin.clients.subtitle', { count: formatInt(users.length) })}
       />
       <UserTable
         users={filtered}
+        lang={lang}
         search={search}
         setSearch={setSearch}
-        searchLabel="Rechercher un client…"
+        searchLabel={t('admin.clients.searchPlaceholder')}
         emptyText={
           users.length === 0
-            ? 'Les clients apparaîtront ici dès leurs premières inscriptions.'
-            : 'Aucun client ne correspond à cette recherche.'
+            ? t('admin.clients.startText')
+            : t('admin.clients.noMatchText')
         }
         totalCount={users.length}
       />

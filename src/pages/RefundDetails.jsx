@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchRefundByNumber } from '../services/refunds';
+import { useLang } from '../context/LangContext';
+import { formatDate } from '../i18n';
 import { ArrowLeft, RotateCcw, Package, Landmark } from 'lucide-react';
 import './animations.css';
-
-const STATUS_LABELS = {
-  requested: 'Demandée',
-  under_review: 'En cours d\'examen',
-  approved: 'Approuvée',
-  rejected: 'Refusée',
-  processed: 'Remboursée',
-};
 
 const STATUS_COLORS = {
   requested: { background: 'var(--warning-bg)', color: 'var(--warning)' },
@@ -24,6 +18,7 @@ const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`
 
 const RefundDetails = () => {
   const { id } = useParams();
+  const { t, lang } = useLang();
   const [refund, setRefund] = useState(null);
 
   useEffect(() => {
@@ -42,25 +37,25 @@ const RefundDetails = () => {
           <div className="page-hero-content">
             <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
               <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
                 <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-                <li style={{ color: '#fff', fontWeight: 500 }}>Remboursement introuvable</li>
+                <li style={{ color: '#fff', fontWeight: 500 }}>{t('refund.notFound')}</li>
               </ol>
             </nav>
-            <span className="page-hero-surtitre anim-fade-up stagger-1">Erreur</span>
-            <h1 className="page-hero-title anim-fade-up stagger-2">Demande introuvable</h1>
-            <p className="page-hero-subtitle anim-fade-up stagger-3">La demande de remboursement demandée n'existe pas.</p>
+            <span className="page-hero-surtitre anim-fade-up stagger-1">{t('order.error')}</span>
+            <h1 className="page-hero-title anim-fade-up stagger-2">{t('refund.notFoundTitle')}</h1>
+            <p className="page-hero-subtitle anim-fade-up stagger-3">{t('refund.notFoundText')}</p>
           </div>
         </section>
         <div className="scroll-animate" style={{ padding: '40px 0' }}>
-          <Link to="/my-refunds" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Retour à mes remboursements</Link>
+          <Link to="/my-refunds" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{t('refund.backToRefunds')}</Link>
         </div>
       </div>
     );
   }
 
   const statusColors = STATUS_COLORS[refund.status] || { background: 'var(--danger-bg)', color: 'var(--danger)' };
-  const statusLabel = refund.statusLabel || STATUS_LABELS[refund.status] || refund.status;
+  const statusLabel = refund.statusLabel || t('status.' + refund.status) || refund.status;
 
   return (
     <div className="container" style={{ minHeight: '80vh' }}>
@@ -71,24 +66,24 @@ const RefundDetails = () => {
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
               <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li><Link to="/my-refunds" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Mes remboursements</Link></li>
+              <li><Link to="/my-refunds" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('refund.myRefunds')}</Link></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
               <li style={{ color: '#fff', fontWeight: 500 }}>{refund.id}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Remboursement</span>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('refund.refunds')}</span>
           <h1 className="page-hero-title anim-fade-up stagger-2">{refund.id}</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Demandée le {refund.date}</p>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('refund.requestedOn')} {formatDate(refund.date, lang)}</p>
         </div>
       </section>
       <Link to="/my-refunds" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: 600, fontSize: '14px', marginBottom: '24px', textDecoration: 'none' }}>
-        <ArrowLeft size={16} /> Retour aux remboursements
+        <ArrowLeft size={16} /> {t('refund.backToRefunds')}
       </Link>
 
       <div className="scroll-animate" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 4px', color: 'var(--text-dark)' }}>{refund.id}</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Demandée le {refund.date}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('refund.requestedOn')} {formatDate(refund.date, lang)}</p>
         </div>
         <span className="status-badge" style={{ background: statusColors.background, color: statusColors.color, padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>{statusLabel}</span>
       </div>
@@ -96,23 +91,23 @@ const RefundDetails = () => {
       {/* Montants */}
       <div className="scroll-animate premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
-          <RotateCcw size={18} style={{ color: 'var(--primary)' }} /> Montants
+          <RotateCcw size={18} style={{ color: 'var(--primary)' }} /> {t('refund.amounts')}
         </h3>
         <div className="refund-detail-grid">
           <div>
-            <div className="refund-detail-label">Montant demandé</div>
+            <div className="refund-detail-label">{t('refund.amountRequested')}</div>
             <div className="refund-detail-value">{formatEUR(refund.amountRequested)}</div>
           </div>
           <div>
-            <div className="refund-detail-label">Montant remboursé</div>
+            <div className="refund-detail-label">{t('refund.amountRefunded')}</div>
             <div className="refund-detail-value" style={{ color: refund.amountRefunded > 0 ? 'var(--success)' : 'inherit' }}>{refund.amountRefunded > 0 ? formatEUR(refund.amountRefunded) : '—'}</div>
           </div>
           <div>
-            <div className="refund-detail-label">Commande concernée</div>
+            <div className="refund-detail-label">{t('refund.order')}</div>
             <div className="refund-detail-value"><Link to={`/order/${refund.orderNumber}`} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{refund.orderNumber}</Link></div>
           </div>
           <div>
-            <div className="refund-detail-label">Référence remboursement</div>
+            <div className="refund-detail-label">{t('refund.refundReference')}</div>
             <div className="refund-detail-value">{refund.refundReference || '—'}</div>
           </div>
         </div>
@@ -121,9 +116,9 @@ const RefundDetails = () => {
       {/* Motif */}
       <div className="scroll-animate premium-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
-          <Package size={18} style={{ color: 'var(--primary)' }} /> Motif de la demande
+          <Package size={18} style={{ color: 'var(--primary)' }} /> {t('refund.reasonTitle')}
         </h3>
-        <div className="refund-detail-label">Motif</div>
+        <div className="refund-detail-label">{t('refund.reason')}</div>
         <div className="refund-detail-value" style={{ marginBottom: '12px' }}>{refund.reason}</div>
         {refund.description && (
           <div style={{ padding: '12px 16px', background: 'var(--bg-cream)', borderRadius: '8px', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
@@ -132,7 +127,7 @@ const RefundDetails = () => {
         )}
         {refund.adminNote && (
           <div style={{ marginTop: '12px', padding: '12px 16px', background: 'var(--bg-cream)', borderRadius: '8px', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, borderLeft: '3px solid var(--primary)' }}>
-            <strong>Note de l'équipe :</strong> {refund.adminNote}
+            <strong>{t('refund.teamNote')}</strong> {refund.adminNote}
           </div>
         )}
       </div>
@@ -140,7 +135,7 @@ const RefundDetails = () => {
       {refund.processedAt && (
         <div className="scroll-animate" style={{ padding: '16px', background: 'var(--success-bg)', borderRadius: '8px', fontSize: '14px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Landmark size={20} />
-          <span>Remboursement traité le {new Date(refund.processedAt).toLocaleDateString('fr-FR')}.</span>
+          <span>{t('refund.processedOn')} {formatDate(new Date(refund.processedAt), lang)}.</span>
         </div>
       )}
 

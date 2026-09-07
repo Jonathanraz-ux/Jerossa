@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone, PlusCircle } from 'lucide-react';
 import './Footer.css';
 import { COMPANY_INFO } from '../config/companyInfo';
+import { useLang } from '../context/LangContext';
 
 const Footer = () => {
+  const { t } = useLang();
   return (
     <footer className="footer">
       <div className="footer-top">
@@ -45,49 +47,49 @@ const Footer = () => {
             <div className="footer-market-row">
               <span className="footer-market-chip">🇲🇬 Madagascar</span>
               <span className="footer-market-chip">🇲🇺 Maurice</span>
-              <span className="footer-market-chip">🌍 International</span>
+              <span className="footer-market-chip">🌍 {t('footer.marketChipIn')}</span>
             </div>
           </div>
 
           <div className="footer-block">
-            <h4 className="footer-col-title">Marketplace</h4>
+            <h4 className="footer-col-title">{t('footer.marketplaceTitle')}</h4>
             <ul className="footer-links-list">
-              <li><Link to="/boutique">Explorer les produits</Link></li>
-              <li><Link to="/publier">Publier une offre</Link></li>
-              <li><Link to="/vendeur/devenir">Devenir vendeur</Link></li>
-              <li><Link to="/espace-vendeur">Espace vendeur</Link></li>
-              <li><Link to="/producteurs">Fournisseurs & producteurs</Link></li>
-              <li><Link to="/blog">Blog & actualités</Link></li>
-              <li><Link to="/about">À propos</Link></li>
+              <li><Link to="/boutique">{t('footer.exploreProducts')}</Link></li>
+              <li><Link to="/publier">{t('footer.publishOffer')}</Link></li>
+              <li><Link to="/vendeur/devenir">{t('footer.becomeSeller')}</Link></li>
+              <li><Link to="/espace-vendeur">{t('footer.sellerSpace')}</Link></li>
+              <li><Link to="/producteurs">{t('footer.sellersProducers')}</Link></li>
+              <li><Link to="/blog">{t('footer.blogNews')}</Link></li>
+              <li><Link to="/about">{t('footer.about')}</Link></li>
             </ul>
           </div>
 
           <div className="footer-block">
-            <h4 className="footer-col-title">Catégories produits</h4>
+            <h4 className="footer-col-title">{t('footer.categoriesTitle')}</h4>
             <ul className="footer-links-list">
-              <li><Link to="/categories/vanille-bourbon">Vanille de Madagascar</Link></li>
-              <li><Link to="/categories/cacao-feves-bio">Cacao & Fèves</Link></li>
-              <li><Link to="/categories/cafe-specialite">Café de Spécialité</Link></li>
-              <li><Link to="/categories/epices-poivres-rares">Épices & Poivres</Link></li>
-              <li><Link to="/categories/produits-artisanaux">Produits artisanaux</Link></li>
-              <li><Link to="/categories/matieres-premieres">Matières premières</Link></li>
+              <li><Link to="/categories/vanille-bourbon">{t('nav.catVanilla')}</Link></li>
+              <li><Link to="/categories/cacao-feves-bio">{t('nav.catCacao')}</Link></li>
+              <li><Link to="/categories/cafe-specialite">{t('nav.catCoffee')}</Link></li>
+              <li><Link to="/categories/epices-poivres-rares">{t('nav.catSpices')}</Link></li>
+              <li><Link to="/categories/produits-artisanaux">{t('nav.catArtisanal')}</Link></li>
+              <li><Link to="/categories/matieres-premieres">{t('nav.catRaw')}</Link></li>
             </ul>
           </div>
 
           <div className="footer-block">
-            <h4 className="footer-col-title">Aide & Ressources</h4>
+            <h4 className="footer-col-title">{t('footer.helpTitle')}</h4>
             <ul className="footer-links-list">
-              <li><Link to="/faq">Aide & FAQ</Link></li>
-              <li><Link to="/contact">Nous contacter</Link></li>
-              <li><Link to="/legal">Mentions légales</Link></li>
-              <li><Link to="/privacy">Confidentialité</Link></li>
-              <li><Link to="/cgv">CGV</Link></li>
+              <li><Link to="/faq">{t('footer.faq')}</Link></li>
+              <li><Link to="/contact">{t('footer.contactUs')}</Link></li>
+              <li><Link to="/legal">{t('footer.legal')}</Link></li>
+              <li><Link to="/privacy">{t('footer.privacy')}</Link></li>
+              <li><Link to="/cgv">{t('footer.cgv')}</Link></li>
             </ul>
             <Link to="/publier" className="footer-publish-link">
-              <PlusCircle size={14} /> Publier une offre
+              <PlusCircle size={14} /> {t('footer.publishOffer')}
             </Link>
             <p className="footer-currency-note">
-              Devises : MGA · MUR · EUR — montants indicatifs selon le taux de conversion en vigueur.
+              {t('footer.currencyNote')}
             </p>
           </div>
         </div>
@@ -95,11 +97,11 @@ const Footer = () => {
 
       <div className="footer-bottom">
         <div className="container footer-bottom-flex">
-          <p className="copyright">&copy; {new Date().getFullYear()} {COMPANY_INFO.legalName || COMPANY_INFO.brandName}. Tous droits réservés.</p>
+          <p className="copyright">&copy; {new Date().getFullYear()} {COMPANY_INFO.legalName || COMPANY_INFO.brandName}. {t('footer.rights')}</p>
           <div className="footer-legal-links">
-            <Link to="/legal">Mentions légales</Link>
-            <Link to="/privacy">Confidentialité</Link>
-            <Link to="/cgv">CGV</Link>
+            <Link to="/legal">{t('footer.legal')}</Link>
+            <Link to="/privacy">{t('footer.privacy')}</Link>
+            <Link to="/cgv">{t('footer.cgv')}</Link>
           </div>
         </div>
       </div>

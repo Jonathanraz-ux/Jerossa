@@ -6,24 +6,27 @@ import {
 } from 'lucide-react';
 import { fetchMyProducer } from '../services/seller';
 import { fetchMyConversations } from '../services/messages';
+import { useLang } from '../context/LangContext';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import './seller.css';
 
-const TABS = [
-  { to: '/espace-vendeur', end: true, label: 'Tableau de bord', icon: LayoutDashboard },
-  { to: '/espace-vendeur/boutique', label: 'Ma boutique', icon: Store },
-  { to: '/espace-vendeur/produits', label: 'Mes produits', icon: Package },
-  { to: '/espace-vendeur/messages', label: 'Messages', icon: MessageSquare, hasBadge: true },
-  { to: '/espace-vendeur/devis', label: 'Demandes de devis', icon: FileText },
-  { to: '/espace-vendeur/commandes', label: 'Commandes reçues', icon: ShoppingCart },
-  { to: '/espace-vendeur/avis', label: 'Avis', icon: Star },
-  { to: '/espace-vendeur/statistiques', label: 'Statistiques', icon: TrendingUp },
-  { to: '/espace-vendeur/parametres', label: 'Paramètres vendeur', icon: Settings },
-];
-
 const SellerLayout = () => {
+  const { t } = useLang();
   const [producer, setProducer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const TABS = [
+    { to: '/espace-vendeur', end: true, label: t('seller.nav.dashboard'), icon: LayoutDashboard },
+    { to: '/espace-vendeur/boutique', label: t('seller.nav.shop'), icon: Store },
+    { to: '/espace-vendeur/produits', label: t('seller.nav.products'), icon: Package },
+    { to: '/espace-vendeur/messages', label: t('seller.nav.messages'), icon: MessageSquare, hasBadge: true },
+    { to: '/espace-vendeur/devis', label: t('seller.nav.quotes'), icon: FileText },
+    { to: '/espace-vendeur/commandes', label: t('seller.nav.orders'), icon: ShoppingCart },
+    { to: '/espace-vendeur/avis', label: t('seller.nav.reviews'), icon: Star },
+    { to: '/espace-vendeur/statistiques', label: t('seller.nav.stats'), icon: TrendingUp },
+    { to: '/espace-vendeur/parametres', label: t('seller.nav.settings'), icon: Settings },
+  ];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,7 +53,7 @@ const SellerLayout = () => {
   if (loading && !producer) {
     return (
       <div className="sv-page">
-        <div className="sv-loader"><div className="sv-loader-spinner" /><p>Chargement…</p></div>
+        <div className="sv-loader"><div className="sv-loader-spinner" /><p>{t('common.loading')}</p></div>
       </div>
     );
   }
@@ -61,11 +64,11 @@ const SellerLayout = () => {
         <div className="container sv-content">
           <div className="sv-panel">
             <div className="sv-error-banner">
-              <span>Impossible de charger votre boutique. Réessayez dans un instant.</span>
+              <span>{t('seller.loadError')}</span>
             </div>
             <button type="button" className="sv-btn sv-btn--ghost" onClick={load} disabled={loading}>
               {loading ? <span className="sv-loader-spinner" /> : <RefreshCw size={14} />}
-              {loading ? 'Chargement…' : 'Réessayer'}
+              {loading ? t('common.loading') : t('seller.retry')}
             </button>
           </div>
         </div>
@@ -78,14 +81,17 @@ const SellerLayout = () => {
       <header className="sv-header">
         <div className="container sv-header-inner">
           <div>
-            <span className="sv-eyebrow">Espace vendeur</span>
+            <span className="sv-eyebrow">{t('seller.space')}</span>
             <h1 className="sv-shop-name">{producer.name}</h1>
           </div>
-          {producer.slug && (
-            <Link to={`/producteur/${producer.slug}`} className="sv-view-shop">
-              Voir ma boutique publique <ExternalLink size={14} />
-            </Link>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {producer.slug && (
+              <Link to={`/producteur/${producer.slug}`} className="sv-view-shop">
+                {t('seller.viewPublicShop')} <ExternalLink size={14} />
+              </Link>
+            )}
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
 

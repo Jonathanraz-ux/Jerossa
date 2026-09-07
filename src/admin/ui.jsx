@@ -1,6 +1,7 @@
 import React from 'react';
 import { PackageOpen, Package, X } from 'lucide-react';
 import { STATUS_LABELS, ROLE_LABELS, initials } from './format';
+import { useLang } from '../context/LangContext';
 
 // ── Badge de statut (point + libellé) ──────────────────────
 
@@ -14,26 +15,34 @@ const STATUS_TONES = {
   refunded: 'neutral',
 };
 
-export const StatusBadge = ({ status }) => (
-  <span className={`adm-badge adm-badge--${STATUS_TONES[status] || 'neutral'}`}>
-    {STATUS_LABELS[status] || status}
-  </span>
-);
+export const StatusBadge = ({ status }) => {
+  const { t } = useLang();
+  const fallback = STATUS_LABELS[status] || status;
+  return (
+    <span className={`adm-badge adm-badge--${STATUS_TONES[status] || 'neutral'}`}>
+      {t('status.' + status) !== ('status.' + status) ? t('status.' + status) : fallback}
+    </span>
+  );
+};
 
-const PAYMENT_LABELS = { paid: 'Payée', pending: 'En attente', refunded: 'Remboursée', failed: 'Échec' };
 const PAYMENT_TONES = { paid: 'green', pending: 'amber', refunded: 'neutral', failed: 'red' };
 
-export const PaymentBadge = ({ status }) => (
-  <span className={`adm-badge adm-badge--${PAYMENT_TONES[status] || 'neutral'}`}>
-    {PAYMENT_LABELS[status] || status}
-  </span>
-);
+export const PaymentBadge = ({ status }) => {
+  const { t } = useLang();
+  const fallback = STATUS_LABELS[status] || status;
+  return (
+    <span className={`adm-badge adm-badge--${PAYMENT_TONES[status] || 'neutral'}`}>
+      {t('status.' + status) !== ('status.' + status) ? t('status.' + status) : fallback}
+    </span>
+  );
+};
 
 export const RoleBadge = ({ role }) => {
+  const { t } = useLang();
   const tone = role === 'admin' ? 'ink' : role === 'seller' ? 'bronze' : 'neutral';
   return (
     <span className={`adm-badge adm-badge--${tone}`}>
-      {ROLE_LABELS[role] || role}
+      {t('role.' + role) !== ('role.' + role) ? t('role.' + role) : ROLE_LABELS[role] || role}
     </span>
   );
 };
@@ -126,7 +135,9 @@ export const Avatar = ({ name, seed, size = 34 }) => (
 
 // ── Modale générique ───────────────────────────────────────
 
-export const Modal = ({ title, subtitle, onClose, children, footer, maxWidth = 620 }) => (
+export const Modal = ({ title, subtitle, onClose, children, footer, maxWidth = 620 }) => {
+  const { t } = useLang();
+  return (
   <div
     className="adm-modal-overlay"
     onMouseDown={(e) => {
@@ -139,7 +150,7 @@ export const Modal = ({ title, subtitle, onClose, children, footer, maxWidth = 6
           <h3 className="adm-modal-title">{title}</h3>
           {subtitle && <p className="adm-modal-sub">{subtitle}</p>}
         </div>
-        <button className="adm-action" onClick={onClose} aria-label="Fermer">
+        <button className="adm-action" onClick={onClose} aria-label={t('common.close')}>
           <X size={15} strokeWidth={2} />
         </button>
       </header>
@@ -147,4 +158,5 @@ export const Modal = ({ title, subtitle, onClose, children, footer, maxWidth = 6
       {footer && <footer className="adm-modal-foot">{footer}</footer>}
     </div>
   </div>
-);
+  );
+};

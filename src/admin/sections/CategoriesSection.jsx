@@ -6,10 +6,12 @@ import {
 import { formatInt } from '../format';
 import { PageHead, EmptyState, Modal } from '../ui';
 import { useToast, useConfirm } from '../../components/common/Feedback';
+import { useLang } from '../../context/LangContext';
 
 const EMPTY_FORM = { name: '', slug: '', short: '', description: '', imageUrl: '' };
 
 const CategoriesSection = () => {
+  const { t } = useLang();
   const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -61,9 +63,9 @@ const CategoriesSection = () => {
         setCategories((prev) =>
           prev.map((c) => (c.id === editing.id ? { ...c, ...form, imageUrl: form.imageUrl } : c))
         );
-        toast('Catégorie mise à jour.', { type: 'success' });
+        toast(t('admin.categories.updated'), { type: 'success' });
       } else {
-        toast('La mise à jour a échoué.', { type: 'error' });
+        toast(t('admin.categories.updateFailed'), { type: 'error' });
       }
     } else {
       const res = await createCategory(form);
@@ -78,9 +80,9 @@ const CategoriesSection = () => {
             createdAt: res.data.created_at,
           },
         ]);
-        toast('Catégorie créée.', { type: 'success' });
+        toast(t('admin.categories.created'), { type: 'success' });
       } else {
-        toast('La création a échoué.', { type: 'error' });
+        toast(t('admin.categories.createFailed'), { type: 'error' });
       }
     }
     setShowModal(false);
@@ -88,18 +90,18 @@ const CategoriesSection = () => {
 
   const handleDelete = async (id) => {
     const ok = await confirm({
-      title: 'Supprimer cette catégorie ?',
-      message: 'Cette action est définitive. Les produits associés resteront dans le catalogue.',
-      confirmLabel: 'Supprimer',
+      title: t('admin.categories.deleteTitle'),
+      message: t('admin.categories.deleteMessage'),
+      confirmLabel: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
     const res = await deleteCategory(id);
     if (res.ok) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      toast('Catégorie supprimée.', { type: 'success' });
+      toast(t('admin.categories.deleted'), { type: 'success' });
     } else {
-      toast('La suppression a échoué.', { type: 'error' });
+      toast(t('admin.categories.deleteFailed'), { type: 'error' });
     }
   };
 
@@ -108,12 +110,12 @@ const CategoriesSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Catalogue"
-        title="Catégories"
-        subtitle={`${formatInt(categories.length)} univers${categories.length > 1 ? 's' : ''} de produits`}
+        eyebrow={t('admin.nav.catalog')}
+        title={t('admin.categories.title')}
+        subtitle={t('admin.categories.subtitle', { count: formatInt(categories.length) })}
         actions={
           <button className="adm-btn adm-btn--primary" onClick={openCreate}>
-            <Plus size={15} strokeWidth={2} /> Ajouter
+            <Plus size={15} strokeWidth={2} /> {t('admin.categories.add')}
           </button>
         }
       />
@@ -122,8 +124,8 @@ const CategoriesSection = () => {
         <div className="adm-panel">
           <EmptyState
             icon={Tags}
-            title="Aucune catégorie pour l'instant"
-            text="Structurez votre catalogue en créant votre première catégorie — elle apparaîtra aussitôt sur la boutique."
+            title={t('admin.categories.emptyTitle')}
+            text={t('admin.categories.emptyText')}
           />
         </div>
       ) : (
@@ -153,15 +155,15 @@ const CategoriesSection = () => {
                     <strong style={{ color: 'var(--adm-ink)', fontSize: 13 }}>
                       {formatInt(cat.productCount)}
                     </strong>{' '}
-                    produit{cat.productCount > 1 ? 's' : ''}
+                    {cat.productCount > 1 ? t('admin.categories.productsPlural') : t('admin.categories.productsSingular')}
                   </span>
                   <div className="adm-row-actions">
-                    <button className="adm-action" title="Modifier" onClick={() => openEdit(cat)}>
+                    <button className="adm-action" title={t('common.edit')} onClick={() => openEdit(cat)}>
                       <Edit3 size={14} strokeWidth={1.75} />
                     </button>
                     <button
                       className="adm-action adm-action--danger"
-                      title="Supprimer"
+                      title={t('common.delete')}
                       onClick={() => handleDelete(cat.id)}
                     >
                       <Trash2 size={14} strokeWidth={1.75} />
@@ -176,34 +178,34 @@ const CategoriesSection = () => {
 
       {showModal && (
         <Modal
-          title={editing ? `Modifier « ${editing.name} »` : 'Nouvelle catégorie'}
-          subtitle="Les catégories structurent la navigation de la boutique."
+          title={editing ? t('admin.categories.editTitle', { name: editing.name }) : t('admin.categories.newTitle')}
+          subtitle={t('admin.categories.modalSub')}
           onClose={() => setShowModal(false)}
           maxWidth={520}
           footer={
             <>
               <button className="adm-btn adm-btn--ghost" onClick={() => setShowModal(false)}>
-                Annuler
+                {t('common.cancel')}
               </button>
               <button className="adm-btn adm-btn--primary" onClick={handleSave}>
-                <Save size={15} strokeWidth={1.75} /> {editing ? 'Mettre à jour' : 'Créer'}
+                <Save size={15} strokeWidth={1.75} /> {editing ? t('admin.categories.update') : t('admin.categories.create')}
               </button>
             </>
           }
         >
           <div className="adm-form-grid">
             <div className="adm-form-row">
-              <label className="adm-label" htmlFor="cat-name">Nom *</label>
+              <label className="adm-label" htmlFor="cat-name">{t('admin.categories.nameLabel')} *</label>
               <input
                 id="cat-name"
                 className="adm-input"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Ex : Vanille"
+                placeholder={t('admin.categories.namePh')}
               />
             </div>
             <div className="adm-form-row">
-              <label className="adm-label" htmlFor="cat-slug">Slug</label>
+              <label className="adm-label" htmlFor="cat-slug">{t('admin.categories.slugLabel')}</label>
               <input
                 id="cat-slug"
                 className="adm-input"
@@ -213,28 +215,28 @@ const CategoriesSection = () => {
               />
             </div>
             <div className="adm-form-row adm-form-row--full">
-              <label className="adm-label" htmlFor="cat-short">Description courte</label>
+              <label className="adm-label" htmlFor="cat-short">{t('admin.categories.shortLabel')}</label>
               <input
                 id="cat-short"
                 className="adm-input"
                 value={form.short}
                 onChange={(e) => setForm({ ...form, short: e.target.value })}
-                placeholder="Une accroche élégante en quelques mots"
+                placeholder={t('admin.categories.shortPh')}
               />
             </div>
             <div className="adm-form-row adm-form-row--full">
-              <label className="adm-label" htmlFor="cat-desc">Description</label>
+              <label className="adm-label" htmlFor="cat-desc">{t('admin.categories.descLabel')}</label>
               <textarea
                 id="cat-desc"
                 className="adm-input"
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Description complète de la catégorie"
+                placeholder={t('admin.categories.descPh')}
               />
             </div>
             <div className="adm-form-row adm-form-row--full">
-              <label className="adm-label" htmlFor="cat-img">URL de l'image</label>
+              <label className="adm-label" htmlFor="cat-img">{t('admin.categories.imageLabel')}</label>
               <input
                 id="cat-img"
                 className="adm-input"

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { formatEUR } from './format';
+import { useLang } from '../context/LangContext';
 
 /**
  * AreaChart premium en SVG natif — aucune dépendance.
@@ -11,6 +12,7 @@ const PAD = { top: 18, right: 8, bottom: 26, left: 8 };
 
 export const RevenueAreaChart = ({ points }) => {
   const [hover, setHover] = useState(null);
+  const { t } = useLang();
 
   const geometry = useMemo(() => {
     if (!points.length) return null;
@@ -59,7 +61,7 @@ export const RevenueAreaChart = ({ points }) => {
         preserveAspectRatio="none"
         onMouseLeave={() => setHover(null)}
         role="img"
-        aria-label="Évolution des revenus"
+        aria-label={t('admin.overview.revenueEvolution')}
         style={{ height: 220 }}
       >
         <defs>

@@ -2,10 +2,12 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { blogPosts } from '../data/blog';
 import { Calendar, User, Folder } from 'lucide-react';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const Article = () => {
   const { slug } = useParams();
+  const { t } = useLang();
   const post = blogPosts.find(p => p.title.toLowerCase().replace(/\s+/g, '-') === slug);
 
   if (!post) {
@@ -16,18 +18,18 @@ const Article = () => {
         <div className="page-hero-content">
             <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
               <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+                <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
                 <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-                <li style={{ color: '#fff', fontWeight: 500 }}>Blog</li>
+                <li style={{ color: '#fff', fontWeight: 500 }}>{t('article.breadcrumb')}</li>
               </ol>
             </nav>
-            <span className="page-hero-surtitre anim-fade-up stagger-1">Article introuvable</span>
-            <h1 className="page-hero-title anim-fade-up stagger-2">Article introuvable</h1>
-            <p className="page-hero-subtitle anim-fade-up stagger-3">L'article que vous recherchez n'existe pas.</p>
+            <span className="page-hero-surtitre anim-fade-up stagger-1">{t('article.notFoundSurtitre')}</span>
+            <h1 className="page-hero-title anim-fade-up stagger-2">{t('article.notFoundTitle')}</h1>
+            <p className="page-hero-subtitle anim-fade-up stagger-3">{t('article.notFoundText')}</p>
           </div>
         </section>
         <div className="scroll-animate" style={{ padding: '40px 0' }}>
-          <Link to="/blog" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Retour au blog</Link>
+          <Link to="/blog" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{t('article.backBlog')}</Link>
         </div>
       </div>
     );
@@ -40,14 +42,14 @@ const Article = () => {
           <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li><Link to="/blog" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Blog</Link></li>
+              <li><Link to="/blog" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('article.breadcrumb')}</Link></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
               <li style={{ color: '#fff', fontWeight: 500 }}>{post.title}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Article</span>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('article.surtitre')}</span>
           <h1 className="page-hero-title anim-fade-up stagger-2">{post.title}</h1>
           <p className="page-hero-subtitle anim-fade-up stagger-3">{post.excerpt}</p>
         </div>

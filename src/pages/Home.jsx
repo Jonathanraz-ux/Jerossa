@@ -15,20 +15,20 @@ import SmartImg from '../components/common/SmartImg';
 import HeroCards from '../components/home/HeroCards';
 
 const FAQ_ITEMS = [
-  { q: "Comment fonctionne la plateforme Jerossa ?", a: "Jerossa met en relation les producteurs et fournisseurs de Madagascar et de Maurice avec des acheteurs et des entreprises. Vous parcourez le catalogue de produits, comparez les offres et contactez directement le vendeur." },
-  { q: "Puis-je publier un produit ?", a: "Oui. Créez votre compte, puis cliquez sur « Publier une offre » pour proposer un produit (vanille, épices, artisanat…). Votre offre devient visible auprès des acheteurs des deux territoires." },
-  { q: "Dans quelle devise les prix sont-ils affichés ?", a: "Vous pouvez afficher les prix en Ariary (MGA), en Roupie mauricienne (MUR) ou en Euro (EUR) grâce au sélecteur de devise. Les montants sont indicatifs selon le taux de conversion en vigueur." },
-  { q: "Comment les produits sont-ils vérifiés ?", a: "Des badges de confiance comme « Fournisseur vérifié » ou « Produit contrôlé » signalent les offres contrôlées. Le système de vérification des profils et d'avis accompagnera progressivement le développement de la plateforme." },
-  { q: "Quels moyens de paiement acceptez-vous ?", a: "La plateforme prépare l'intégration de paiements sécurisés (cartes, virement, mobile money). Dans un premier temps, les échanges se font en toute transparence entre les parties, avec messagerie et assistance Jerossa." },
+  { q: "home.faq.1.q", a: "home.faq.1.a" },
+  { q: "home.faq.2.q", a: "home.faq.2.a" },
+  { q: "home.faq.3.q", a: "home.faq.3.a" },
+  { q: "home.faq.4.q", a: "home.faq.4.a" },
+  { q: "home.faq.5.q", a: "home.faq.5.a" },
 ];
 
 const TRUST_ITEMS = [
-  { icon: BadgeCheck, title: 'Profils vérifiés', text: 'Identité et informations professionnelles contrôlées pour renforcer la confiance.' },
-  { icon: FileText, title: 'Offres détaillées', text: 'Produits décrits avec précision : prix, unité, disponibilité, localisation.' },
-  { icon: MessageSquare, title: 'Messagerie sécurisée', text: 'Échangez directement avec les vendeurs, sans partager vos coordonnées.' },
-  { icon: Star, title: 'Système d’avis', text: 'Notes et retours d’expérience pour évaluer la fiabilité de chaque profil.' },
-  { icon: Flag, title: 'Signalement d’annonces', text: 'Signalez toute offre suspecte : notre équipe traite chaque signalement.' },
-  { icon: LifeBuoy, title: 'Assistance Jerossa', text: 'Une équipe disponible pour vous accompagner avant, pendant et après vos échanges.' },
+  { icon: BadgeCheck, title: 'home.trust.verified.title', text: 'home.trust.verified.desc' },
+  { icon: FileText, title: 'home.trust.detailed.title', text: 'home.trust.detailed.desc' },
+  { icon: MessageSquare, title: 'home.trust.messaging.title', text: 'home.trust.messaging.desc' },
+  { icon: Star, title: 'home.trust.reviews.title', text: 'home.trust.reviews.desc' },
+  { icon: Flag, title: 'home.trust.report.title', text: 'home.trust.report.desc' },
+  { icon: LifeBuoy, title: 'home.trust.assistance.title', text: 'home.trust.assistance.desc' },
 ];
 
 const Home = () => {
@@ -84,7 +84,7 @@ const Home = () => {
             <source media="(max-width: 768px)" srcSet="/hero-bg-mobile.jpg" />
             <img
               src="/hero-bg-desktop.jpg"
-              alt="Jerossa — Terroirs & Échanges Madagascar - Maurice"
+              alt={t('home.heroAlt')}
               loading="eager"
               fetchPriority="high"
               decoding="async"
@@ -123,7 +123,7 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="hero-trust-row" aria-label="Engagements de confiance">
+            <div className="hero-trust-row" aria-label={t('home.trustAria')}>
               <div className="hero-trust-item">
                 <BadgeCheck size={15} strokeWidth={1.75} />
                 <span>{t('hero.trust.profiles')}</span>
@@ -161,7 +161,7 @@ const Home = () => {
             <div className="search-panel-head">
               <span className="search-panel-label">
                 <Search size={15} strokeWidth={1.8} />
-                Que recherchez-vous aujourd'hui ?
+                {t('home.searchLabel')}
               </span>
             </div>
             <div className="search-panel-fields">
@@ -169,7 +169,7 @@ const Home = () => {
                 <Search size={16} strokeWidth={1.8} />
                 <input
                   type="text"
-                  placeholder="Vanille de Madagascar, fournisseur de cacao…"
+                  placeholder={t('home.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -177,26 +177,26 @@ const Home = () => {
               <div className="search-select-wrap">
                 <Tag size={15} strokeWidth={1.8} />
                 <select value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
-                  <option value="">Catégorie</option>
+                  <option value="">{t('home.searchCategory')}</option>
                   {categories.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
                 </select>
               </div>
               <div className="search-select-wrap">
                 <Globe size={15} strokeWidth={1.8} />
                 <select value={searchMarket} onChange={(e) => setSearchMarket(e.target.value)}>
-                  <option value="">Tous les marchés</option>
+                  <option value="">{t('home.searchAllMarkets')}</option>
                   <option value="MG">🇲🇬 Madagascar</option>
                   <option value="MU">🇲🇺 Maurice</option>
                   <option value="INT">🌍 International</option>
                 </select>
               </div>
               <button type="submit" className="search-submit">
-                Rechercher
+                {t('home.searchBtn')}
                 <ArrowRight size={16} />
               </button>
             </div>
             <div className="search-panel-footer">
-              <span className="search-popular">Populaires :</span>
+              <span className="search-popular">{t('home.searchPopular')}</span>
               {['Vanille de Madagascar', 'Cacao & Fèves', 'Café de spécialité', 'Fournisseur de cacao', 'Produits artisanaux'].map((q) => (
                 <button
                   key={q}
@@ -209,7 +209,7 @@ const Home = () => {
               ))}
               <span className="j-currency-note">
                 <Wallet size={13} />
-                Devise : {currency} · {CURRENCY_NOTE}
+                {t('nav.displayCurrency')} : {currency} · {CURRENCY_NOTE}
               </span>
             </div>
           </form>
@@ -220,36 +220,35 @@ const Home = () => {
       <section className="bridge-section">
         <div className="container">
           <div className="section-header-center">
-            <span className="section-surtitre">Notre mission</span>
-            <h2 className="section-title">Un pont commercial entre deux territoires</h2>
+            <span className="section-surtitre">{t('home.missionSurtitre')}</span>
+            <h2 className="section-title">{t('home.missionTitle')}</h2>
             <p className="section-desc">
-              Jerossa réunit producteurs, fournisseurs et commerçants de Madagascar et de Maurice,
-              pour créer des échanges plus simples, plus transparents et plus fiables.
+              {t('home.missionDesc')}
             </p>
           </div>
           <div className="bridge-grid">
             <div className="bridge-card bridge-card--mg">
               <div className="bridge-card-flag">🇲🇬</div>
               <h3>Madagascar</h3>
-              <p>Vanille, cacao, épices, produits agricoles, artisanat et matières premières d'exception.</p>
+              <p>{t('home.mgDesc')}</p>
               <ul className="bridge-list">
-                <li><CheckCircle2 size={15} /> Producteurs & coopératives</li>
-                <li><CheckCircle2 size={15} /> Matières premières & produits locaux</li>
-                <li><CheckCircle2 size={15} /> Traçabilité de la plantation à l'expédition</li>
+                <li><CheckCircle2 size={15} /> {t('home.mg1')}</li>
+                <li><CheckCircle2 size={15} /> {t('home.mg2')}</li>
+                <li><CheckCircle2 size={15} /> {t('home.mg3')}</li>
               </ul>
             </div>
             <div className="bridge-link">
               <span className="bridge-link-ico"><Handshake size={26} strokeWidth={1.6} /></span>
-              <span>Des échanges<br />renforcés</span>
+              <span>{t('home.bridgeExchange')}</span>
             </div>
             <div className="bridge-card bridge-card--mu">
               <div className="bridge-card-flag">🇲🇺</div>
               <h3>Maurice</h3>
-              <p>Entreprises et acheteurs à la recherche de matières premières et de produits d'exception.</p>
+              <p>{t('home.muDesc')}</p>
               <ul className="bridge-list">
-                <li><CheckCircle2 size={15} /> Acheteurs & importateurs</li>
-                <li><CheckCircle2 size={15} /> Demande solvable & logistique développée</li>
-                <li><CheckCircle2 size={15} /> Ouverture vers les marchés régionaux</li>
+                <li><CheckCircle2 size={15} /> {t('home.mu1')}</li>
+                <li><CheckCircle2 size={15} /> {t('home.mu2')}</li>
+                <li><CheckCircle2 size={15} /> {t('home.mu3')}</li>
               </ul>
             </div>
           </div>
@@ -261,12 +260,12 @@ const Home = () => {
         <div className="container">
           <div className="section-header-row">
             <div>
-              <span className="section-surtitre">Produits</span>
-              <h2 className="section-title">Nos catégories de produits</h2>
-              <p className="section-desc">Les trésors agricoles et artisanaux de Madagascar et de Maurice</p>
+              <span className="section-surtitre">{t('home.categoriesSurtitre')}</span>
+              <h2 className="section-title">{t('home.categoriesTitle')}</h2>
+              <p className="section-desc">{t('home.categoriesDesc')}</p>
             </div>
             <Link to="/boutique" className="section-link">
-              Tout le catalogue <ArrowRight size={14} />
+              {t('nav.allCatalogue')} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -280,8 +279,8 @@ const Home = () => {
                 </div>
                 <h3 className="category-title">{cat.name}</h3>
                 <span className="category-short">{cat.short}</span>
-                <span className="category-count">{cat.productCount} offres</span>
-                <span className="category-cta">Voir les offres <ArrowRight size={11} /></span>
+                <span className="category-count">{cat.productCount} {t('common.offers')}</span>
+                <span className="category-cta">{t('home.seeOffers')} <ArrowRight size={11} /></span>
               </Link>
             ))}
           </div>
@@ -293,12 +292,12 @@ const Home = () => {
         <div className="container">
           <div className="section-header-row">
             <div>
-              <span className="section-surtitre">Offres récentes</span>
-              <h2 className="section-title">Produits à découvrir</h2>
-              <p className="section-desc">Disponibles en gros et demi-gros, directement des fournisseurs</p>
+              <span className="section-surtitre">{t('home.recentSurtitre')}</span>
+              <h2 className="section-title">{t('home.recentTitle')}</h2>
+              <p className="section-desc">{t('home.recentDesc')}</p>
             </div>
             <Link to="/boutique" className="section-link">
-              Voir tout <ArrowRight size={14} />
+              {t('home.viewAll')} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -312,7 +311,7 @@ const Home = () => {
                 <div className="product-card-image">
                   <SmartImg src={prod.images[0]} alt={prod.title} />
                   {prod.tag && <span className="product-card-tag">{prod.tag}</span>}
-                  <button className="product-card-wishlist" aria-label="Ajouter aux favoris" onClick={(e) => e.stopPropagation()}>
+                  <button className="product-card-wishlist" aria-label={t('product.wishlistLabel')} onClick={(e) => e.stopPropagation()}>
                     <Heart size={15} strokeWidth={1.5} />
                   </button>
                 </div>
@@ -323,7 +322,7 @@ const Home = () => {
                     </span>
                     {prod.verified && (
                       <span className="j-verified-chip">
-                        <BadgeCheck size={13} /> Fournisseur vérifié
+                        <BadgeCheck size={13} /> {t('home.verifiedSupplier')}
                       </span>
                     )}
                   </div>
@@ -346,7 +345,7 @@ const Home = () => {
                       <span className="product-card-unit">/ {prod.unit}</span>
                     </div>
                     <button className="product-card-view" onClick={(e) => { e.stopPropagation(); openQuickView(prod.id); }}>
-                      Voir l'offre <ArrowRight size={13} />
+                      {t('home.viewOffer')} <ArrowRight size={13} />
                     </button>
                   </div>
                 </div>
@@ -360,9 +359,9 @@ const Home = () => {
       <section className="how-section" id="comment-ca-marche">
         <div className="container">
           <div className="section-header-center">
-            <span className="section-surtitre">Comment ça marche</span>
-            <h2 className="section-title">Simple, rapide, en toute confiance</h2>
-            <p className="section-desc">Que vous achetiez ou que vous proposiez, Jerossa guide chaque étape.</p>
+            <span className="section-surtitre">{t('home.howSurtitre')}</span>
+            <h2 className="section-title">{t('home.howTitle')}</h2>
+            <p className="section-desc">{t('home.howDesc')}</p>
           </div>
 
           <div className="how-tabs">
@@ -370,29 +369,29 @@ const Home = () => {
               className={`how-tab${howTab === 'acheter' ? ' is-active' : ''}`}
               onClick={() => setHowTab('acheter')}
             >
-              <ShoppingBag size={17} strokeWidth={1.8} /> Je souhaite acheter
+              <ShoppingBag size={17} strokeWidth={1.8} /> {t('home.howTabBuy')}
             </button>
             <button
               className={`how-tab${howTab === 'vendre' ? ' is-active' : ''}`}
               onClick={() => setHowTab('vendre')}
             >
-              <TrendingUp size={17} strokeWidth={1.8} /> Je souhaite vendre
+              <TrendingUp size={17} strokeWidth={1.8} /> {t('home.howTabSell')}
             </button>
           </div>
 
           <div className="how-steps">
             {(howTab === 'acheter'
               ? [
-                  { icon: Search, title: 'Recherchez', text: 'Trouvez un produit grâce à la recherche avancée et aux filtres.' },
-                  { icon: LayoutGrid, title: 'Comparez', text: 'Comparez les offres et les prix en toute transparence.' },
-                  { icon: MessageSquare, title: 'Contactez', text: 'Échangez directement avec un vendeur via la messagerie.' },
-                  { icon: Shield, title: 'Réalisez', text: 'Concluez votre transaction en toute confiance, accompagné par l’assistance Jerossa.' },
+                  { icon: Search, title: 'home.howSearch', text: 'home.howSearchText' },
+                  { icon: LayoutGrid, title: 'home.howCompare', text: 'home.howCompareText' },
+                  { icon: MessageSquare, title: 'home.howContact', text: 'home.howContactText' },
+                  { icon: Shield, title: 'home.howDeal', text: 'home.howDealText' },
                 ]
               : [
-                  { icon: UserPlus, title: 'Créez votre compte', text: 'Inscrivez-vous gratuitement en tant que vendeur.' },
-                  { icon: PlusCircle, title: 'Publiez votre offre', text: 'Décrivez votre produit : prix, unité, disponibilité, photos.' },
-                  { icon: Eye, title: 'Présentez-vous', text: 'Mettez en avant vos compétences, votre expérience et vos réalisations.' },
-                  { icon: TrendingUp, title: 'Développez votre activité', text: 'Recevez des demandes, fidélisez vos clients et élargissez votre marché.' },
+                  { icon: UserPlus, title: 'home.howCreate', text: 'home.howCreateText' },
+                  { icon: PlusCircle, title: 'home.howPublish', text: 'home.howPublishText' },
+                  { icon: Eye, title: 'home.howPresent', text: 'home.howPresentText' },
+                  { icon: TrendingUp, title: 'home.howGrow', text: 'home.howGrowText' },
                 ]
             ).map((step, i) => {
               const Icon = step.icon;
@@ -400,8 +399,8 @@ const Home = () => {
                 <div key={i} className="how-step">
                   <span className="how-step-num">{i + 1}</span>
                   <span className="how-step-ico"><Icon size={20} strokeWidth={1.6} /></span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
+                  <h3>{t(step.title)}</h3>
+                  <p>{t(step.text)}</p>
                 </div>
               );
             })}
@@ -414,10 +413,10 @@ const Home = () => {
         <div className="container">
           <div className="trust-section-inner">
             <div className="trust-section-head">
-              <span className="section-surtitre">Espace de confiance</span>
-              <h2 className="section-title">Des échanges plus simples, plus transparents et plus fiables.</h2>
+              <span className="section-surtitre">{t('home.trustSurtitre')}</span>
+              <h2 className="section-title">{t('home.trustTitle')}</h2>
               <p className="section-desc">
-                La confiance est au cœur de Jerossa. Chaque interaction est pensée pour protéger acheteurs et vendeurs.
+                {t('home.trustDesc')}
               </p>
             </div>
             <div className="trust-grid">
@@ -426,15 +425,15 @@ const Home = () => {
                 return (
                   <div key={i} className="trust-card">
                     <span className="trust-card-ico"><Icon size={20} strokeWidth={1.6} /></span>
-                    <h3>{item.title}</h3>
-                    <p>{item.text}</p>
+                    <h3>{t(item.title)}</h3>
+                    <p>{t(item.text)}</p>
                   </div>
                 );
               })}
             </div>
             <div className="trust-note">
               <Lock size={15} />
-              Fonctionnalités de confiance prévues pour accompagner le développement de la plateforme.
+              {t('home.trustNote')}
             </div>
           </div>
         </div>
@@ -445,50 +444,49 @@ const Home = () => {
         <div className="container">
           <div className="seller-inner">
             <div className="seller-copy">
-              <span className="section-surtitre">Espace vendeur</span>
-              <h2 className="section-title">Gérez votre activité depuis un tableau de bord unique</h2>
+              <span className="section-surtitre">{t('home.sellerSurtitre')}</span>
+              <h2 className="section-title">{t('home.sellerTitle')}</h2>
               <p className="seller-desc">
-                Publiez vos offres, suivez vos commandes, discutez avec vos clients et pilotez vos performances.
-                Un espace simple, moderne et professionnel, pensé pour les producteurs et les fournisseurs.
+                {t('home.sellerDesc')}
               </p>
               <div className="seller-actions">
                 <Link to="/publier" className="j-pill-btn j-pill-btn--gold">
-                  <PlusCircle size={16} /> Publier une offre
+                  <PlusCircle size={16} /> {t('home.sellerPublishOffer')}
                 </Link>
                 <Link to="/register" className="j-pill-btn j-pill-btn--outline-dark">
-                  Créer mon espace
+                  {t('home.sellerCreateSpace')}
                 </Link>
               </div>
             </div>
             <div className="seller-dashboard">
               <div className="seller-dash-head">
-                <span className="seller-dash-title">Vue d'ensemble</span>
-                <span className="seller-dash-tag">Mon activité</span>
+                <span className="seller-dash-title">{t('home.sellerDashOverview')}</span>
+                <span className="seller-dash-tag">{t('home.sellerDashTag')}</span>
               </div>
               <div className="seller-dash-stats">
                 <div className="seller-stat">
                   <span className="seller-stat-ico"><Eye size={16} /></span>
-                  <strong>1 248</strong><span>Vues</span>
+                  <strong>1 248</strong><span>{t('home.sellerViews')}</span>
                 </div>
                 <div className="seller-stat">
                   <span className="seller-stat-ico"><MessageSquare size={16} /></span>
-                  <strong>56</strong><span>Demandes reçues</span>
+                  <strong>56</strong><span>{t('home.sellerRequests')}</span>
                 </div>
                 <div className="seller-stat">
                   <span className="seller-stat-ico"><Package size={16} /></span>
-                  <strong>12</strong><span>Offres actives</span>
+                  <strong>12</strong><span>{t('home.sellerActiveOffers')}</span>
                 </div>
                 <div className="seller-stat">
                   <span className="seller-stat-ico"><BarChart3 size={16} /></span>
-                  <strong>+18%</strong><span>Nouveaux contacts</span>
+                  <strong>+18%</strong><span>{t('home.sellerNewContacts')}</span>
                 </div>
               </div>
               <div className="seller-dash-menu">
                 {[
-                  "Vue d'ensemble", 'Mes produits', 'Ajouter une offre',
-                  'Messages', 'Commandes', 'Favoris', 'Statistiques', 'Profil', 'Paramètres',
+                  "home.sellerMenuOverview", 'home.sellerMenuProducts', 'home.sellerMenuAddOffer',
+                  'home.sellerMenuMessages', 'home.sellerMenuOrders', 'home.sellerMenuFavorites', 'home.sellerMenuStats', 'home.sellerMenuProfile', 'home.sellerMenuSettings',
                 ].map((item, i) => (
-                  <span key={item} className={`seller-menu-item${i === 0 ? ' is-active' : ''}`}>{item}</span>
+                  <span key={item} className={`seller-menu-item${i === 0 ? ' is-active' : ''}`}>{t(item)}</span>
                 ))}
               </div>
             </div>
@@ -502,22 +500,22 @@ const Home = () => {
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-number">200+</div>
-              <div className="stat-label">Producteurs & fournisseurs</div>
-              <div className="stat-trend"><TrendingUp size={12} /> +12% cette année</div>
+              <div className="stat-label">{t('home.statsSuppliers')}</div>
+              <div className="stat-trend"><TrendingUp size={12} /> {t('home.statsThisYear')}</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">98%</div>
-              <div className="stat-label">Satisfaction client</div>
-              <div className="stat-trend"><Heart size={12} /> Commerce équitable</div>
+              <div className="stat-label">{t('home.statsSatisfaction')}</div>
+              <div className="stat-trend"><Heart size={12} /> {t('home.statsFairTrade')}</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">2</div>
-              <div className="stat-label">Territoires connectés</div>
+              <div className="stat-label">{t('home.statsTerritories')}</div>
               <div className="stat-trend">Madagascar ↔ Maurice</div>
             </div>
             <div className="stat-card">
               <div className="stat-number">3</div>
-              <div className="stat-label">Devises d'affichage</div>
+              <div className="stat-label">{t('home.statsCurrencies')}</div>
               <div className="stat-trend"><Heart size={12} /> MGA · MUR · EUR</div>
             </div>
           </div>
@@ -528,9 +526,9 @@ const Home = () => {
       <section className="producers-section">
         <div className="container">
           <div className="section-header-center">
-            <span className="section-surtitre">Fournisseurs & Producteurs</span>
-            <h2 className="section-title">Nos partenaires de confiance</h2>
-            <p className="section-desc">Des producteurs et fournisseurs sélectionnés pour leur excellence</p>
+            <span className="section-surtitre">{t('home.suppliersSurtitre')}</span>
+            <h2 className="section-title">{t('home.suppliersTitle')}</h2>
+            <p className="section-desc">{t('home.suppliersDesc')}</p>
           </div>
 
           <div className="producers-grid">
@@ -543,7 +541,7 @@ const Home = () => {
                 <div className="producer-card-image">
                   <img src={producer.img} alt={producer.name} loading="lazy" />
                   <div className="producer-card-overlay">
-                    <Link to="/producteurs" className="producer-card-link">Voir le profil <ArrowRight size={12} /></Link>
+                    <Link to="/producteurs" className="producer-card-link">{t('home.suppliersViewProfile')} <ArrowRight size={12} /></Link>
                   </div>
                 </div>
                 <div className="producer-card-body">
@@ -561,32 +559,32 @@ const Home = () => {
       <section className="testimonials-section">
         <div className="container">
           <div className="section-header-center">
-            <span className="section-surtitre">Témoignages</span>
-            <h2 className="section-title">Ils nous font confiance</h2>
-            <p className="section-desc">Des entreprises de Madagascar et de Maurice</p>
+            <span className="section-surtitre">{t('home.testimonialsSurtitre')}</span>
+            <h2 className="section-title">{t('home.testimonialsTitle')}</h2>
+            <p className="section-desc">{t('home.testimonialsDesc')}</p>
           </div>
 
           <div className="testimonials-grid">
             {[
-              { name: 'Marie Laurent', role: 'Chocolatier, Port-Louis', text: 'La vanille Bourbon trouvée via Jerossa est exceptionnelle. La mise en relation avec la coopérative SAVA a été simple et rapide.', rating: 5 },
-              { name: 'Rakoto Andry', role: 'Producteur, SAVA', text: 'Jerossa me permet de toucher des acheteurs à Maurice sans intermédiaire. Je publie mes offres et je reçois des demandes sérieuses.', rating: 5 },
-              { name: 'Thomas Renard', role: 'Importateur, Curepipe', text: 'Le cacao et les épices trouvés via Jerossa dépassent nos attentes en qualité. Les échanges avec les fournisseurs sont clairs et rassurants.', rating: 4 },
-            ].map((t, i) => (
+              { name: 'home.testimonial.1.name', role: 'home.testimonial.1.role', text: 'home.testimonial.1.text', rating: 5 },
+              { name: 'home.testimonial.2.name', role: 'home.testimonial.2.role', text: 'home.testimonial.2.text', rating: 5 },
+              { name: 'home.testimonial.3.name', role: 'home.testimonial.3.role', text: 'home.testimonial.3.text', rating: 4 },
+            ].map((tm, i) => (
               <div key={i} className="testimonial-card">
                 <div className="testimonial-stars">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={15} fill={j < t.rating ? '#d4a373' : 'rgba(212,163,115,0.2)'} color="#d4a373" />
+                    <Star key={j} size={15} fill={j < tm.rating ? '#d4a373' : 'rgba(212,163,115,0.2)'} color="#d4a373" />
                   ))}
                 </div>
                 <div className="testimonial-quote">
                   <Quote size={18} strokeWidth={1.5} />
                 </div>
-                <p className="testimonial-text">"{t.text}"</p>
+                <p className="testimonial-text">"{t(tm.text)}"</p>
                 <div className="testimonial-author">
-                  <div className="testimonial-avatar">{t.name.split(' ').map(n => n[0]).join('')}</div>
+                  <div className="testimonial-avatar">{t(tm.name).split(' ').map(n => n[0]).join('')}</div>
                   <div>
-                    <div className="testimonial-name">{t.name}</div>
-                    <div className="testimonial-role">{t.role}</div>
+                    <div className="testimonial-name">{t(tm.name)}</div>
+                    <div className="testimonial-role">{t(tm.role)}</div>
                   </div>
                 </div>
               </div>
@@ -599,20 +597,20 @@ const Home = () => {
       <section className="faq-section">
         <div className="container">
           <div className="section-header-center">
-            <span className="section-surtitre">FAQ</span>
-            <h2 className="section-title">Questions fréquentes</h2>
-            <p className="section-desc">Tout ce que vous devez savoir avant de commencer</p>
+            <span className="section-surtitre">{t('home.faqSurtitre')}</span>
+            <h2 className="section-title">{t('home.faqTitle')}</h2>
+            <p className="section-desc">{t('home.faqDesc')}</p>
           </div>
 
           <div className="faq-list">
             {FAQ_ITEMS.map((item, i) => (
               <div key={i} className={`faq-item ${openFaq === i ? 'faq-item--open' : ''}`}>
                 <button className="faq-question" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                  <span>{item.q}</span>
+                  <span>{t(item.q)}</span>
                   <ChevronDown size={16} strokeWidth={1.5} className={`faq-chevron ${openFaq === i ? 'faq-chevron--open' : ''}`} />
                 </button>
                 <div className="faq-answer">
-                  <p>{item.a}</p>
+                  <p>{t(item.a)}</p>
                 </div>
               </div>
             ))}
@@ -625,20 +623,20 @@ const Home = () => {
         <div className="container">
           <div className="newsletter-inner">
             <div className="newsletter-content">
-              <span className="newsletter-surtitre">Newsletter</span>
-              <h2>Restez informés</h2>
-              <p>Recevez les nouvelles offres et les actualités des marchés de Madagascar et Maurice.</p>
+              <span className="newsletter-surtitre">{t('home.newsletterSurtitre')}</span>
+              <h2>{t('home.newsletterTitle')}</h2>
+              <p>{t('home.newsletterDesc')}</p>
               <form className="newsletter-form" onSubmit={(e) => { e.preventDefault(); }}>
                 <div className="newsletter-input-wrapper">
                   <Mail size={18} strokeWidth={1.5} />
-                  <input type="email" placeholder="Votre adresse email" value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} required />
+                  <input type="email" placeholder={t('home.newsletterPlaceholder')} value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} required />
                 </div>
                 <button type="submit" className="newsletter-submit">
-                  S'abonner
+                  {t('home.newsletterBtn')}
                   <ArrowRight size={16} strokeWidth={2} />
                 </button>
               </form>
-              <p className="newsletter-disclaimer">En vous inscrivant, vous acceptez de recevoir nos communications. Désabonnement à tout moment.</p>
+              <p className="newsletter-disclaimer">{t('home.newsletterDisclaimer')}</p>
             </div>
             <div className="newsletter-visual">
               <div className="newsletter-image-stack">

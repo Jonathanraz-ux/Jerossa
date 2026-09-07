@@ -1,0 +1,54 @@
+.lr-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 30px;
+  padding: 2px;
+  border-radius: 9px;
+  border: 1px solid var(--border, #e6e1d5);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 2px rgba(23, 22, 20, 0.05);
+  user-select: none;
+}
+
+.lr-switcher-btn {
+  border: none;
+  background: none;
+  padding: 0 9px;
+  height: 24px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #857f72;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.lr-switcher-btn:hover { color: #171614; }
+
+.lr-switcher-btn.is-active {
+  background: linear-gradient(160deg, #a87945, #8c6239);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 1px 3px rgba(140, 98, 57, 0.3);
+}
+
+.lr-switcher-sep { width: 1px; height: 14px; background: #e6e1d5; }
+
+.lr-switcher--compact .lr-switcher-btn { padding: 0 7px; }
+
+.lr-switcher--dark { border-color: rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.08); }
+.lr-switcher--dark .lr-switcher-btn { color: rgba(255, 255, 255, 0.72); }
+.lr-switcher--dark .lr-switcher-btn:hover { color: #fff; }
+.lr-switcher--dark .lr-switcher-sep { background: rgba(255, 255, 255, 0.18); }
+
+/* Variante sombre automatique dans l'administration Night */
+html[data-jerossa-admin-theme='night'] .lr-switcher {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+html[data-jerossa-admin-theme='night'] .lr-switcher-btn { color: rgba(255, 255, 255, 0.72); }
+html[data-jerossa-admin-theme='night'] .lr-switcher-btn:hover { color: #fff; }
+html[data-jerossa-admin-theme='night'] .lr-switcher-sep { background: rgba(255, 255, 255, 0.18); }

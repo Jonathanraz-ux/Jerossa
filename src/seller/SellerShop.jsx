@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import { Loader2, CheckCircle2, AlertTriangle, Upload, X, Image } from 'lucide-react';
 import { saveMyShop, uploadShopImage, uploadSellerLogo } from '../services/seller';
+import { useLang } from '../context/LangContext';
 
 const PAYMENT_METHODS = [
   'MVola',
@@ -22,6 +23,7 @@ const Field = ({ label, required, children, hint }) => (
 
 const SellerShop = () => {
   const { producer } = useOutletContext();
+  const { t } = useLang();
 
   const [name, setName] = useState(producer.name || '');
   const [location, setLocation] = useState(producer.location || '');
@@ -56,11 +58,11 @@ const SellerShop = () => {
     setImageError('');
     if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setImageError('Format accepté : JPG, PNG ou WebP.');
+      setImageError(t('seller.shop.imageFormat'));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setImageError('Image trop lourde (max 5 Mo).');
+      setImageError(t('seller.shop.imageTooLarge'));
       return;
     }
     setUploadingImage(true);
@@ -68,7 +70,7 @@ const SellerShop = () => {
       const url = await uploadShopImage(file);
       setImageUrl(url);
     } catch (err) {
-      setImageError(`Échec de l'envoi : ${err.message}`);
+      setImageError(t('seller.shop.imageUploadError', { error: err.message }));
     } finally {
       setUploadingImage(false);
     }
@@ -78,11 +80,11 @@ const SellerShop = () => {
     setLogoError('');
     if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setLogoError('Format accepté : JPG, PNG ou WebP.');
+      setLogoError(t('seller.shop.logoFormat'));
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setLogoError('Logo trop lourd (max 2 Mo).');
+      setLogoError(t('seller.shop.logoTooLarge'));
       return;
     }
     setUploadingLogo(true);
@@ -90,7 +92,7 @@ const SellerShop = () => {
       const url = await uploadSellerLogo(file);
       setLogoUrl(url);
     } catch (err) {
-      setLogoError(`Échec de l'envoi : ${err.message}`);
+      setLogoError(t('seller.shop.logoUploadError', { error: err.message }));
     } finally {
       setUploadingLogo(false);
     }
@@ -114,7 +116,7 @@ const SellerShop = () => {
     });
     setSaving(false);
     if (!res.ok) {
-      setError(res.error?.message || 'Échec de la mise à jour.');
+      setError(res.error?.message || t('seller.shop.saved'));
       return;
     }
     setSaved(true);
@@ -122,20 +124,20 @@ const SellerShop = () => {
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <h2 className="sv-section-title">Profil de ma boutique</h2>
+      <h2 className="sv-section-title">{t('seller.shop.title')}</h2>
       <p className="sv-dim" style={{ marginBottom: '1.25rem' }}>
-        Ces informations sont visibles publiquement sur votre page boutique.
+        {t('seller.shop.subtitle')}
       </p>
 
-      {saved && <div className="sv-success-note"><CheckCircle2 size={15} /> Boutique mise à jour.</div>}
+      {saved && <div className="sv-success-note"><CheckCircle2 size={15} /> {t('seller.shop.saved')}</div>}
       {error && <div className="sv-error-banner"><AlertTriangle size={16} /><span>{error}</span></div>}
 
       <form className="sv-panel" onSubmit={onSubmit}>
-        <Field label="Nom de la boutique" required>
+        <Field label={t('seller.shop.fieldName')} required>
           <input className="sl-input" value={name} onChange={(e) => setName(e.target.value)} required />
         </Field>
 
-        <Field label="Photo / logo de la boutique">
+        <Field label={t('seller.shop.fieldImage')}>
           <input
             ref={fileInputRef}
             type="file"
@@ -153,14 +155,14 @@ const SellerShop = () => {
             ) : null}
             <button type="button" className="sv-btn sv-btn--ghost" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage}>
               {uploadingImage
-                ? <><Loader2 size={14} style={{ animation: 'sv-rotate 0.9s linear infinite' }} /> Envoi…</>
-                : <><Upload size={14} /> {imageUrl ? 'Changer' : 'Ajouter une image'}</>}
+                ? <><Loader2 size={14} style={{ animation: 'sv-rotate 0.9s linear infinite' }} /> {t('seller.shop.imageSending')}</>
+                : <><Upload size={14} /> {imageUrl ? t('seller.shop.imageChange') : t('seller.shop.imageAdd')}</>}
             </button>
           </div>
           {imageError && <span className="sl-hint" style={{ color: 'var(--danger)' }}>{imageError}</span>}
         </Field>
 
-        <Field label="Logo professionnel" hint="PNG, JPG ou WebP — max 2 Mo. Affiché sur votre page publique.">
+        <Field label={t('seller.shop.fieldLogo')} hint={t('seller.shop.logoHint')}>
           <input
             ref={logoInputRef}
             type="file"
@@ -176,7 +178,7 @@ const SellerShop = () => {
               }}>
                 <img
                   src={logoUrl}
-                  alt="Logo"
+                  alt={t('seller.shop.fieldLogo')}
                   style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }}
                 />
                 <button
@@ -204,8 +206,8 @@ const SellerShop = () => {
             <div>
               <button type="button" className="sv-btn sv-btn--ghost" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}>
                 {uploadingLogo
-                  ? <><Loader2 size={14} style={{ animation: 'sv-rotate 0.9s linear infinite' }} /> Envoi…</>
-                  : <><Upload size={14} /> {logoUrl ? 'Remplacer le logo' : 'Ajouter un logo'}</>}
+                  ? <><Loader2 size={14} style={{ animation: 'sv-rotate 0.9s linear infinite' }} /> {t('seller.shop.imageSending')}</>
+                  : <><Upload size={14} /> {logoUrl ? t('seller.shop.logoReplace') : t('seller.shop.logoAdd')}</>}
               </button>
               {logoUrl && (
                 <button
@@ -217,7 +219,7 @@ const SellerShop = () => {
                     padding: '4px 8px', marginTop: '2px', display: 'block',
                   }}
                 >
-                  Supprimer le logo
+                  {t('seller.shop.logoDelete')}
                 </button>
               )}
             </div>
@@ -226,48 +228,48 @@ const SellerShop = () => {
         </Field>
 
         <div className="sv-form-row">
-          <Field label="Localisation" required>
+          <Field label={t('seller.shop.fieldLocation')} required>
             <input className="sl-input" value={location} onChange={(e) => setLocation(e.target.value)} required />
           </Field>
-          <Field label="Année de création">
+          <Field label={t('seller.shop.fieldYear')}>
             <input className="sl-input" type="number" min="1900" max={new Date().getFullYear()} value={established} onChange={(e) => setEstablished(e.target.value)} />
           </Field>
         </div>
 
-        <Field label="Description publique" required hint="Présentez votre activité, vos spécialités et vos certifications.">
+        <Field label={t('seller.shop.fieldDescription')} required hint={t('seller.shop.descriptionHint')}>
           <textarea className="sl-input sl-textarea" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} required />
         </Field>
 
         <div className="sv-form-row">
-          <Field label="Email de contact" required>
+          <Field label={t('seller.shop.fieldEmail')} required>
             <input className="sl-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </Field>
-          <Field label="Téléphone">
+          <Field label={t('seller.shop.fieldPhone')}>
             <input className="sl-input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </Field>
         </div>
 
         <div className="sv-form-row">
-          <Field label="Moyen de paiement" required>
+          <Field label={t('seller.shop.fieldPayMethod')} required>
             <select className="sl-input" value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
               {PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}
             </select>
           </Field>
-          <Field label="Numéro / compte de réception" required>
+          <Field label={t('seller.shop.fieldPayDetail')} required>
             <input className="sl-input" value={payDetail} onChange={(e) => setPayDetail(e.target.value)} required />
           </Field>
         </div>
 
         <p className="sv-hint" style={{ display: 'block', marginTop: '-0.5rem' }}>
-          Vos informations bancaires ne sont jamais affichées publiquement — elles servent uniquement au versement de vos ventes.
+          {t('seller.shop.bankPrivacy')}
         </p>
 
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
           <button type="submit" className="sv-btn sv-btn--primary" disabled={saving}>
             {saving && <Loader2 size={14} style={{ animation: 'sv-rotate 0.9s linear infinite' }} />}
-            Enregistrer
+            {t('seller.shop.save')}
           </button>
-          <Link to={`/producteur/${producer.slug}`} className="sv-btn sv-btn--ghost">Voir ma page publique</Link>
+          <Link to={`/producteur/${producer.slug}`} className="sv-btn sv-btn--ghost">{t('seller.shop.viewPublicPage')}</Link>
         </div>
       </form>
     </div>

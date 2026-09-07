@@ -6,12 +6,14 @@ import {
   Store, ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import {
   fetchRecentNotifications, fetchAdminProducts, fetchAdminOrders, fetchAdminUsers,
 } from '../services/admin';
 import { formatEUR, timeAgo, ROLE_LABELS } from './format';
 import { Avatar } from './ui';
-import { NAV_SECTIONS } from './nav';
+import { navSections } from './nav';
+import { readHtmlTheme, setAdminTheme } from './theme';
 
 // NAV_SECTIONS et SECTION_LABELS sont définis dans ./nav.js
 
@@ -43,7 +45,9 @@ export const Sidebar = ({
   onCloseMobile,
 }) => {
   const { profile, signOut } = useAuth();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
+  const sections = navSections(lang);
 
   const handleLogout = async () => {
     await signOut();
@@ -53,20 +57,20 @@ export const Sidebar = ({
   return (
     <aside
       className={`adm-sidebar ${collapsed ? 'adm-sidebar--collapsed' : ''} ${mobileOpen ? 'adm-sidebar--mobile-open' : ''}`}
-      aria-label="Navigation administration"
+      aria-label={t('admin.navigationAdmin')}
     >
       <div className="adm-brand">
         <BrandMark />
         {!collapsed && (
           <div className="adm-brand-text">
             <span className="adm-brand-name">Jerossa</span>
-            <span className="adm-brand-tag">Administration</span>
+            <span className="adm-brand-tag">{t('app.admin')}</span>
           </div>
         )}
       </div>
 
       <nav className="adm-nav">
-        {NAV_SECTIONS.map((group) => (
+        {sections.map((group) => (
           <div className="adm-nav-group" key={group.label}>
             {!collapsed && <span className="adm-nav-label">{group.label}</span>}
             {group.items.map((item) => {
@@ -92,22 +96,22 @@ export const Sidebar = ({
       </nav>
 
       <div className="adm-sidebar-foot">
-        <div className="adm-user-card" title={profile?.full_name || 'Admin'}>
+        <div className="adm-user-card" title={profile?.full_name || t('admin.adminName')}>
           <Avatar name={profile?.full_name} seed={(profile?.full_name || '') + 'x'} size={34} />
           {!collapsed && (
             <div className="adm-user-meta">
-              <div className="adm-user-name">{profile?.full_name || 'Administrateur'}</div>
-              <div className="adm-user-role">{ROLE_LABELS[profile?.role] || 'Admin'}</div>
+              <div className="adm-user-name">{profile?.full_name || t('admin.adminName')}</div>
+              <div className="adm-user-role">{ROLE_LABELS[profile?.role] || t('admin.adminName')}</div>
             </div>
           )}
         </div>
         <button
           className="adm-logout-btn"
           onClick={handleLogout}
-          title="Déconnexion"
+          title={t('admin.logout')}
         >
           <LogOut size={15} strokeWidth={1.75} />
-          {!collapsed && <span>Déconnexion</span>}
+          {!collapsed && <span>{t('admin.logout')}</span>}
         </button>
       </div>
     </aside>
@@ -120,6 +124,7 @@ export const NotificationsBell = ({ onSelectSection }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const wrapRef = useRef(null);
+  const { t, lang } = useLang();
 
   useEffect(() => {
     let mounted = true;
@@ -146,7 +151,7 @@ export const NotificationsBell = ({ onSelectSection }) => {
     <div ref={wrapRef} style={{ position: 'relative' }}>
       <button
         className="adm-icon-btn"
-        aria-label={`Notifications${unread ? ` (${unread} non lues)` : ''}`}
+        aria-label={t('admin.notifications') + (unread ? ` (${t('admin.notificationsUnread', { count: unread })})` : '')}
         onClick={() => setOpen((v) => !v)}
       >
         <Bell size={18} strokeWidth={1.75} />
@@ -158,16 +163,16 @@ export const NotificationsBell = ({ onSelectSection }) => {
       {open && (
         <div className="adm-popover" style={{ width: 340 }}>
           <div className="adm-popover-head">
-            <span>Notifications</span>
+            <span>{t('admin.notifications')}</span>
             {unread > 0 && (
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--adm-bronze-deep)' }}>
-                {unread} non {unread > 1 ? 'lues' : 'lue'}
+                {t('admin.notificationsUnread', { count: unread })}
               </span>
             )}
           </div>
           <div style={{ maxHeight: 320, overflowY: 'auto' }}>
             {items.length === 0 ? (
-              <div className="adm-palette-empty">Aucune notification pour le moment.</div>
+              <div className="adm-palette-empty">{t('admin.notificationsEmpty')}</div>
             ) : (
               items.map((n) => (
                 <div
@@ -215,7 +220,7 @@ export const NotificationsBell = ({ onSelectSection }) => {
                       paddingTop: 2,
                     }}
                   >
-                    {timeAgo(n.created_at)}
+                    {timeAgo(n.created_at, lang)}
                   </span>
                 </div>
               ))
@@ -229,7 +234,7 @@ export const NotificationsBell = ({ onSelectSection }) => {
             }}
             style={{ justifyContent: 'center', color: 'var(--adm-bronze-deep)', fontWeight: 600 }}
           >
-            Tout consulter <ArrowRight size={13} />
+            {t('admin.viewAll')} <ArrowRight size={13} />
           </button>
         </div>
       )}
@@ -239,8 +244,73 @@ export const NotificationsBell = ({ onSelectSection }) => {
 
 // ── Menu profil ────────────────────────────────────────────
 
+const ThemeSwitcher = () => {
+  const { t } = useLang();
+  const [theme, setTheme] = useState(readHtmlTheme());
+
+  const apply = (next) => {
+    setAdminTheme(next);
+    setTheme(next);
+  };
+
+  return (
+    <div style={{ padding: '11px 16px', borderBottom: '1px solid var(--adm-line)' }}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--adm-faint)',
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}
+      >
+        <span>{t('theme.appearance')}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--adm-bronze)' }}>
+          {theme === 'night' ? t('theme.night') : t('theme.light')}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <button
+          type="button"
+          className="adm-theme-option"
+          onClick={() => apply('light')}
+          style={{
+            background: theme === 'light' ? 'var(--adm-bronze-soft)' : 'transparent',
+            borderColor: theme === 'light' ? 'var(--adm-bronze)' : 'var(--adm-line)',
+            color: theme === 'light' ? 'var(--adm-bronze-ink)' : 'var(--adm-muted)',
+          }}
+          aria-pressed={theme === 'light'}
+        >
+          <span className="adm-theme-swatch adm-theme-swatch--light" />
+          {t('theme.light')}
+        </button>
+        <button
+          type="button"
+          className="adm-theme-option"
+          onClick={() => apply('night')}
+          style={{
+            background: theme === 'night' ? 'var(--adm-bronze-soft)' : 'transparent',
+            borderColor: theme === 'night' ? 'var(--adm-bronze)' : 'var(--adm-line)',
+            color: theme === 'night' ? 'var(--adm-bronze-ink)' : 'var(--adm-muted)',
+          }}
+          aria-pressed={theme === 'night'}
+        >
+          <span className="adm-theme-swatch adm-theme-swatch--night" />
+          {t('theme.night')}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const ProfileMenu = () => {
   const { profile, signOut } = useAuth();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
   const navigate = useNavigate();
@@ -289,21 +359,22 @@ export const ProfileMenu = () => {
       </button>
 
       {open && (
-        <div className="adm-popover" style={{ width: 230 }}>
+        <div className="adm-popover" style={{ width: 240 }}>
           <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--adm-line)' }}>
             <div style={{ fontSize: 13.5, fontWeight: 600 }}>
-              {profile?.full_name || 'Administrateur'}
+              {profile?.full_name || t('admin.adminName')}
             </div>
             <div style={{ fontSize: 12, color: 'var(--adm-muted)', marginTop: 2 }}>
-              {ROLE_LABELS[profile?.role] || 'Admin'}
+              {ROLE_LABELS[profile?.role] || t('admin.adminName')}
             </div>
           </div>
+          <ThemeSwitcher />
           <button className="adm-menu-item" onClick={() => { setOpen(false); navigate('/'); }}>
-            <Store size={15} strokeWidth={1.75} /> Voir la boutique
+            <Store size={15} strokeWidth={1.75} /> {t('admin.viewShop')}
           </button>
           <div className="adm-menu-sep" />
           <button className="adm-menu-item adm-menu-item--danger" onClick={handleLogout}>
-            <LogOut size={15} strokeWidth={1.75} /> Déconnexion
+            <LogOut size={15} strokeWidth={1.75} /> {t('admin.logout')}
           </button>
         </div>
       )}
@@ -315,13 +386,13 @@ export const ProfileMenu = () => {
 
 let paletteCache = null;
 
-const usePaletteResults = (query, data) =>
+const usePaletteResults = (query, data, t, lang) =>
   React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    const sections = NAV_SECTIONS.flatMap((g) =>
+    const sections = navSections(lang).flatMap((g) =>
       g.items
         .filter((i) => !q || i.label.toLowerCase().includes(q))
-        .map((i) => ({ kind: 'section', id: i.id, label: i.label, icon: i.icon, sub: 'Navigation' }))
+        .map((i) => ({ kind: 'section', id: i.id, label: i.label, icon: i.icon, sub: t('admin.navigation') }))
     );
     if (!data) return { list: [...sections], grouped: { Navigation: sections } };
 
@@ -345,13 +416,21 @@ const usePaletteResults = (query, data) =>
     if (orders.length) grouped.Commandes = orders;
     if (users.length) grouped.Utilisateurs = users;
     return { list: [...sections, ...products, ...orders, ...users], grouped };
-  }, [query, data]);
+  }, [query, data, t, lang]);
 
 export const CommandPalette = ({ open, onClose, onSelectSection }) => {
   const [query, setQuery] = useState('');
   const [data, setData] = useState(paletteCache);
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef(null);
+  const { t, lang } = useLang();
+
+  const groupLabel = (key) =>
+    key === 'Navigation' ? t('admin.navigation')
+    : key === 'Produits' ? t('admin.products')
+    : key === 'Commandes' ? t('admin.orders')
+    : key === 'Utilisateurs' ? t('admin.users')
+    : key;
 
   useEffect(() => {
     if (!open || data) return;
@@ -377,7 +456,7 @@ export const CommandPalette = ({ open, onClose, onSelectSection }) => {
     return undefined;
   }, [open]);
 
-  const { list, grouped } = usePaletteResults(query, data);
+  const { list, grouped } = usePaletteResults(query, data, t, lang);
 
   useEffect(() => {
     setCursor(0);
@@ -412,13 +491,13 @@ export const CommandPalette = ({ open, onClose, onSelectSection }) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="adm-palette" role="dialog" aria-modal="true" aria-label="Recherche globale">
+      <div className="adm-palette" role="dialog" aria-modal="true" aria-label={t('admin.searchPlaceholder')}>
         <div className="adm-palette-input-row">
           <SearchIcon />
           <input
             ref={inputRef}
             className="adm-palette-input"
-            placeholder="Rechercher une page, un produit, une commande…"
+            placeholder={t('admin.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
@@ -428,11 +507,11 @@ export const CommandPalette = ({ open, onClose, onSelectSection }) => {
 
         <div className="adm-palette-body">
           {list.length === 0 ? (
-            <div className="adm-palette-empty">Aucun résultat pour « {query} »</div>
+            <div className="adm-palette-empty">{t('admin.noResultsFor', { q: query })}</div>
           ) : (
             Object.entries(grouped).map(([groupName, items]) => (
               <div key={groupName}>
-                <div className="adm-palette-section-title">{groupName}</div>
+                <div className="adm-palette-section-title">{groupLabel(groupName)}</div>
                 {items.map((item) => {
                   flatIndex += 1;
                   const idx = flatIndex;
@@ -464,9 +543,9 @@ export const CommandPalette = ({ open, onClose, onSelectSection }) => {
         </div>
 
         <div className="adm-palette-footer">
-          <span><b>↑↓</b> naviguer</span>
-          <span><b>↵</b> ouvrir</span>
-          <span style={{ marginLeft: 'auto', opacity: 0.7 }}>Jerossa · Recherche globale</span>
+          <span><b>↑↓</b> {t('admin.navigate')}</span>
+          <span><b>↵</b> {t('admin.open')}</span>
+          <span style={{ marginLeft: 'auto', opacity: 0.7 }}>{t('admin.globalSearch')}</span>
         </div>
       </div>
     </div>

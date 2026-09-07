@@ -1,35 +1,19 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const Faq = () => {
+  const { t } = useLang();
   const [openIndex, setOpenIndex] = useState(null);
 
   const faqs = [
-    {
-      q: 'Quels sont les délais de livraison ?',
-      a: 'Les délais de livraison varient selon votre localisation. Pour Madagascar, comptez 2 à 5 jours ouvrés. Pour l\'île Maurice et l\'international, comptez 5 à 10 jours ouvrés via nos partenaires logistiques certifiés.'
-    },
-    {
-      q: 'Quels moyens de paiement acceptez-vous ?',
-      a: 'Nous acceptons les cartes bancaires (Visa, Mastercard), les virements bancaires ainsi que les solutions de mobile money locales (MVola, Orange Money, Airtel Money pour Madagascar ; Juice/MauCas pour Maurice).'
-    },
-    {
-      q: 'Comment devenir vendeur sur Jerossa ?',
-      a: 'Pour devenir vendeur, cliquez sur "Devenir vendeur" dans le menu, remplissez le formulaire avec les informations de votre entreprise et soumettez vos documents. Notre équipe examinera votre demande sous 48h.'
-    },
-    {
-      q: 'Comment suivre ma commande ?',
-      a: 'Une fois votre commande expédiée, vous recevrez un email avec un numéro de suivi. Vous pouvez également suivre votre commande depuis la section "Mes commandes" de votre compte.'
-    },
-    {
-      q: 'Les produits sont-ils certifiés bio ?',
-      a: 'Une partie de nos produits est certifiée bio. Chaque fiche produit indique les certifications disponibles. Nous travaillons avec des producteurs respectant des normes strictes de qualité.'
-    },
-    {
-      q: 'Comment contacter le support client ?',
-      a: 'Vous pouvez nous contacter à tout moment via notre formulaire de contact en ligne ou par messagerie directe. Notre équipe d\'assistance répond à vos questions du lundi au vendredi.'
-    }
+    { q: t('faq.q1'), a: t('faq.a1') },
+    { q: t('faq.q2'), a: t('faq.a2') },
+    { q: t('faq.q3'), a: t('faq.a3') },
+    { q: t('faq.q4'), a: t('faq.a4') },
+    { q: t('faq.q5'), a: t('faq.a5') },
+    { q: t('faq.q6'), a: t('faq.a6') }
   ];
 
   return (
@@ -39,14 +23,14 @@ const Faq = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li style={{ color: '#fff', fontWeight: 500 }}>FAQ</li>
+              <li style={{ color: '#fff', fontWeight: 500 }}>{t('faq.breadcrumb')}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">FAQ</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">FAQ</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Trouvez des réponses aux questions les plus fréquentes concernant Jerossa.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('faq.surtitre')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('faq.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('faq.desc')}</p>
         </div>
       </section>
 

@@ -5,11 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { fetchMyOrders } from '../services/orders';
 import { fetchMyConversations } from '../services/messages';
+import { useLang } from '../context/LangContext';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import './animations.css';
 
 const MyAccount = () => {
   const navigate = useNavigate();
   const { user, profile, signOut, refreshProfile } = useAuth();
+  const { t } = useLang();
   const [activeSection, setActiveSection] = useState('profile');
   const [orders, setOrders] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -53,17 +56,17 @@ const MyAccount = () => {
   };
 
   const menuItems = [
-    { id: 'profile', label: 'Mon profil', icon: User },
-    { id: 'messages', label: 'Mes messages', icon: MessageSquare, href: '/my-messages', badge: unreadCount },
-    { id: 'orders', label: 'Mes commandes', icon: Package },
-    { id: 'quotes', label: 'Mes devis', icon: FileText },
-    { id: 'refunds', label: 'Mes remboursements', icon: RotateCcw },
-    { id: 'addresses', label: 'Mes adresses', icon: MapPin },
-    { id: 'favorites', label: 'Mes favoris', icon: Heart },
-    { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
+    { id: 'profile', label: t('account.myProfile'), icon: User },
+    { id: 'messages', label: t('account.messages'), icon: MessageSquare, href: '/my-messages', badge: unreadCount },
+    { id: 'orders', label: t('account.myOrders'), icon: Package },
+    { id: 'quotes', label: t('account.myQuotes'), icon: FileText },
+    { id: 'refunds', label: t('account.myRefunds'), icon: RotateCcw },
+    { id: 'addresses', label: t('account.myAddresses'), icon: MapPin },
+    { id: 'favorites', label: t('account.myFavorites'), icon: Heart },
+    { id: 'settings', label: t('account.settings'), icon: SettingsIcon },
   ];
 
-  const displayName = profile?.full_name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || '') || user?.email || 'Mon compte';
+  const displayName = profile?.full_name || (firstName && lastName ? `${firstName} ${lastName}` : firstName || '') || user?.email || t('account.defaultName');
 
   const renderContent = () => {
     switch (activeSection) {
@@ -72,7 +75,7 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <User size={20} />
-              <h2>Mon profil</h2>
+              <h2>{t('account.myProfile')}</h2>
             </div>
             <div className="account-avatar-section">
               <div className="account-avatar">{(displayName.charAt(0) || 'U').toUpperCase()}</div>
@@ -82,28 +85,28 @@ const MyAccount = () => {
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Prénom</label>
+              <label className="form-label">{t('auth.firstName')}</label>
               <input type="text" className="form-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Nom</label>
+              <label className="form-label">{t('auth.lastName')}</label>
               <input type="text" className="form-input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label">{t('auth.email')}</label>
               <input type="email" className="form-input" defaultValue={user?.email || ''} disabled />
             </div>
             <div className="form-group">
-              <label className="form-label">Téléphone</label>
-              <input type="tel" className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Non renseigné" />
+              <label className="form-label">{t('account.phone')}</label>
+              <input type="tel" className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('account.notProvided')} />
             </div>
             <div className="form-group">
-              <label className="form-label">Ville</label>
-              <input type="text" className="form-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Non renseignée" />
+              <label className="form-label">{t('account.city')}</label>
+              <input type="text" className="form-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('account.notProvidedF')} />
             </div>
             <div className="form-group">
-              <label className="form-label">Pays</label>
-              <input type="text" className="form-input" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Non renseigné" />
+              <label className="form-label">{t('account.country')}</label>
+              <input type="text" className="form-input" value={country} onChange={(e) => setCountry(e.target.value)} placeholder={t('account.notProvided')} />
             </div>
             <button className="btn btn-primary" onClick={async () => {
               if (!user) return;
@@ -119,14 +122,14 @@ const MyAccount = () => {
               setSaving(false);
               if (error) {
                 console.error('[MyAccount] save profile', error);
-                setSaveError("Échec de l'enregistrement : " + (error.message || 'erreur inconnue'));
+                setSaveError(t('account.saveFailed') + " " + (error.message || t('account.unknownError')));
                 return;
               }
               setSaved(true);
               refreshProfile(user.id);
               setTimeout(() => setSaved(false), 3000);
             }} disabled={saving}>
-              {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
+              {saving ? t('account.saving') : saved ? t('account.saved') : t('account.save')}
             </button>
             {saveError && (
               <div style={{ marginTop: '12px', padding: '10px 14px', borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '13px', fontWeight: 500 }}>
@@ -140,23 +143,23 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <Package size={20} />
-              <h2>Mes commandes</h2>
+              <h2>{t('account.myOrders')}</h2>
             </div>
             {orders.length === 0 ? (
               <div className="account-empty">
                 <Package size={32} />
-                <p>Aucune commande pour le moment.</p>
-                <Link to="/boutique" className="btn btn-outline">Découvrir le catalogue</Link>
+                <p>{t('account.noOrders')}</p>
+                <Link to="/boutique" className="btn btn-outline">{t('account.discoverCatalog')}</Link>
               </div>
             ) : (
               <div className="data-table-wrapper">
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Commande</th>
-                      <th>Date</th>
-                      <th>Total</th>
-                      <th>Statut</th>
+                      <th>{t('account.order')}</th>
+                      <th>{t('common.date')}</th>
+                      <th>{t('common.total')}</th>
+                      <th>{t('common.status')}</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -167,11 +170,11 @@ const MyAccount = () => {
                         <td>{order.date}</td>
                         <td>{order.total}</td>
                         <td>
-                          <span className={`status-badge ${order.status}`}>{order.statusLabel || order.status}</span>
+                          <span className={`status-badge ${order.status}`}>{t('status.' + order.status)}</span>
                         </td>
                         <td>
                           <Link to={`/order/${order.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            Détails <ChevronRight size={12} />
+                            {t('account.details')} <ChevronRight size={12} />
                           </Link>
                         </td>
                       </tr>
@@ -187,12 +190,12 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <FileText size={20} />
-              <h2>Mes devis</h2>
+              <h2>{t('account.myQuotes')}</h2>
             </div>
             <div className="account-empty">
               <FileText size={32} />
-              <p>Retrouvez vos demandes de devis et les réponses des vendeurs.</p>
-              <Link to="/my-quotes" className="btn btn-primary" style={{ textDecoration: 'none' }}>Voir mes devis</Link>
+              <p>{t('account.quotesEmpty')}</p>
+              <Link to="/my-quotes" className="btn btn-primary" style={{ textDecoration: 'none' }}>{t('account.seeQuotes')}</Link>
             </div>
           </div>
         );
@@ -201,12 +204,12 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <RotateCcw size={20} />
-              <h2>Mes remboursements</h2>
+              <h2>{t('account.myRefunds')}</h2>
             </div>
             <div className="account-empty">
               <RotateCcw size={32} />
-              <p>Suivez l'état de vos demandes de remboursement.</p>
-              <Link to="/my-refunds" className="btn btn-primary" style={{ textDecoration: 'none' }}>Voir mes remboursements</Link>
+              <p>{t('account.refundsEmpty')}</p>
+              <Link to="/my-refunds" className="btn btn-primary" style={{ textDecoration: 'none' }}>{t('account.seeRefunds')}</Link>
             </div>
           </div>
         );
@@ -215,12 +218,12 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <MapPin size={20} />
-              <h2>Mes adresses</h2>
+              <h2>{t('account.myAddresses')}</h2>
             </div>
             <div className="account-empty">
               <MapPin size={32} />
-              <p>Aucune adresse enregistrée.</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Les adresses seront disponibles lors du prochain checkout.</p>
+              <p>{t('account.addressesEmpty')}</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('account.addressesNote')}</p>
             </div>
           </div>
         );
@@ -229,12 +232,12 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <Heart size={20} />
-              <h2>Mes favoris</h2>
+              <h2>{t('account.myFavorites')}</h2>
             </div>
             <div className="account-empty">
               <Heart size={32} />
-              <p>Vous n'avez pas encore de favoris.</p>
-              <Link to="/boutique" className="btn btn-outline">Explorer le catalogue</Link>
+              <p>{t('account.favoritesEmpty')}</p>
+              <Link to="/boutique" className="btn btn-outline">{t('account.exploreCatalog')}</Link>
             </div>
           </div>
         );
@@ -243,30 +246,30 @@ const MyAccount = () => {
           <div>
             <div className="account-section-header">
               <SettingsIcon size={20} />
-              <h2>Paramètres</h2>
+              <h2>{t('account.settings')}</h2>
             </div>
             <div className="form-group">
-              <label className="form-label">Langue</label>
+              <label className="form-label">{t('account.language')}</label>
               <select className="form-select">
-                <option>Français</option>
-                <option>English</option>
+                <option>{t('account.french')}</option>
+                <option>{t('account.english')}</option>
               </select>
             </div>
             <div className="settings-toggle">
-              <span>Notifications email</span>
+              <span>{t('account.notifEmail')}</span>
               <label className="toggle">
                 <input type="checkbox" defaultChecked />
                 <span className="toggle-slider"></span>
               </label>
             </div>
             <div className="settings-toggle">
-              <span>Notifications de livraison</span>
+              <span>{t('account.notifShipping')}</span>
               <label className="toggle">
                 <input type="checkbox" defaultChecked />
                 <span className="toggle-slider"></span>
               </label>
             </div>
-            <button className="btn btn-primary" style={{ marginTop: '1rem' }}>Enregistrer</button>
+            <button className="btn btn-primary" style={{ marginTop: '1rem' }}>{t('account.save')}</button>
           </div>
         );
       default:
@@ -277,13 +280,16 @@ const MyAccount = () => {
   return (
     <div className="my-account-page">
       <div className="container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            <Link to="/" style={{ color: 'var(--text-muted)' }}>Accueil</Link>
-            <span style={{ color: 'var(--border)' }}>/</span>
-            <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>Mon compte</span>
-          </nav>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>Mon compte</h1>
+        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              <Link to="/" style={{ color: 'var(--text-muted)' }}>{t('nav.home')}</Link>
+              <span style={{ color: 'var(--border)' }}>/</span>
+              <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>{t('account.myAccount')}</span>
+            </nav>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>{t('account.myAccount')}</h1>
+          </div>
+          <LanguageSwitcher />
         </div>
 
         <div className="client-layout">
@@ -299,7 +305,7 @@ const MyAccount = () => {
                 }}
               >
                 <Store size={18} />
-                Accéder à l'Espace vendeur
+                {t('account.accessSellerSpace')}
               </Link>
             )}
             {menuItems.map(item => (
@@ -338,7 +344,7 @@ const MyAccount = () => {
             <div style={{ borderTop: '1px solid var(--border)', margin: '0.5rem 0', paddingTop: '0.5rem' }}>
               <button className="db-side-btn" style={{ color: 'var(--danger)' }} onClick={handleLogout}>
                 <LogOut size={18} />
-                Se déconnecter
+                {t('nav.logout')}
               </button>
             </div>
           </div>

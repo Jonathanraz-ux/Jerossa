@@ -6,9 +6,11 @@ import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import { ProductGridSkeleton } from '../components/common/Skeletons';
 import EmptyState from '../components/common/EmptyState';
+import { useLang } from '../context/LangContext';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
 
 const Search = () => {
+  const { t } = useLang();
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,14 +38,14 @@ const Search = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
   <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
     <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-    <li style={{ color: '#fff', fontWeight: 500 }}>Recherche</li>
+    <li style={{ color: '#fff', fontWeight: 500 }}>{t('search.surtitre')}</li>
   </ol>
 </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Recherche</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Trouvez vos matières premières</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Explorez notre catalogue de produits d'exception, directement des producteurs de Madagascar et de l'Île Maurice.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('search.surtitre')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('search.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('search.desc')}</p>
         </div>
       </section>
 
@@ -54,7 +56,7 @@ const Search = () => {
              <SearchIcon size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
-              placeholder="Rechercher un produit, un producteur..."
+              placeholder={t('search.placeholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{ width: '100%', padding: '14px 16px 14px 48px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '16px', background: 'var(--bg-white)', outline: 'none', transition: 'var(--transition)' }}
@@ -66,9 +68,9 @@ const Search = () => {
         {/* Results */}
         <div className="scroll-animate" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 600 }}>
-            {query ? `Résultats pour "${query}"` : 'Tous les produits'}
+            {query ? t('search.resultsFor', { q: query }) : t('search.allProducts')}
           </h2>
-          <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{results.length} produit{results.length > 1 ? 's' : ''}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('search.count', { count: results.length })}</span>
         </div>
 
         {loading ? (
@@ -76,11 +78,11 @@ const Search = () => {
         ) : results.length === 0 ? (
           <EmptyState
             icon={SearchIcon}
-            title="Aucun résultat"
-            text="Essayez avec d'autres mots-clés ou explorez notre catalogue complet."
+            title={t('common.noResults')}
+            text={t('search.noResultsText')}
             action={
               <Link to="/boutique" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px' }}>
-                Voir le catalogue
+                {t('search.viewCatalogue')}
               </Link>
             }
           />
@@ -106,7 +108,7 @@ const Search = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>Voir <ArrowRight size={12} /></span>
+                      <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>{t('search.view')} <ArrowRight size={12} /></span>
                     </div>
                   </div>
                 </div>

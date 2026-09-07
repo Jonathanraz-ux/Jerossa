@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { fetchProducts } from '../services/catalog';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLang } from '../context/LangContext';
 import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck } from 'lucide-react';
 import './Catalogue.css';
 import './animations.css';
@@ -12,6 +13,7 @@ import EmptyState from '../components/common/EmptyState';
 const Catalogue = () => {
   const [searchParams] = useSearchParams();
   const { convert } = useCurrency();
+  const { t } = useLang();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -46,12 +48,12 @@ const Catalogue = () => {
   });
 
   const typeFilters = [
-    { value: 'all', label: 'Tous' },
-    { value: 'vanilla', label: 'Vanille' },
-    { value: 'cacao', label: 'Cacao' },
-    { value: 'oil', label: 'Huiles' },
-    { value: 'spices', label: 'Épices' },
-    { value: 'coffee', label: 'Café' },
+    { value: 'all', label: t('catalogue.filter.all') },
+    { value: 'vanilla', label: t('catalogue.filter.vanilla') },
+    { value: 'cacao', label: t('catalogue.filter.cacao') },
+    { value: 'oil', label: t('catalogue.filter.oils') },
+    { value: 'spices', label: t('catalogue.filter.spices') },
+    { value: 'coffee', label: t('catalogue.filter.coffee') },
   ];
 
   const currentFilter = typeFilters.find(f => f.value === selectedCategory);
@@ -62,13 +64,13 @@ const Catalogue = () => {
       <section className="page-header">
         <div className="container">
           <nav className="breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('nav.home')}</Link>
             <span className="breadcrumb-sep">/</span>
-            <span>Catalogue</span>
+            <span>{t('catalogue.title')}</span>
           </nav>
-          <span className="page-header-tag">Marketplace Produits</span>
-          <h1 className="page-header-title">Nos produits</h1>
-          <p className="page-header-desc">Produits authentiques et matières premières d'exception, directement des producteurs et fournisseurs</p>
+          <span className="page-header-tag">{t('catalogue.tag')}</span>
+          <h1 className="page-header-title">{t('catalogue.title')}</h1>
+          <p className="page-header-desc">{t('catalogue.desc')}</p>
         </div>
       </section>
 
@@ -79,7 +81,7 @@ const Catalogue = () => {
             <Search size={16} strokeWidth={1.5} />
             <input
               type="text"
-              placeholder="Rechercher un produit, un producteur..."
+              placeholder={t('catalogue.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -103,26 +105,26 @@ const Catalogue = () => {
           </div>
 
           <div className="catalog-sort">
-            <label htmlFor="sort-select">Trier par</label>
+            <label htmlFor="sort-select">{t('catalogue.sortLabel')}</label>
             <select id="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="newest">Nouveautés</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
-              <option value="rating">Meilleures notes</option>
+              <option value="newest">{t('catalogue.sort.newest')}</option>
+              <option value="price-asc">{t('catalogue.sort.priceAsc')}</option>
+              <option value="price-desc">{t('catalogue.sort.priceDesc')}</option>
+              <option value="rating">{t('catalogue.sort.rating')}</option>
             </select>
           </div>
 
           <button className="catalog-mobile-filter-btn" onClick={() => setShowMobileFilters(!showMobileFilters)}>
             <SlidersHorizontal size={16} />
-            Filtres
+            {t('catalogue.filters')}
           </button>
         </div>
 
         {/* Results info */}
         <div className="catalog-results-info">
-          <span>{sortedProducts.length} produit{sortedProducts.length > 1 ? 's' : ''} trouvé{sortedProducts.length > 1 ? 's' : ''}</span>
+          <span>{t('catalogue.productsFound', { count: sortedProducts.length })}</span>
           {selectedCategory !== 'all' && (
-            <span> dans <strong>{currentFilter?.label}</strong></span>
+            <span> {t('catalogue.in')} <strong>{currentFilter?.label}</strong></span>
           )}
         </div>
 
@@ -132,11 +134,11 @@ const Catalogue = () => {
         ) : sortedProducts.length === 0 ? (
           <EmptyState
             icon={Search}
-            title="Aucun résultat"
-            text="Essayez avec d'autres mots-clés ou modifiez vos filtres pour élargir votre recherche."
+            title={t('common.noResults')}
+            text={t('catalogue.noResultsText')}
             action={
               <button onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }} className="btn btn-outline">
-                Réinitialiser les filtres
+                {t('catalogue.resetFilters')}
               </button>
             }
           />
@@ -150,7 +152,7 @@ const Catalogue = () => {
                   <span className="catalog-product-type">{prod.type}</span>
                 </div>
                 <div className="catalog-product-body">
-                  <span className="catalog-product-seller">{prod.seller}{prod.verified && <em className="catalog-verified"><BadgeCheck size={12} /> vérifié</em>}</span>
+                  <span className="catalog-product-seller">{prod.seller}{prod.verified && <em className="catalog-verified"><BadgeCheck size={12} /> {t('catalogue.verified')}</em>}</span>
                   <h3 className="catalog-product-name">{prod.title}</h3>
                   <div className="catalog-product-rating">
                     <div className="stars">
@@ -166,7 +168,7 @@ const Catalogue = () => {
                       <em className="catalog-product-unit">/ {prod.unit}</em>
                     </span>
                     <span className="catalog-product-view">
-                      Voir l'offre <ArrowRight size={12} />
+                      {t('catalogue.viewOffer')} <ArrowRight size={12} />
                     </span>
                   </div>
                 </div>

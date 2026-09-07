@@ -4,8 +4,10 @@ import { fetchAdminProducts, toggleProductActive, deleteProduct } from '../../se
 import { formatEUR, formatInt } from '../format';
 import { PageHead, EmptyState, Thumb } from '../ui';
 import { useToast, useConfirm } from '../../components/common/Feedback';
+import { useLang } from '../../context/LangContext';
 
 const ProductsSection = () => {
+  const { t } = useLang();
   const [products, setProducts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -29,28 +31,28 @@ const ProductsSection = () => {
     if (res.ok) {
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, active: !currentActive } : p)));
       toast(
-        !currentActive ? 'Produit activé — il est de nouveau visible sur la boutique.' : 'Produit désactivé — il n\'apparaît plus sur la boutique.',
+        !currentActive ? t('admin.products.activated') : t('admin.products.deactivated'),
         { type: 'success' }
       );
     } else {
-      toast('L\'opération n\'a pas pu être effectuée. Réessayez.', { type: 'error' });
+      toast(t('admin.products.opFailed'), { type: 'error' });
     }
   };
 
   const handleDelete = async (id) => {
     const ok = await confirm({
-      title: 'Supprimer ce produit ?',
-      message: 'Cette action est définitive : le produit sera retiré du catalogue et ne pourra pas être restauré.',
-      confirmLabel: 'Supprimer',
+      title: t('admin.products.deleteTitle'),
+      message: t('admin.products.deleteMessage'),
+      confirmLabel: t('common.delete'),
       danger: true,
     });
     if (!ok) return;
     const res = await deleteProduct(id);
     if (res.ok) {
       setProducts((prev) => prev.filter((p) => p.id !== id));
-      toast('Produit supprimé du catalogue.', { type: 'success' });
+      toast(t('admin.products.deleted'), { type: 'success' });
     } else {
-      toast('La suppression a échoué.', { type: 'error' });
+      toast(t('admin.products.deleteFailed'), { type: 'error' });
     }
   };
 
@@ -72,9 +74,9 @@ const ProductsSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Catalogue"
-        title="Produits"
-        subtitle={`${formatInt(products.length)} références · ${formatInt(activeCount)} actives`}
+        eyebrow={t('admin.nav.catalog')}
+        title={t('admin.products.title')}
+        subtitle={t('admin.products.subtitle', { total: formatInt(products.length), active: formatInt(activeCount) })}
       />
 
       <div className="adm-toolbar">
@@ -82,20 +84,20 @@ const ProductsSection = () => {
           <Search size={15} strokeWidth={1.75} />
           <input
             type="text"
-            placeholder="Rechercher un produit…"
+            placeholder={t('admin.products.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <label className="adm-field adm-field--select">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filtrer par statut">
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actif</option>
-            <option value="inactive">Inactif</option>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label={t('admin.products.filterByStatus')}>
+            <option value="all">{t('admin.products.allStatuses')}</option>
+            <option value="active">{t('status.active')}</option>
+            <option value="inactive">{t('status.inactive')}</option>
           </select>
         </label>
         <span className="adm-cell-dim" style={{ marginLeft: 'auto' }}>
-          {filtered.length} affiché{filtered.length > 1 ? 's' : ''}
+          {t('admin.products.shown', { count: filtered.length })}
         </span>
       </div>
 
@@ -103,14 +105,14 @@ const ProductsSection = () => {
         {products.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title="Le catalogue est encore vide"
-            text="Les produits publiés par les vendeurs apparaîtront ici automatiquement."
+            title={t('admin.products.emptyTitle')}
+            text={t('admin.products.emptyText')}
           />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Search}
-            title="Aucun produit ne correspond"
-            text="Essayez un autre terme de recherche ou réinitialisez le filtre de statut."
+            title={t('admin.products.noMatchTitle')}
+            text={t('admin.products.noMatchText')}
             compact
           />
         ) : (
@@ -118,12 +120,12 @@ const ProductsSection = () => {
             <table className="adm-table">
               <thead>
                 <tr>
-                  <th>Produit</th>
-                  <th>Catégorie</th>
-                  <th>Vendeur</th>
-                  <th>Prix</th>
-                  <th>Stock</th>
-                  <th>Statut</th>
+                  <th>{t('admin.product')}</th>
+                  <th>{t('admin.category')}</th>
+                  <th>{t('admin.seller')}</th>
+                  <th>{t('common.price')}</th>
+                  <th>{t('admin.stock')}</th>
+                  <th>{t('common.status')}</th>
                   <th />
                 </tr>
               </thead>
@@ -151,7 +153,7 @@ const ProductsSection = () => {
                       {p.stock === null || p.stock === undefined || p.stock === '' ? (
                         <span className="adm-cell-dim">—</span>
                       ) : Number(p.stock) === 0 ? (
-                        <span className="adm-badge adm-badge--red">Épuisé</span>
+                        <span className="adm-badge adm-badge--red">{t('admin.products.outOfStock')}</span>
                       ) : Number(p.stock) <= 5 ? (
                         <span className="num" style={{ color: 'var(--adm-amber)', fontWeight: 600 }}>
                           {p.stock}
@@ -162,21 +164,21 @@ const ProductsSection = () => {
                     </td>
                     <td>
                       <span className={`adm-badge ${p.active ? 'adm-badge--green' : 'adm-badge--neutral'}`}>
-                        {p.active ? 'Actif' : 'Inactif'}
+                        {p.active ? t('status.active') : t('status.inactive')}
                       </span>
                     </td>
                     <td>
                       <div className="adm-row-actions">
                         <button
                           className="adm-action"
-                          title={p.active ? 'Désactiver' : 'Activer'}
+                          title={p.active ? t('admin.products.deactivate') : t('admin.products.activate')}
                           onClick={() => handleToggle(p.id, p.active)}
                         >
                           {p.active ? <EyeOff size={15} strokeWidth={1.75} /> : <Eye size={15} strokeWidth={1.75} />}
                         </button>
                         <button
                           className="adm-action adm-action--danger"
-                          title="Supprimer"
+                          title={t('common.delete')}
                           onClick={() => handleDelete(p.id)}
                         >
                           <Trash2 size={15} strokeWidth={1.75} />

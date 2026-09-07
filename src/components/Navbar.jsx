@@ -5,8 +5,10 @@ import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import { fetchCategories } from '../services/catalog';
 import { fetchMyConversations } from '../services/messages';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 const Popover = ({ open, onClose, children, align = 'left' }) => {
   const ref = useRef(null);
@@ -28,18 +30,19 @@ const Popover = ({ open, onClose, children, align = 'left' }) => {
 
 const MarketSelector = () => {
   const { market, setMarket, setCurrency } = useCurrency();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const current = MARKETS.find((m) => m.code === market);
 
   return (
     <div className="nav-select">
-      <button className="nav-select-trigger" onClick={() => setOpen(!open)} aria-label="Sélectionner le marché">
+      <button className="nav-select-trigger" onClick={() => setOpen(!open)} aria-label={t('nav.selectMarket')}>
         <span className="nav-select-flag">{current.flag}</span>
         <span className="nav-select-label">{current.label}</span>
         <ChevronDown size={12} strokeWidth={2} className={`nav-select-chevron${open ? ' is-open' : ''}`} />
       </button>
       <Popover open={open} onClose={() => setOpen(false)}>
-        <div className="nav-select-title">Votre marché</div>
+        <div className="nav-select-title">{t('nav.yourMarket')}</div>
         {MARKETS.map((m) => (
           <button
             key={m.code}
@@ -61,20 +64,21 @@ const MarketSelector = () => {
 
 const CurrencySelector = () => {
   const { currency, setCurrency } = useCurrency();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const current = CURRENCIES.find((c) => c.code === currency);
 
   return (
     <div className="nav-select">
-      <button className="nav-select-trigger" onClick={() => setOpen(!open)} aria-label="Sélectionner la devise">
+      <button className="nav-select-trigger" onClick={() => setOpen(!open)} aria-label={t('nav.selectCurrency')}>
         <Globe size={13} strokeWidth={2} />
         <span className="nav-select-label">
-          Devise : <strong>{currency} – {current.short}</strong>
+          {t('nav.displayCurrency')} : <strong>{currency} – {current.short}</strong>
         </span>
         <ChevronDown size={12} strokeWidth={2} className={`nav-select-chevron${open ? ' is-open' : ''}`} />
       </button>
       <Popover open={open} onClose={() => setOpen(false)}>
-        <div className="nav-select-title">Devise d'affichage</div>
+        <div className="nav-select-title">{t('nav.displayCurrency')}</div>
         {CURRENCIES.map((c) => (
           <button
             key={c.code}
@@ -85,7 +89,7 @@ const CurrencySelector = () => {
             {currency === c.code && <BadgeCheck size={14} />}
           </button>
         ))}
-        <p className="nav-select-note">Montants indicatifs selon le taux de conversion en vigueur.</p>
+        <p className="nav-select-note">{t('nav.currencyNote')}</p>
       </Popover>
     </div>
   );
@@ -93,15 +97,16 @@ const CurrencySelector = () => {
 
 const PublishModal = ({ open, onClose }) => {
   const navigate = useNavigate();
+  const { t } = useLang();
   if (!open) return null;
   return (
     <div className="j-modal-backdrop" onClick={onClose}>
       <div className="j-modal-panel publish-panel" onClick={(e) => e.stopPropagation()}>
         <div className="publish-panel-head">
-          <span className="publish-panel-eyebrow">Nouvelle offre</span>
-          <h3>Que souhaitez-vous publier ?</h3>
-          <p>Rejoignez la marketplace JEROSSA et développez votre activité entre Madagascar et Maurice.</p>
-          <button className="publish-panel-close" onClick={onClose} aria-label="Fermer"><X size={18} /></button>
+          <span className="publish-panel-eyebrow">{t('nav.publishEyebrow')}</span>
+          <h3>{t('nav.publishTitle')}</h3>
+          <p>{t('nav.publishDesc')}</p>
+          <button className="publish-panel-close" onClick={onClose} aria-label={t('common.close')}><X size={18} /></button>
         </div>
         <div className="publish-panel-options">
           <button
@@ -110,8 +115,8 @@ const PublishModal = ({ open, onClose }) => {
           >
             <span className="publish-option-icon publish-option-icon--product"><Package size={22} strokeWidth={1.6} /></span>
             <span className="publish-option-body">
-              <strong>Un produit</strong>
-              <span>Vanille, cacao, épices, produits agricoles, artisanat…</span>
+              <strong>{t('nav.publishProduct')}</strong>
+              <span>{t('nav.publishProductHint')}</span>
             </span>
             <ArrowRight size={16} className="publish-option-arrow" />
           </button>
@@ -123,6 +128,7 @@ const PublishModal = ({ open, onClose }) => {
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { t } = useLang();
   const [menuOpen, setMenuOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
@@ -162,26 +168,26 @@ const Navbar = () => {
               <CurrencySelector />
             </div>
             <div className="nav-topbar-right">
-              <Link to="/faq" className="nav-topbar-link"><HelpCircle size={13} strokeWidth={1.8} /> Aide</Link>
-              <Link to="/about" className="nav-topbar-link">À propos</Link>
+              <Link to="/faq" className="nav-topbar-link"><HelpCircle size={13} strokeWidth={1.8} /> {t('nav.help')}</Link>
+              <Link to="/about" className="nav-topbar-link">{t('nav.about')}</Link>
               {isAuthenticated ? (
                 <>
                   {profile?.role === 'seller' && (
                     <Link to="/espace-vendeur" className="nav-topbar-link nav-topbar-link--seller" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                      <Store size={13} strokeWidth={1.8} /> Espace vendeur
+                      <Store size={13} strokeWidth={1.8} /> {t('nav.sellerSpace')}
                     </Link>
                   )}
                   <Link to="/my-account" className="nav-topbar-link nav-topbar-link--strong">
-                    <User size={13} strokeWidth={1.8} /> Mon compte
+                    <User size={13} strokeWidth={1.8} /> {t('nav.myAccount')}
                   </Link>
                   <button type="button" className="nav-topbar-link" onClick={handleLogout}>
-                    Déconnexion
+                    {t('nav.logout')}
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="nav-topbar-link">Se connecter</Link>
-                  <Link to="/register" className="nav-topbar-link nav-topbar-link--strong">Créer un compte</Link>
+                  <Link to="/login" className="nav-topbar-link">{t('nav.login')}</Link>
+                  <Link to="/register" className="nav-topbar-link nav-topbar-link--strong">{t('nav.register')}</Link>
                 </>
               )}
             </div>
@@ -199,15 +205,15 @@ const Navbar = () => {
           </Link>
 
           <div className={`nav-links${menuOpen ? ' nav-links--open' : ''}`}>
-            <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>Accueil</Link>
-            <Link to="/boutique" className="nav-link" onClick={() => setMenuOpen(false)}>Produits</Link>
+            <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.home')}</Link>
+            <Link to="/boutique" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.products')}</Link>
             <div className={`nav-link nav-link--dd${catsOpen ? ' is-open' : ''}`}>
               <button
                 className="nav-link-dd-trigger"
                 onClick={() => setCatsOpen(!catsOpen)}
                 onMouseEnter={() => setCatsOpen(true)}
               >
-                Catégories <ChevronDown size={13} strokeWidth={1.8} className="nav-link-dd-chevron" />
+                {t('nav.categories')} <ChevronDown size={13} strokeWidth={1.8} className="nav-link-dd-chevron" />
               </button>
               <div
                 className="nav-mega"
@@ -215,8 +221,8 @@ const Navbar = () => {
                 onClick={() => { setCatsOpen(false); setMenuOpen(false); }}
               >
                 <div className="nav-mega-head">
-                  <span>Explorez nos catégories</span>
-                  <Link to="/boutique" className="nav-mega-all">Tout le catalogue <ArrowRight size={12} /></Link>
+                  <span>{t('nav.exploreCategories')}</span>
+                  <Link to="/boutique" className="nav-mega-all">{t('nav.allCatalogue')} <ArrowRight size={12} /></Link>
                 </div>
                 <div className="nav-mega-grid">
                   {categories.slice(0, 8).map((cat) => (
@@ -226,38 +232,41 @@ const Navbar = () => {
                       </span>
                       <span className="nav-mega-item-body">
                         <strong>{cat.name}</strong>
-                        <span>{cat.productCount} offres</span>
+                        <span>{cat.productCount} {t('common.offers')}</span>
                       </span>
                     </Link>
                   ))}
                 </div>
               </div>
             </div>
-            <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>Fournisseurs</Link>
+            <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.sellers')}</Link>
             {profile?.role === 'seller' ? (
-              <Link to="/espace-vendeur" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Espace vendeur</Link>
+              <Link to="/espace-vendeur" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>{t('nav.sellerSpace')}</Link>
             ) : (
-              <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>Devenir vendeur</Link>
+              <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>{t('nav.becomeSeller')}</Link>
             )}
-            <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>Comment ça marche</Link>
+            <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.how')}</Link>
+            <div className="nav-mobile-lang">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           <div className="nav-actions">
             <button
               className="nav-icon-btn nav-search-trigger"
-              aria-label="Recherche"
+              aria-label={t('nav.search')}
               onClick={() => navigate('/search')}
             >
               <Search size={18} strokeWidth={1.6} />
             </button>
 
-            <Link to="/cart" className="nav-icon-btn nav-cart" aria-label="Panier">
+            <Link to="/cart" className="nav-icon-btn nav-cart" aria-label={t('nav.cart')}>
               <ShoppingCart size={18} strokeWidth={1.6} />
               {count > 0 && <span className="cart-badge">{count}</span>}
             </Link>
 
             {isAuthenticated && (
-              <Link to="/my-messages" className="nav-icon-btn nav-messages" aria-label="Messages">
+              <Link to="/my-messages" className="nav-icon-btn nav-messages" aria-label={t('nav.messages')}>
                 <MessageSquare size={18} strokeWidth={1.6} />
                 {unreadCount > 0 && <span className="cart-badge">{unreadCount}</span>}
               </Link>
@@ -265,12 +274,16 @@ const Navbar = () => {
 
             <button className="nav-publish-btn" onClick={openPublish}>
               <PlusCircle size={16} strokeWidth={2} />
-              <span className="nav-publish-label">Publier une offre</span>
+              <span className="nav-publish-label">{t('nav.publish')}</span>
             </button>
+
+            <div style={{ marginRight: 2 }}>
+              <LanguageSwitcher />
+            </div>
 
             <button
               className="nav-hamburger"
-              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-label={menuOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               onClick={() => setMenuOpen(prev => !prev)}
             >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -283,11 +296,11 @@ const Navbar = () => {
 
       {/* ===== MOBILE BOTTOM BAR ===== */}
       <div className="mobile-bar">
-        <Link to="/" className="mobile-bar-item"><HomeIcon size={19} strokeWidth={1.8} /><span>Accueil</span></Link>
-        <Link to="/boutique" className="mobile-bar-item"><LayoutGrid size={19} strokeWidth={1.8} /><span>Produits</span></Link>
-        <button className="mobile-bar-item mobile-bar-publish" onClick={openPublish} aria-label="Publier une offre">
+        <Link to="/" className="mobile-bar-item"><HomeIcon size={19} strokeWidth={1.8} /><span>{t('nav.home')}</span></Link>
+        <Link to="/boutique" className="mobile-bar-item"><LayoutGrid size={19} strokeWidth={1.8} /><span>{t('nav.products')}</span></Link>
+        <button className="mobile-bar-item mobile-bar-publish" onClick={openPublish} aria-label={t('nav.publish')}>
           <span className="mobile-bar-publish-ico"><PlusCircle size={22} strokeWidth={2} /></span>
-          <span>Publier</span>
+          <span>{t('nav.publishShort')}</span>
         </button>
         {isAuthenticated && (
           <Link to="/my-messages" className="mobile-bar-item">
@@ -295,10 +308,10 @@ const Navbar = () => {
               <MessageSquare size={19} strokeWidth={1.8} />
               {unreadCount > 0 && <span style={{ position: 'absolute', top: -4, right: -6, width: 14, height: 14, borderRadius: '50%', background: 'var(--primary)', color: '#fff', fontSize: '0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unreadCount}</span>}
             </span>
-            <span>Messages</span>
+            <span>{t('nav.messages')}</span>
           </Link>
         )}
-        <Link to={isAuthenticated ? '/my-account' : '/account'} className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>Compte</span></Link>
+        <Link to={isAuthenticated ? '/my-account' : '/account'} className="mobile-bar-item"><User size={19} strokeWidth={1.8} /><span>{t('nav.compte')}</span></Link>
       </div>
     </>
   );

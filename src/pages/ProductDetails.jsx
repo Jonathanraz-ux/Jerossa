@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchProductByIdentifier, fetchRelatedProducts, fetchProducts } from '../services/catalog';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import { createQuoteRequest } from '../services/quotes';
 import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X, MessageSquare } from 'lucide-react';
 import './animations.css';
@@ -15,6 +16,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { user } = useAuth();
+  const { t } = useLang();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,7 @@ const ProductDetails = () => {
     if (res.ok) {
       setQuoteDone(res.data);
     } else {
-      setQuoteError(res.error?.message || "Une erreur est survenue. Réessayez.");
+      setQuoteError(res.error?.message || t('common.error'));
     }
   };
 
@@ -83,8 +85,8 @@ const ProductDetails = () => {
     return (
       <div className="pd-page">
         <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)' }}>Chargement…</h2>
-          <p style={{ color: 'var(--text-muted)' }}>Récupération du produit.</p>
+          <h2 style={{ fontFamily: 'var(--font-serif)' }}>{t('common.loading')}</h2>
+          <p style={{ color: 'var(--text-muted)' }}>{t('product.loadingDesc')}</p>
         </div>
       </div>
     );
@@ -94,9 +96,9 @@ const ProductDetails = () => {
     return (
       <div className="pd-page">
         <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)' }}>Produit introuvable</h2>
-          <p style={{ color: 'var(--text-muted)' }}>Le produit que vous recherchez n'existe pas ou a été supprimé.</p>
-          <Link to="/boutique" className="btn btn-primary">Retour au catalogue</Link>
+          <h2 style={{ fontFamily: 'var(--font-serif)' }}>{t('product.notFound')}</h2>
+          <p style={{ color: 'var(--text-muted)' }}>{t('product.notFoundDesc')}</p>
+          <Link to="/boutique" className="btn btn-primary">{t('product.backToCatalog')}</Link>
         </div>
       </div>
     );
@@ -107,9 +109,9 @@ const ProductDetails = () => {
       {/* Breadcrumb */}
       <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: 0 }}>
         <nav className="pd-breadcrumb">
-          <Link to="/">Accueil</Link>
+          <Link to="/">{t('product.breadcrumbHome')}</Link>
           <span className="pd-breadcrumb-sep">/</span>
-          <Link to="/boutique">Boutique</Link>
+          <Link to="/boutique">{t('product.breadcrumbShop')}</Link>
           <span className="pd-breadcrumb-sep">/</span>
           <span>{product.title}</span>
         </nav>
@@ -149,7 +151,7 @@ const ProductDetails = () => {
                   <Star key={j} size={16} fill={j < Math.floor(product.rating) ? "#d4a373" : "rgba(212,163,115,0.25)"} color="#d4a373" />
                 ))}
               </div>
-              <span className="pd-rating-text">{product.rating} ({product.reviews} avis)</span>
+              <span className="pd-rating-text">{product.rating} ({product.reviews} {t('product.reviews')})</span>
             </div>
 
             <div className="pd-divider" />
@@ -165,7 +167,7 @@ const ProductDetails = () => {
 
             {product.variants && product.variants.length > 0 && (
               <div className="pd-variants">
-                <label className="pd-var-label">Options disponibles</label>
+                <label className="pd-var-label">{t('product.optionsAvailable')}</label>
                 <div className="pd-var-options">
                   {product.variants.map((v, i) => (
                     <button
@@ -183,24 +185,24 @@ const ProductDetails = () => {
             <div className="pd-logistics">
               <div className="pd-log-item">
                 <Package size={15} />
-                <span><strong>Stock :</strong> {product.stock}</span>
+                <span><strong>{t('product.stock')} :</strong> {product.stock}</span>
               </div>
               <div className="pd-log-item">
                 <Truck size={15} />
-                <span><strong>Livraison :</strong> {product.delivery}</span>
+                <span><strong>{t('product.delivery')} :</strong> {product.delivery}</span>
               </div>
               <div className="pd-log-item">
                 <ShieldCheck size={15} />
-                <span><strong>Paiement sécurisé</strong> — Garantie Qualité Jerossa</span>
+                <span><strong>{t('product.securePaymentBadge')}</strong></span>
               </div>
               <div className="pd-log-item">
                 <MapPin size={15} />
-                <span><strong>Origine :</strong> {product.origin}</span>
+                <span><strong>{t('product.origin')} :</strong> {product.origin}</span>
               </div>
             </div>
 
             <div className="pd-qty-row">
-              <span className="pd-qty-label">Quantité</span>
+              <span className="pd-qty-label">{t('product.quantity')}</span>
               <div className="qty-control">
                 <button className="qty-btn" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={13} /></button>
                 <span className="qty-val">{quantity}</span>
@@ -213,15 +215,15 @@ const ProductDetails = () => {
                 className="pd-add-cart"
                 onClick={() => { addItem(product, quantity); setAddedToCart(true); setTimeout(() => setAddedToCart(false), 2000); }}
               >
-                {addedToCart ? <><Check size={16} /> Ajouté au panier</> : <>Ajouter au panier</>}
+                {addedToCart ? <><Check size={16} /> {t('cart.addedToCart')}</> : t('cart.addToCart')}
               </button>
               <button className="pd-buy-now" onClick={() => { addItem(product, quantity); navigate('/checkout'); }}>
-                Acheter maintenant
+                {t('cart.buyNow')}
               </button>
               <button
                 className="pd-wishlist-btn"
                 onClick={() => setAddedToWishlist(!addedToWishlist)}
-                aria-label="Ajouter aux favoris"
+                aria-label={t('product.wishlistLabel')}
               >
                 <Heart size={18} fill={addedToWishlist ? '#c0392b' : 'none'} color={addedToWishlist ? '#c0392b' : 'var(--text-muted)'} />
               </button>
@@ -230,37 +232,37 @@ const ProductDetails = () => {
             <div className="pd-contact-row">
               {product.sellerAvailable ? (
                 <button className="pd-contact-btn" onClick={() => setContactOpen(true)}>
-                  <MessageSquare size={16} /> Contacter le vendeur
+                  <MessageSquare size={16} /> {t('product.contactSeller')}
                 </button>
               ) : (
-                <button className="pd-contact-btn" disabled title="Ce vendeur n'est pas encore disponible sur la messagerie.">
-                  <MessageSquare size={16} /> Vendeur indisponible
+                <button className="pd-contact-btn" disabled title={t('product.sellerUnavailableDesc')}>
+                  <MessageSquare size={16} /> {t('product.sellerUnavailable')}
                 </button>
               )}
               <button className="pd-quote-btn" onClick={() => { setQuoteQuantity(1); setQuoteDelay(''); setQuoteMessage(''); setQuoteError(''); setQuoteDone(null); setQuoteOpen(true); }}>
-                <FileText size={16} /> Demander un devis
+                <FileText size={16} /> {t('product.requestQuote')}
               </button>
             </div>
             {!product.sellerAvailable && (
               <p className="pd-contact-unavailable" style={{
                 fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '6px',
               }}>
-                Ce vendeur n'est pas encore disponible sur la messagerie.
+                {t('product.sellerUnavailableDesc')}
               </p>
             )}
 
             <div className="pd-trust">
               <div className="pd-trust-item">
                 <CreditCard size={14} />
-                <span>Paiement 100% sécurisé</span>
+                <span>{t('product.securePayment')}</span>
               </div>
               <div className="pd-trust-item">
                 <Clock size={14} />
-                <span>Livraison rapide & traçable</span>
+                <span>{t('product.fastShipping')}</span>
               </div>
               <div className="pd-trust-item">
                 <ShieldCheck size={14} />
-                <span>Produits authentiques certifiés</span>
+                <span>{t('product.authenticProducts')}</span>
               </div>
             </div>
           </div>
@@ -269,7 +271,7 @@ const ProductDetails = () => {
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="pd-related">
-            <h2 className="pd-related-title">Produits similaires</h2>
+            <h2 className="pd-related-title">{t('product.relatedTitle')}</h2>
             <div className="pd-related-grid">
               {relatedProducts.map((prod) => (
                 <Link key={prod.id} to={`/product/${prod.id}`} className="catalog-product-card">
@@ -305,10 +307,10 @@ const ProductDetails = () => {
           <div className="j-modal-panel quote-modal" onClick={(e) => e.stopPropagation()}>
             <div className="quote-modal-header">
               <div>
-                <h3>Demander un devis</h3>
+                <h3>{t('quote.title')}</h3>
                 <p>{product.title} — {product.seller}</p>
               </div>
-              <button className="quote-modal-close" onClick={() => setQuoteOpen(false)} aria-label="Fermer">
+              <button className="quote-modal-close" onClick={() => setQuoteOpen(false)} aria-label={t('common.close')}>
                 <X size={18} />
               </button>
             </div>
@@ -317,25 +319,24 @@ const ProductDetails = () => {
               <div className="quote-modal-body">
                 <div className="quote-modal-success">
                   <div className="quote-modal-success-icon"><Check size={22} /></div>
-                  <h4>Demande envoyée</h4>
-                  <p>Votre référence de demande :</p>
+                  <h4>{t('quote.sent')}</h4>
+                  <p>{t('quote.referenceLabel')}</p>
                   <div className="quote-modal-ref">{quoteDone.quote_number}</div>
                   <p className="quote-modal-note">
-                    {user ? 'Vous pouvez suivre la réponse du vendeur dans « Mes devis ».'
-                      : 'Connectez-vous à votre compte pour retrouver cette demande dans « Mes devis », ou conservez votre référence.'}
+                    {user ? t('quote.trackNoteLogged') : t('quote.trackNoteGuest')}
                   </p>
                 </div>
                 <div className="quote-modal-actions">
                   <Link to={`/quote/${quoteDone.quote_number}`} className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                    Suivre ma demande
+                    {t('quote.track')}
                   </Link>
-                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>Fermer</button>
+                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>{t('common.close')}</button>
                 </div>
               </div>
             ) : (
               <div className="quote-modal-body">
                 <div className="quote-modal-field">
-                  <label>Quantité souhaitée</label>
+                  <label>{t('quote.quantity')}</label>
                   <div className="quote-modal-qty">
                     <button type="button" className="qty-btn" onClick={() => setQuoteQuantity(q => Math.max(1, q - 1))}><Minus size={13} /></button>
                     <span className="qty-val">{quoteQuantity}</span>
@@ -344,21 +345,21 @@ const ProductDetails = () => {
                   </div>
                 </div>
                 <div className="quote-modal-field">
-                  <label>Délai souhaité</label>
+                  <label>{t('quote.delay')}</label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Ex. : sous 2 semaines"
+                    placeholder={t('quote.delay_ph')}
                     value={quoteDelay}
                     onChange={(e) => setQuoteDelay(e.target.value)}
                   />
                 </div>
                 <div className="quote-modal-field">
-                  <label>Détails de votre demande</label>
+                  <label>{t('quote.details')}</label>
                   <textarea
                     className="form-textarea"
                     rows="3"
-                    placeholder="Précisez vos besoins (quantité exacte, conditionnement, destination…)"
+                    placeholder={t('quote.detailsPh')}
                     value={quoteMessage}
                     onChange={(e) => setQuoteMessage(e.target.value)}
                   />
@@ -368,9 +369,9 @@ const ProductDetails = () => {
 
                 <div className="quote-modal-actions">
                   <button className="btn btn-primary" onClick={handleQuoteSubmit} disabled={quoteSubmitting}>
-                    {quoteSubmitting ? <><Loader2 size={16} className="spin" /> Envoi…</> : 'Envoyer ma demande'}
+                    {quoteSubmitting ? <><Loader2 size={16} className="spin" /> {t('quote.sending')}</> : t('quote.sendRequest')}
                   </button>
-                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>Annuler</button>
+                  <button className="btn btn-outline" onClick={() => setQuoteOpen(false)}>{t('common.cancel')}</button>
                 </div>
               </div>
             )}

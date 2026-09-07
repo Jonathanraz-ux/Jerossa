@@ -9,6 +9,7 @@ import { serviceCategories } from '../data/services';
 import { useCurrency, CURRENCIES, CURRENCY_NOTE } from '../context/CurrencyContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import './Publish.css';
 
 const MAX_PHOTOS = 6;
@@ -37,6 +38,7 @@ const slugifyProduct = (value) =>
 const Publish = () => {
   const [searchParams] = useSearchParams();
   const initialType = searchParams.get('type') === 'service' ? 'service' : 'produit';
+  const { t } = useLang();
   const [type, setType] = useState(initialType);
   const [submitted, setSubmitted] = useState(false);
   const { currency, setCurrency } = useCurrency();
@@ -106,17 +108,17 @@ const Publish = () => {
     const rejected = [];
     const accepted = [];
     for (const f of incoming) {
-      if (!ACCEPTED_TYPES.includes(f.type)) { rejected.push(`${f.name} (format)`); continue; }
+      if (!ACCEPTED_TYPES.includes(f.type)) { rejected.push(`${f.name}${t('publish.photoFormat')}`); continue; }
       if (f.size > MAX_SIZE_MB * 1024 * 1024) { rejected.push(`${f.name} (> ${MAX_SIZE_MB} Mo)`); continue; }
       accepted.push(f);
     }
     setPhotos(prev => {
       const room = MAX_PHOTOS - prev.length;
       const toAdd = accepted.slice(0, Math.max(0, room));
-      if (toAdd.length < accepted.length) rejected.push('limite de 6 photos atteinte');
+      if (toAdd.length < accepted.length) rejected.push(t('publish.photoLimit'));
       return [...prev, ...toAdd.map(f => ({ file: f, previewUrl: URL.createObjectURL(f) }))];
     });
-    if (rejected.length) setPhotoError(`Fichiers ignorés : ${rejected.join(', ')}.`);
+    if (rejected.length) setPhotoError(`${t('publish.photoErrorPrefix')}${rejected.join(', ')}.`);
   };
 
   const removePhoto = (index) => {
@@ -195,34 +197,33 @@ const Publish = () => {
       <div className="pub-page">
         <div className="pub-success">
           <div className="pub-success-ico"><CheckCircle2 size={40} /></div>
-          <span className="pub-success-eyebrow">{isLive ? 'Produit en ligne' : 'Offre préparée'}</span>
-          <h1>{isLive ? 'Votre produit est en ligne !' : 'Votre offre est prête à être publiée !'}</h1>
+          <span className="pub-success-eyebrow">{isLive ? t('publish.success.liveEyebrow') : t('publish.success.prepEyebrow')}</span>
+          <h1>{isLive ? t('publish.success.liveTitle') : t('publish.success.prepTitle')}</h1>
           <p>
             {isLive ? (
               <>
-                «&nbsp;{publishedProduct.title}&nbsp;» est désormais visible dans votre boutique.
-                Il sera estampillé « Produit contrôlé » après vérification par notre équipe.
+                {t('publish.success.liveText', { title: publishedProduct.title })}
               </>
             ) : (
               <>
                 {photos.length > 0 && isAuthenticated ? (
-                  <>Vos {photos.length} photo{photos.length > 1 ? 's ont' : ' a'} été téléversée{photos.length > 1 ? 's' : ''} sur Jerossa. </>
+                  <>{t('publish.success.photoUploaded', { count: photos.length })} </>
                 ) : null}
-                La mise en ligne complète des offres sera disponible une fois votre profil vendeur validé.
+                {t('publish.success.pendingNote')}
               </>
             )}
           </p>
           <div className="pub-success-actions">
             {isLive ? (
               <>
-                <Link to={`/product/${publishedProduct.slug}`} className="j-pill-btn j-pill-btn--green">Voir mon produit</Link>
-                <Link to={`/producteur/${producer.slug}`} className="j-pill-btn j-pill-btn--outline-dark">Ma boutique</Link>
+                <Link to={`/product/${publishedProduct.slug}`} className="j-pill-btn j-pill-btn--green">{t('publish.success.viewProduct')}</Link>
+                <Link to={`/producteur/${producer.slug}`} className="j-pill-btn j-pill-btn--outline-dark">{t('publish.success.myShop')}</Link>
               </>
             ) : (
               <>
-                <Link to="/" className="j-pill-btn j-pill-btn--green">Retour à l'accueil</Link>
+                <Link to="/" className="j-pill-btn j-pill-btn--green">{t('publish.success.backHome')}</Link>
                 <Link to={type === 'service' ? '/services' : '/boutique'} className="j-pill-btn j-pill-btn--outline-dark">
-                  Voir {type === 'service' ? 'les services' : 'les produits'}
+                  {t(type === 'service' ? 'publish.success.viewServices' : 'publish.success.viewProducts')}
                 </Link>
               </>
             )}
@@ -238,22 +239,21 @@ const Publish = () => {
       <section className="pub-hero">
         <div className="container">
           <nav className="pub-breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('nav.home')}</Link>
             <span>/</span>
-            <span>Publier une offre</span>
+            <span>{t('publish.breadcrumb')}</span>
           </nav>
-          <span className="pub-hero-tag">Espace vendeur</span>
-          <h1>Publier une offre</h1>
+          <span className="pub-hero-tag">{t('publish.tag')}</span>
+          <h1>{t('publish.title')}</h1>
           <p>
-            Que souhaitez-vous publier ? Complétez le formulaire, ajoutez vos photos
-            et présentez votre activité aux acheteurs de Madagascar et de Maurice.
+            {t('publish.desc')}
           </p>
           <div className="pub-type-toggle">
             <button
               className={`pub-type-btn${type === 'produit' ? ' is-active' : ''}`}
               onClick={() => setType('produit')}
             >
-              <Package size={17} /> Un produit
+              <Package size={17} /> {t('publish.typeProduit')}
             </button>
           </div>
         </div>
@@ -269,9 +269,9 @@ const Publish = () => {
                     <Clock size={17} />
                     <span>
                       {!producer ? (
-                        <>Pour publier une offre réelle, créez d'abord votre boutique : <Link to="/vendeur/devenir">devenir vendeur</Link>.</>
+                        <>{t('publish.sellerStatus.createShop')}<Link to="/vendeur/devenir">{t('publish.link.becomeSeller')}</Link>.</>
                       ) : (
-                        <>Votre boutique « {producer.name} » est en cours de validation — <Link to="/vendeur/statut">suivre ma demande</Link>. Votre offre est conservée en aperçu.</>
+                        <>{t('publish.sellerStatus.pending', { name: producer.name })}<Link to="/vendeur/statut">{t('publish.link.follow')}</Link>{t('publish.sellerStatus.pendingEnd')}</>
                       )}
                     </span>
                   </>
@@ -279,13 +279,13 @@ const Publish = () => {
                 {producer && producer.status === 'rejected' && (
                   <>
                     <XCircle size={17} />
-                    <span>Votre dossier boutique a été refusé{producer.review_note ? ` (${producer.review_note})` : ''} — <Link to="/vendeur/devenir">corriger mon dossier</Link>.</span>
+                    <span>{t('publish.sellerStatus.rejected', { note: producer.review_note ? ` (${producer.review_note})` : '' })}<Link to="/vendeur/devenir">{t('publish.link.correct')}</Link>.</span>
                   </>
                 )}
                 {producer && producer.status === 'suspended' && (
                   <>
                     <Ban size={17} />
-                    <span>Votre boutique est suspendue. Contactez le support pour la réactiver.</span>
+                    <span>{t('publish.sellerStatus.suspended')}</span>
                   </>
                 )}
               </div>
@@ -293,7 +293,7 @@ const Publish = () => {
             {isApprovedSeller && type === 'produit' && (
               <div className="pub-seller-status pub-seller-status--ok">
                 <Store size={17} />
-                <span>Boutique «&nbsp;{producer.name}&nbsp;» validée — vos offres seront publiées réellement.</span>
+                <span>{t('publish.sellerStatus.approved', { name: producer.name })}</span>
               </div>
             )}
 
@@ -305,7 +305,7 @@ const Publish = () => {
               try {
                 imageUrls = await uploadPhotos();
               } catch (err) {
-                setPhotoError(`Échec de l'envoi des photos : ${err.message}`);
+                setPhotoError(`${t('publish.uploadErrorPrefix')}${err.message}`);
                 return;
               }
             }
@@ -314,7 +314,7 @@ const Publish = () => {
                 const created = await createProduct(imageUrls);
                 setPublishedProduct(created);
               } catch (err) {
-                setPublishError(`Échec de la publication : ${err.message}`);
+                setPublishError(`${t('publish.publishErrorPrefix')}${err.message}`);
                 return;
               }
             }
@@ -324,11 +324,11 @@ const Publish = () => {
             {type === 'produit' && (
               <>
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Informations sur le produit</h2>
-                  <Field label="Titre du produit" required hint="Ex. : Gousses de vanille Bourbon Grade A — 18 cm">
-                    <input className="pub-input" placeholder="Nom de votre produit" value={pTitle} onChange={(e) => setPTitle(e.target.value)} required />
+                  <h2 className="pub-section-title">{t('publish.section.product')}</h2>
+                  <Field label={t('publish.label.productTitle')} required hint={t('publish.hint.productTitle')}>
+                    <input className="pub-input" placeholder={t('publish.placeholder.productTitle')} value={pTitle} onChange={(e) => setPTitle(e.target.value)} required />
                   </Field>
-                  <Field label="Catégorie" required>
+                  <Field label={t('publish.label.category')} required>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select" value={pCategoryName} onChange={(e) => setPCategoryName(e.target.value)}>
                         {categoriesData.map((c) => <option key={c.id}>{c.name}</option>)}
@@ -336,18 +336,18 @@ const Publish = () => {
                       <ChevronDown size={15} />
                     </div>
                   </Field>
-                  <Field label="Description" required hint="Décrivez l'origine, la qualité et les caractéristiques de votre produit.">
-                    <textarea className="pub-input pub-textarea" rows={4} placeholder="Description détaillée de votre produit…" value={pDescription} onChange={(e) => setPDescription(e.target.value)} required />
+                  <Field label={t('publish.label.description')} required hint={t('publish.hint.description')}>
+                    <textarea className="pub-input pub-textarea" rows={4} placeholder={t('publish.placeholder.description')} value={pDescription} onChange={(e) => setPDescription(e.target.value)} required />
                   </Field>
                 </div>
 
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Prix & disponibilité</h2>
+                  <h2 className="pub-section-title">{t('publish.section.price')}</h2>
                   <div className="pub-grid-2">
-                    <Field label="Prix" required>
+                    <Field label={t('publish.label.price')} required>
                       <input className="pub-input" type="number" step="0.01" min="0" placeholder="0,00" value={pPrice} onChange={(e) => setPPrice(e.target.value)} required />
                     </Field>
-                    <Field label="Unité de vente" required>
+                    <Field label={t('publish.label.unitSale')} required>
                       <div className="pub-select-wrap">
                         <select className="pub-input pub-select" value={pUnit} onChange={(e) => setPUnit(e.target.value)}>
                           <option>kg</option>
@@ -361,7 +361,7 @@ const Publish = () => {
                       </div>
                     </Field>
                   </div>
-                  <Field label="Devise" required>
+                  <Field label={t('publish.label.currency')} required>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
                         {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}</option>)}
@@ -372,7 +372,7 @@ const Publish = () => {
                       <Lock size={13} /> {CURRENCY_NOTE}
                     </p>
                   </Field>
-                  <Field label="Disponibilité" required>
+                  <Field label={t('publish.label.availability')} required>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select" value={pAvailability} onChange={(e) => setPAvailability(e.target.value)}>
                         <option>En stock</option>
@@ -386,8 +386,8 @@ const Publish = () => {
                 </div>
 
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Photos & localisation</h2>
-                  <Field label="Photos du produit">
+                  <h2 className="pub-section-title">{t('publish.section.photos')}</h2>
+                  <Field label={t('publish.label.photos')}>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -403,12 +403,12 @@ const Publish = () => {
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload size={20} />
-                      <span><strong>Ajouter des photos</strong></span>
-                      <span className="pub-upload-hint">JPG, PNG, WebP — max {MAX_SIZE_MB} Mo — jusqu'à {MAX_PHOTOS} photos</span>
+                      <span><strong>{t('publish.addPhotos')}</strong></span>
+                      <span className="pub-upload-hint">{t('publish.uploadHint', { max: MAX_SIZE_MB, count: MAX_PHOTOS })}</span>
                     </button>
                     {!isAuthenticated && (
                       <span className="pub-hint">
-                        <Link to="/login">Connectez-vous</Link> pour téléverser vos photos lors de la publication.
+                        <Link to="/login">{t('nav.login')}</Link> {t('publish.loginToUpload')}
                       </span>
                     )}
                     {photoError && (
@@ -420,12 +420,12 @@ const Publish = () => {
                           <div key={p.previewUrl} style={{ position: 'relative' }}>
                             <img
                               src={p.previewUrl}
-                              alt={`Aperçu ${i + 1}`}
+                              alt={t('publish.previewAlt', { n: i + 1 })}
                               style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border, #e5e5e5)', display: 'block' }}
                             />
                             <button
                               type="button"
-                              aria-label="Retirer cette photo"
+                              aria-label={t('publish.removePhoto')}
                               onClick={() => removePhoto(i)}
                               style={{
                                 position: 'absolute', top: -6, right: -6,
@@ -442,7 +442,7 @@ const Publish = () => {
                       </div>
                     )}
                   </Field>
-                  <Field label="Origine" required hint="Madagascar, Maurice, région…">
+                  <Field label={t('publish.label.origin')} required hint={t('publish.hint.origin')}>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select" value={pOrigin} onChange={(e) => setPOrigin(e.target.value)}>
                         <option>Madagascar</option>
@@ -460,11 +460,11 @@ const Publish = () => {
             {type === 'service' && (
               <>
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Informations sur le service</h2>
-                  <Field label="Titre du service" required hint="Ex. : Plomberie résidentielle & commerciale">
-                    <input className="pub-input" placeholder="Nom de votre service" required />
+                  <h2 className="pub-section-title">{t('publish.section.service')}</h2>
+                  <Field label={t('publish.label.serviceTitle')} required hint={t('publish.hint.serviceTitle')}>
+                    <input className="pub-input" placeholder={t('publish.placeholder.serviceTitle')} required />
                   </Field>
-                  <Field label="Catégorie" required>
+                  <Field label={t('publish.label.category')} required>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select">
                         {serviceCategories.map((c) => <option key={c.id}>{c.name}</option>)}
@@ -472,21 +472,21 @@ const Publish = () => {
                       <ChevronDown size={15} />
                     </div>
                   </Field>
-                  <Field label="Description du service" required hint="Décrivez vos prestations, votre méthode et vos points forts.">
-                    <textarea className="pub-input pub-textarea" rows={4} placeholder="Description détaillée de votre service…" required />
+                  <Field label={t('publish.label.serviceDesc')} required hint={t('publish.hint.serviceDesc')}>
+                    <textarea className="pub-input pub-textarea" rows={4} placeholder={t('publish.placeholder.serviceDesc')} required />
                   </Field>
                 </div>
 
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Zone & disponibilité</h2>
+                  <h2 className="pub-section-title">{t('publish.section.zone')}</h2>
                   <div className="pub-grid-2">
-                    <Field label="Zone géographique" required hint="Ex. : Curepipe, Maurice">
+                    <Field label={t('publish.label.zoneGeo')} required hint={t('publish.hint.zoneGeo')}>
                       <div className="pub-input-ico">
                         <MapPin size={15} />
-                        <input className="pub-input" placeholder="Ville, région" required />
+                        <input className="pub-input" placeholder={t('publish.placeholder.zoneGeo')} required />
                       </div>
                     </Field>
-                    <Field label="Disponibilité" required>
+                    <Field label={t('publish.label.availability')} required>
                       <div className="pub-select-wrap">
                         <select className="pub-input pub-select">
                           <option>Disponible</option>
@@ -498,7 +498,7 @@ const Publish = () => {
                       </div>
                     </Field>
                   </div>
-                  <Field label="Expérience">
+                  <Field label={t('publish.label.exp')}>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select">
                         <option>Moins de 2 ans</option>
@@ -513,12 +513,12 @@ const Publish = () => {
                 </div>
 
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Tarif</h2>
+                  <h2 className="pub-section-title">{t('publish.section.rate')}</h2>
                   <div className="pub-grid-2">
-                    <Field label="Prix de départ" required>
+                    <Field label={t('publish.label.startPrice')} required>
                       <input className="pub-input" type="number" step="0.01" min="0" placeholder="0,00" required />
                     </Field>
-                    <Field label="Unité" required>
+                    <Field label={t('publish.label.unit')} required>
                       <div className="pub-select-wrap">
                         <select className="pub-input pub-select">
                           <option>Par heure</option>
@@ -531,7 +531,7 @@ const Publish = () => {
                       </div>
                     </Field>
                   </div>
-                  <Field label="Devise" required>
+                  <Field label={t('publish.label.currency')} required>
                     <div className="pub-select-wrap">
                       <select className="pub-input pub-select" value={currency} onChange={(e) => setCurrency(e.target.value)}>
                         {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code} — {c.label}</option>)}
@@ -545,8 +545,8 @@ const Publish = () => {
                 </div>
 
                 <div className="pub-section">
-                  <h2 className="pub-section-title">Photos ou réalisations</h2>
-                  <Field label="Présentez vos réalisations">
+                  <h2 className="pub-section-title">{t('publish.section.photosService')}</h2>
+                  <Field label={t('publish.showWorks')}>
                     <button
                       type="button"
                       className="pub-upload"
@@ -554,14 +554,14 @@ const Publish = () => {
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload size={20} />
-                      <span><strong>Ajouter des photos ou réalisations</strong></span>
-                      <span className="pub-upload-hint">JPG, PNG, WebP — max {MAX_SIZE_MB} Mo — jusqu'à {MAX_PHOTOS} photos</span>
+                      <span><strong>{t('publish.addWorks')}</strong></span>
+                      <span className="pub-upload-hint">{t('publish.uploadHint', { max: MAX_SIZE_MB, count: MAX_PHOTOS })}</span>
                     </button>
                   </Field>
-                  <Field label="Coordonnées ou contact" hint="Vos échanges passent par la messagerie Jerossa : vous n'exposez vos coordonnées que si vous le souhaitez.">
+                  <Field label={t('publish.label.coords')} hint={t('publish.hint.coords')}>
                     <div className="pub-input-ico">
                       <Briefcase size={15} />
-                      <input className="pub-input" placeholder="Nom de l'entreprise, téléphone (optionnel)" />
+                      <input className="pub-input" placeholder={t('publish.placeholder.coords')} />
                     </div>
                   </Field>
                 </div>
@@ -571,14 +571,14 @@ const Publish = () => {
             <div className="pub-submit-row">
               <button type="submit" className="pub-submit" disabled={uploading}>
                 <PlusCircle size={17} />
-                {uploading ? 'Envoi des photos…' : type === 'service' ? 'Publier mon service' : 'Publier mon produit'}
+                {uploading ? t('publish.submitUploading') : type === 'service' ? t('publish.submitService') : t('publish.submitProduct')}
                 {!uploading && <ArrowRight size={16} />}
               </button>
               {publishError && (
                 <p className="pub-submit-note" style={{ color: 'var(--danger)' }}>{publishError}</p>
               )}
               <p className="pub-submit-note">
-                <Lock size={13} /> En publiant, vous acceptez les conditions d'utilisation de Jerossa.
+                <Lock size={13} /> {t('publish.acceptTerms')}
               </p>
             </div>
           </form>
@@ -586,27 +586,26 @@ const Publish = () => {
 
           <aside className="pub-aside">
             <div className="pub-aside-card">
-              <h3>Votre offre sera visible par</h3>
+              <h3>{t('publish.asideVisibleTitle')}</h3>
               <ul className="pub-aside-list">
-                <li><CheckCircle2 size={15} /> <span>Les acheteurs de Madagascar et de Maurice</span></li>
-                <li><CheckCircle2 size={15} /> <span>Les entreprises et professionnels en recherche de fournisseurs</span></li>
-                <li><CheckCircle2 size={15} /> <span>Les importateurs et négociants des deux territoires</span></li>
+                <li><CheckCircle2 size={15} /> <span>{t('publish.asideVisible1')}</span></li>
+                <li><CheckCircle2 size={15} /> <span>{t('publish.asideVisible2')}</span></li>
+                <li><CheckCircle2 size={15} /> <span>{t('publish.asideVisible3')}</span></li>
               </ul>
             </div>
 
             <div className="pub-aside-card">
-              <h3>Bonnes pratiques</h3>
+              <h3>{t('publish.asideTipsTitle')}</h3>
               <ul className="pub-aside-list">
-                <li><Info size={15} /> <span>Photos de qualité : vos chances de contact augmentent fortement.</span></li>
-                <li><Info size={15} /> <span>Renseignez un prix clair et précis pour générer plus de demandes.</span></li>
-                <li><Info size={15} /> <span>Répondez rapidement : la réactivité est un gage de confiance.</span></li>
+                <li><Info size={15} /> <span>{t('publish.asideTip1')}</span></li>
+                <li><Info size={15} /> <span>{t('publish.asideTip2')}</span></li>
+                <li><Info size={15} /> <span>{t('publish.asideTip3')}</span></li>
               </ul>
             </div>
 
             <div className="pub-aside-note">
               <Lock size={15} />
-              Badges « Fournisseur vérifié » et « Produit contrôlé »
-              seront attribués après vérification de votre profil.
+              {t('publish.asideBadges')}
             </div>
           </aside>
         </div>

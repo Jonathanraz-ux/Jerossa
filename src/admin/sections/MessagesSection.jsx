@@ -5,6 +5,7 @@ import {
 } from '../../services/admin';
 import { timeAgo, formatDateTime } from '../format';
 import { PageHead, EmptyState } from '../ui';
+import { useLang } from '../../context/LangContext';
 
 const EMAIL_STATUS_TONE = { sent: 'green', failed: 'red', pending: 'amber', queued: 'blue' };
 
@@ -13,6 +14,10 @@ const MessagesSection = () => {
   const [notifications, setNotifications] = useState([]);
   const [emailLogs, setEmailLogs] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const { t, lang } = useLang();
+
+  const emailStatusLabel = (s) =>
+    t('status.' + s) !== ('status.' + s) ? t('status.' + s) : s;
 
   useEffect(() => {
     let mounted = true;
@@ -43,13 +48,13 @@ const MessagesSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Communauté"
-        title="Messages & Notifications"
-        subtitle={`${unreadCount} notification${unreadCount > 1 ? 's' : ''} non ${unreadCount > 1 ? 'lues' : 'lue'} · ${emailLogs.length} email${emailLogs.length > 1 ? 's' : ''} journalisé${emailLogs.length > 1 ? 's' : ''}`}
+        eyebrow={t('admin.nav.community')}
+        title={t('admin.messages.title')}
+        subtitle={t('admin.messages.subtitle', { unread: unreadCount, emails: emailLogs.length })}
       />
 
       <div className="adm-toolbar">
-        <div className="adm-seg" role="tablist" aria-label="Type de communication">
+        <div className="adm-seg" role="tablist" aria-label={t('admin.messages.commType')}>
           <button
             role="tab"
             aria-selected={tab === 'notifications'}
@@ -58,7 +63,7 @@ const MessagesSection = () => {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
           >
             <Bell size={13} strokeWidth={1.75} />
-            Notifications ({notifications.length})
+            {t('admin.messages.notificationsTab', { count: notifications.length })}
           </button>
           <button
             role="tab"
@@ -68,7 +73,7 @@ const MessagesSection = () => {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
           >
             <Mail size={13} strokeWidth={1.75} />
-            Emails ({emailLogs.length})
+            {t('admin.messages.emailsTab', { count: emailLogs.length })}
           </button>
         </div>
       </div>
@@ -78,8 +83,8 @@ const MessagesSection = () => {
           {notifications.length === 0 ? (
             <EmptyState
               icon={Inbox}
-              title="Aucune notification"
-              text="Commandes, inscriptions, remboursements — toutes les alertes de la plateforme atterriront ici."
+              title={t('admin.messages.notifEmptyTitle')}
+              text={t('admin.messages.notifEmptyText')}
             />
           ) : (
             <div className="adm-msg-list">
@@ -96,13 +101,13 @@ const MessagesSection = () => {
                     </div>
                     <div className="adm-msg-side">
                       <span className="adm-chip">{n.type}</span>
-                      <span className="adm-cell-dim" style={{ fontSize: 11 }}>{timeAgo(n.created_at)}</span>
+                      <span className="adm-cell-dim" style={{ fontSize: 11 }}>{timeAgo(n.created_at, lang)}</span>
                     </div>
                   </div>
                   {!n.read && (
                     <button
                       className="adm-action"
-                      title="Marquer comme lue"
+                      title={t('admin.messages.markRead')}
                       onClick={() => handleMarkRead(n.id)}
                       style={{ marginRight: 14 }}
                     >
@@ -121,19 +126,19 @@ const MessagesSection = () => {
           {emailLogs.length === 0 ? (
             <EmptyState
               icon={Mail}
-              title="Aucun email envoyé"
-              text="Les confirmations de commande et autres emails transactionnels seront journalisés ici."
+              title={t('admin.messages.emailsEmptyTitle')}
+              text={t('admin.messages.emailsEmptyText')}
             />
           ) : (
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead>
                   <tr>
-                    <th>Destinataire</th>
-                    <th>Sujet</th>
-                    <th>Type</th>
-                    <th>Statut</th>
-                    <th>Date</th>
+                    <th>{t('admin.messages.colRecipient')}</th>
+                    <th>{t('admin.messages.colSubject')}</th>
+                    <th>{t('admin.messages.colType')}</th>
+                    <th>{t('admin.messages.colStatus')}</th>
+                    <th>{t('admin.messages.colDate')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,10 +154,10 @@ const MessagesSection = () => {
                       <td><span className="adm-chip">{e.type}</span></td>
                       <td>
                         <span className={`adm-badge adm-badge--${EMAIL_STATUS_TONE[e.status] || 'neutral'}`}>
-                          {e.status}
+                          {emailStatusLabel(e.status)}
                         </span>
                       </td>
-                      <td className="adm-cell-dim">{formatDateTime(e.created_at)}</td>
+                      <td className="adm-cell-dim">{formatDateTime(e.created_at, lang)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -5,17 +5,13 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
+import { formatDate } from '../i18n';
 import './SellerOnboarding.css';
-
-const formatDate = (iso) => {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
-};
 
 const SellerStatus = () => {
   const { user, isAuthenticated } = useAuth();
+  const { t, lang } = useLang();
   const [checking, setChecking] = useState(true);
   const [producer, setProducer] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,11 +63,11 @@ const SellerStatus = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico sl-notice-ico--info"><LogIn size={26} /></div>
-            <span className="sl-notice-eyebrow">Espace vendeur</span>
-            <h1>Connectez-vous pour suivre votre demande</h1>
-            <p>Le suivi de candidature est réservé aux comptes Jerossa.</p>
+            <span className="sl-notice-eyebrow">{t('seller.space')}</span>
+            <h1>{t('sellerStatus.loginTitle')}</h1>
+            <p>{t('sellerStatus.loginText')}</p>
             <div className="sl-notice-actions">
-              <Link to="/login" className="j-pill-btn j-pill-btn--green">Se connecter</Link>
+              <Link to="/login" className="j-pill-btn j-pill-btn--green">{t('sellerStatus.login')}</Link>
             </div>
           </div>
         </div>
@@ -85,11 +81,11 @@ const SellerStatus = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico sl-notice-ico--info"><Store size={26} /></div>
-            <span className="sl-notice-eyebrow">Espace vendeur</span>
-            <h1>Aucune candidature enregistrée</h1>
-            <p>Vous n'avez pas encore déposé de dossier vendeur. La création d'une boutique est gratuite.</p>
+            <span className="sl-notice-eyebrow">{t('seller.space')}</span>
+            <h1>{t('sellerStatus.noApplication')}</h1>
+            <p>{t('sellerStatus.noApplicationText')}</p>
             <div className="sl-notice-actions">
-              <Link to="/vendeur/devenir" className="j-pill-btn j-pill-btn--green">Devenir vendeur</Link>
+              <Link to="/vendeur/devenir" className="j-pill-btn j-pill-btn--green">{t('sellerStatus.becomeSeller')}</Link>
             </div>
           </div>
         </div>
@@ -101,34 +97,37 @@ const SellerStatus = () => {
     pending: {
       icon: <Clock size={26} />,
       iconClass: 'sl-notice-ico--info',
-      eyebrow: 'Candidature en cours',
-      title: 'Votre dossier est en cours d\'examen',
-      text: `Déposé le ${formatDate(producer.submitted_at)}. Notre équipe vérifie les informations et pièces justificatives de « ${producer.name} ». Vous serez notifié dès la validation.`
+      eyebrow: t('sellerStatus.pendingEyebrow'),
+      title: t('sellerStatus.pendingTitle'),
+      text: t('sellerStatus.pendingText', {
+        date: formatDate(producer.submitted_at, lang),
+        name: producer.name,
+      })
     },
     approved: {
       icon: <CheckCircle2 size={26} />,
       iconClass: '',
-      eyebrow: 'Boutique validée',
-      title: 'Félicitations, votre boutique « ' + producer.name + ' » est active !',
-      text: 'Votre boutique est en ligne. Vous pouvez publier des offres qui seront visibles par les acheteurs.'
+      eyebrow: t('sellerStatus.approvedEyebrow'),
+      title: t('sellerStatus.approvedTitle', { name: producer.name }),
+      text: t('sellerStatus.approvedText')
     },
     rejected: {
       icon: <XCircle size={26} />,
       iconClass: 'sl-notice-ico--danger',
-      eyebrow: 'Candidature refusée',
-      title: 'Votre candidature a été refusée',
+      eyebrow: t('sellerStatus.rejectedEyebrow'),
+      title: t('sellerStatus.rejectedTitle'),
       text: producer.review_note
-        ? `Motif : ${producer.review_note}. Vous pouvez corriger votre dossier et le renvoyer à tout moment.`
-        : 'Vous pouvez corriger votre dossier et le renvoyer à tout moment.'
+        ? t('sellerStatus.rejectedReason', { reason: producer.review_note }) + ' ' + t('sellerStatus.rejectedText')
+        : t('sellerStatus.rejectedText')
     },
     suspended: {
       icon: <Ban size={26} />,
       iconClass: 'sl-notice-ico--danger',
-      eyebrow: 'Compte suspendu',
-      title: 'Votre boutique est suspendue',
+      eyebrow: t('sellerStatus.suspendedEyebrow'),
+      title: t('sellerStatus.suspendedTitle'),
       text: producer.review_note
-        ? `Motif : ${producer.review_note}. Contactez le support pour régulariser votre situation.`
-        : 'Contactez le support pour régulariser votre situation.'
+        ? t('sellerStatus.suspendedReason', { reason: producer.review_note }) + ' ' + t('sellerStatus.suspendedText')
+        : t('sellerStatus.suspendedText')
     }
   };
 
@@ -139,13 +138,13 @@ const SellerStatus = () => {
       <section className="sl-hero">
         <div className="container">
           <nav className="sl-breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('sellerStatus.breadcrumbHome')}</Link>
             <span>/</span>
-            <span>Statut de ma demande</span>
+            <span>{t('sellerStatus.breadcrumbStatus')}</span>
           </nav>
-          <span className="sl-hero-tag">Espace vendeur</span>
-          <h1>Suivi de ma candidature</h1>
-          <p>L'état de votre dossier boutique, mis à jour en temps réel après examen par notre équipe.</p>
+          <span className="sl-hero-tag">{t('sellerStatus.heroTag')}</span>
+          <h1>{t('sellerStatus.heroTitle')}</h1>
+          <p>{t('sellerStatus.heroText')}</p>
         </div>
       </section>
 
@@ -158,21 +157,21 @@ const SellerStatus = () => {
 
           <dl className="sl-status-meta">
             <div>
-              <dt>Boutique</dt>
+              <dt>{t('sellerStatus.metaShop')}</dt>
               <dd>{producer.name}</dd>
             </div>
             <div>
-              <dt>Localisation</dt>
+              <dt>{t('sellerStatus.metaLocation')}</dt>
               <dd>{producer.location || '—'}</dd>
             </div>
             <div>
-              <dt>Pièces transmises</dt>
+              <dt>{t('sellerStatus.metaDocuments')}</dt>
               <dd>{Array.isArray(producer.documents) ? producer.documents.length : 0}</dd>
             </div>
             {(producer.status === 'approved' || producer.status === 'suspended') && producer.reviewed_at && (
               <div>
-                <dt>Examinée le</dt>
-                <dd>{formatDate(producer.reviewed_at)}</dd>
+                <dt>{t('sellerStatus.metaReviewedOn')}</dt>
+                <dd>{formatDate(producer.reviewed_at, lang)}</dd>
               </div>
             )}
           </dl>
@@ -180,22 +179,22 @@ const SellerStatus = () => {
           <div className="sl-notice-actions">
             {producer.status === 'pending' && (
               <button type="button" className="j-pill-btn j-pill-btn--outline-dark" onClick={refresh} disabled={refreshing}>
-                <RefreshCw size={14} className={refreshing ? 'sl-spin' : ''} /> Rafraîchir
+                <RefreshCw size={14} className={refreshing ? 'sl-spin' : ''} /> {t('sellerStatus.refresh')}
               </button>
             )}
             {producer.status === 'approved' && (
               <>
-                <Link to="/publier" className="j-pill-btn j-pill-btn--green">Publier une offre</Link>
+                <Link to="/publier" className="j-pill-btn j-pill-btn--green">{t('sellerStatus.publishOffer')}</Link>
                 {producer.slug && (
-                  <Link to={`/producteur/${producer.slug}`} className="j-pill-btn j-pill-btn--outline-dark">Voir ma boutique</Link>
+                  <Link to={`/producteur/${producer.slug}`} className="j-pill-btn j-pill-btn--outline-dark">{t('sellerStatus.viewShop')}</Link>
                 )}
               </>
             )}
             {producer.status === 'rejected' && (
-              <Link to="/vendeur/devenir" className="j-pill-btn j-pill-btn--green">Corriger et renvoyer mon dossier</Link>
+              <Link to="/vendeur/devenir" className="j-pill-btn j-pill-btn--green">{t('sellerStatus.correctAndResubmit')}</Link>
             )}
             {(producer.status === 'suspended') && (
-              <Link to="/contact" className="j-pill-btn j-pill-btn--green">Contacter le support</Link>
+              <Link to="/contact" className="j-pill-btn j-pill-btn--green">{t('sellerStatus.contactSupport')}</Link>
             )}
           </div>
         </div>

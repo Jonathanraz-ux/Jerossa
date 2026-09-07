@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CreditCard, Lock, Truck, MapPin, Check, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder } from '../services/orders';
+import { useLang } from '../context/LangContext';
 import { STANDARD_SHIPPING_FEE_EUR, EXPRESS_SHIPPING_FEE_EUR, FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 import './animations.css';
 
@@ -10,6 +11,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { items: cartItems, subtotal, currency } = useCart();
+  const { t } = useLang();
   const [step, setStep] = useState(1);
   const [paymentFailed, setPaymentFailed] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,7 +41,7 @@ const Checkout = () => {
   const goToShipping = () => {
     const missing = !formData.firstName || !formData.lastName || !formData.email || !formData.address || !formData.city;
     if (missing) {
-      setFormError('Merci de renseigner votre prénom, nom, email, adresse et ville.');
+      setFormError(t('checkout.missingFields'));
       return;
     }
     setFormError('');
@@ -85,7 +87,7 @@ const Checkout = () => {
 
     if (!ok) {
       console.error('[checkout]', error);
-      setOrderError("La commande n'a pas pu être enregistrée. Vérifiez la configuration Supabase puis réessayez.");
+      setOrderError(t('checkout.orderError'));
       return;
     }
 
@@ -95,9 +97,9 @@ const Checkout = () => {
   };
 
   const steps = [
-    { num: 1, label: 'Adresse', icon: MapPin },
-    { num: 2, label: 'Livraison', icon: Truck },
-    { num: 3, label: 'Paiement', icon: CreditCard },
+    { num: 1, label: t('checkout.addressStep'), icon: MapPin },
+    { num: 2, label: t('checkout.shippingStep'), icon: Truck },
+    { num: 3, label: t('checkout.paymentStep'), icon: CreditCard },
   ];
 
   return (
@@ -106,11 +108,11 @@ const Checkout = () => {
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
           <nav className="checkout-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-            <Link to="/cart" style={{ color: 'var(--text-muted)' }}>Panier</Link>
+            <Link to="/cart" style={{ color: 'var(--text-muted)' }}>{t('nav.cart')}</Link>
             <span style={{ color: 'var(--border)' }}>/</span>
-            <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>Commande</span>
+            <span style={{ color: 'var(--text-dark)', fontWeight: 500 }}>{t('order.order')}</span>
           </nav>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>Finaliser la commande</h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600 }}>{t('checkout.title')}</h1>
         </div>
 
         {/* Steps Progress */}
@@ -136,10 +138,10 @@ const Checkout = () => {
           <div className="checkout-pay-failed">
             <AlertTriangle size={18} />
             <div>
-              <strong>Le paiement a échoué.</strong>
-              <span>Votre panier est conservé — vous pouvez réessayer le paiement ou changer de mode de paiement.</span>
+              <strong>{t('checkout.paymentFailed')}</strong>
+              <span>{t('checkout.paymentFailedText')}</span>
             </div>
-            <button className="checkout-pay-failed-close" onClick={() => setPaymentFailed(false)} aria-label="Fermer">×</button>
+            <button className="checkout-pay-failed-close" onClick={() => setPaymentFailed(false)} aria-label={t('common.close')}>×</button>
           </div>
         )}
 
@@ -150,42 +152,42 @@ const Checkout = () => {
               <div>
                 <h2 className="checkout-section-title">
                   <MapPin size={18} />
-                  Adresse de livraison
+                  {t('checkout.shippingAddress')}
                 </h2>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Prénom</label>
+                    <label className="form-label">{t('auth.firstName')}</label>
                     <input type="text" name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} placeholder="Jean" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Nom</label>
+                    <label className="form-label">{t('auth.lastName')}</label>
                     <input type="text" name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} placeholder="Dupont" />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">{t('auth.email')}</label>
                   <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} placeholder="jean@exemple.com" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Téléphone</label>
+                  <label className="form-label">{t('common.phone')}</label>
                   <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+261 32 123 4567" />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Adresse</label>
+                  <label className="form-label">{t('checkout.address')}</label>
                   <input type="text" name="address" className="form-input" value={formData.address} onChange={handleChange} placeholder="Lot IVT 123, Ambohijatovo" />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Ville</label>
+                    <label className="form-label">{t('account.city')}</label>
                     <input type="text" name="city" className="form-input" value={formData.city} onChange={handleChange} placeholder="Antananarivo" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Code postal</label>
+                    <label className="form-label">{t('checkout.postalCode')}</label>
                     <input type="text" name="postalCode" className="form-input" value={formData.postalCode} onChange={handleChange} placeholder="101" />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Pays</label>
+                  <label className="form-label">{t('checkout.country')}</label>
                   <select name="country" className="form-select" value={formData.country} onChange={handleChange}>
                     <option value="MG">Madagascar</option>
                     <option value="MU">Île Maurice</option>
@@ -199,7 +201,7 @@ const Checkout = () => {
                   </div>
                 )}
                 <button className="checkout-next-btn" onClick={goToShipping}>
-                  Continuer <ArrowRight size={16} />
+                  {t('checkout.continue')} <ArrowRight size={16} />
                 </button>
               </div>
             )}
@@ -208,15 +210,15 @@ const Checkout = () => {
               <div>
                 <h2 className="checkout-section-title">
                   <Truck size={18} />
-                  Mode de livraison
+                  {t('checkout.shippingMethod')}
                 </h2>
                 <div className="shipping-options">
                   <label className={`shipping-option ${shippingMethod === 'standard' ? 'shipping-option--active' : ''}`}>
                     <input type="radio" name="shipping" value="standard" checked={shippingMethod === 'standard'} onChange={() => setShippingMethod('standard')} />
                     <div className="shipping-option-content">
                       <div>
-                        <strong>Standard</strong>
-                        <span>Livraison sous 5-7 jours ouvrés</span>
+                        <strong>{t('checkout.shippingStandard')}</strong>
+                        <span>{t('checkout.shippingStandardDesc')}</span>
                       </div>
                       <span className="shipping-option-price">15,00 €</span>
                     </div>
@@ -225,23 +227,23 @@ const Checkout = () => {
                     <input type="radio" name="shipping" value="express" checked={shippingMethod === 'express'} onChange={() => setShippingMethod('express')} />
                     <div className="shipping-option-content">
                       <div>
-                        <strong>Express</strong>
-                        <span>Livraison sous 2-3 jours ouvrés</span>
+                        <strong>{t('checkout.shippingExpress')}</strong>
+                        <span>{t('checkout.shippingExpressDesc')}</span>
                       </div>
                       <span className="shipping-option-price">35,00 €</span>
                     </div>
                   </label>
                   {subtotal > FREE_SHIPPING_THRESHOLD_EUR && (
-                    <div className="shipping-free-badge">Livraison offerte !</div>
+                    <div className="shipping-free-badge">{t('checkout.freeShippingBanner')}</div>
                   )}
                 </div>
 
                 <div className="checkout-nav">
                   <button className="checkout-back-btn" onClick={() => setStep(1)}>
-                    <ArrowLeft size={16} /> Retour
+                    <ArrowLeft size={16} /> {t('common.back')}
                   </button>
                   <button className="checkout-next-btn" onClick={() => setStep(3)}>
-                    Continuer <ArrowRight size={16} />
+                    {t('checkout.continue')} <ArrowRight size={16} />
                   </button>
                 </div>
               </div>
@@ -251,27 +253,27 @@ const Checkout = () => {
               <div>
                 <h2 className="checkout-section-title">
                   <CreditCard size={18} />
-                  Paiement sécurisé
+                  {t('checkout.securePayment')}
                 </h2>
                 <div className="payment-methods">
                   <button className={`payment-method ${paymentMethod === 'card' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('card')}>
                     <CreditCard size={22} />
-                    <span>Carte bancaire</span>
+                    <span>{t('payment.card')}</span>
                   </button>
                   <button className={`payment-method ${paymentMethod === 'mobile' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('mobile')}>
                     <span style={{ fontSize: '1.25rem' }}>📱</span>
-                    <span>Mobile Money</span>
+                    <span>{t('payment.mobileMoney')}</span>
                   </button>
                   <button className={`payment-method ${paymentMethod === 'transfer' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('transfer')}>
                     <span style={{ fontSize: '1.25rem' }}>🏦</span>
-                    <span>Virement</span>
+                    <span>{t('payment.bankTransfer')}</span>
                   </button>
                 </div>
 
                 <div className="payment-sim">
                   <div className="payment-sim-header">
                     <Lock size={14} />
-                    Paiement simulé — environnement de démonstration
+                    {t('checkout.simPayment')}
                   </div>
                   <div className="payment-sim-body">
                     <div className="payment-sim-card">
@@ -282,7 +284,7 @@ const Checkout = () => {
                         <span>CVV •••</span>
                       </div>
                     </div>
-                    <p className="payment-sim-note">Aucune transaction réelle ne sera effectuée. Interface de simulation.</p>
+                    <p className="payment-sim-note">{t('checkout.simNote')}</p>
                   </div>
                 </div>
 
@@ -294,16 +296,16 @@ const Checkout = () => {
 
                 <div className="checkout-nav">
                   <button className="checkout-back-btn" onClick={() => setStep(2)}>
-                    <ArrowLeft size={16} /> Retour
+                    <ArrowLeft size={16} /> {t('common.back')}
                   </button>
                   <button className="checkout-confirm-btn" onClick={handleConfirm} disabled={submitting} style={{ opacity: submitting ? 0.7 : 1 }}>
-                    <Lock size={16} /> {submitting ? 'Enregistrement…' : 'Confirmer et payer'}
+                    <Lock size={16} /> {submitting ? t('common.saving') : t('checkout.confirmPay')}
                   </button>
                 </div>
 
                 <div className="checkout-security">
                   <Lock size={14} />
-                  <span>Paiement 100% sécurisé — Vos données sont protégées par le chiffrement SSL</span>
+                  <span>{t('checkout.secureFooter')}</span>
                 </div>
               </div>
             )}
@@ -311,30 +313,30 @@ const Checkout = () => {
 
           {/* Summary Panel */}
           <div className="checkout-summary">
-            <h3 className="checkout-summary-title">Récapitulatif</h3>
+            <h3 className="checkout-summary-title">{t('checkout.summary')}</h3>
             {cartItems.map(item => (
               <div key={item.productId} className="checkout-summary-item">
                 <img src={item.image} alt={item.title} />
                 <div>
                   <div className="checkout-summary-item-name">{item.title}</div>
-                  <div className="checkout-summary-item-qty">Qté: {item.qty}</div>
+                  <div className="checkout-summary-item-qty">{t('checkout.qty')}: {item.qty}</div>
                   <div className="checkout-summary-item-price">{(item.priceEUR * item.qty).toFixed(2)} €</div>
                 </div>
               </div>
             ))}
             <div className="checkout-summary-divider" />
             <div className="checkout-summary-line">
-              <span>Sous-total</span>
+              <span>{t('checkout.subtotal')}</span>
               <span>{subtotal.toFixed(2)} €</span>
             </div>
             <div className="checkout-summary-line">
-              <span>Livraison</span>
+              <span>{t('checkout.shipping')}</span>
               <span style={{ color: shippingCost === 0 ? 'var(--success)' : 'inherit' }}>
-                {shippingCost === 0 ? 'Gratuite' : shippingCost.toFixed(2) + ' €'}
+                {shippingCost === 0 ? t('checkout.freeShipping') : shippingCost.toFixed(2) + ' €'}
               </span>
             </div>
             <div className="checkout-summary-total">
-              <span>Total</span>
+              <span>{t('common.total')}</span>
               <span>{total.toFixed(2)} €</span>
             </div>
           </div>

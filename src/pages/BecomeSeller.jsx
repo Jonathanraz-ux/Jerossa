@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import './SellerOnboarding.css';
 
 const MAX_SIZE_MB = 10;
@@ -45,30 +46,31 @@ const formatSize = (bytes) => {
 
 const DOCUMENT_SLOTS = {
   individual: [
-    { key: 'identity',        label: 'Pièce d\'identité en cours de validité',      required: true,  description: 'Carte nationale d\'identité ou passeport. Le nom doit correspondre aux informations renseignées dans votre dossier.' },
-    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Capture ou document récent indiquant votre nom et le numéro Mobile Money ou le compte bancaire choisi. Masquez le solde et les transactions : seuls le nom du titulaire et le numéro du compte sont nécessaires.' },
-    { key: 'activity_proof',  label: 'Justificatif d\'activité',                    required: false, description: 'Carte fiscale, carte professionnelle, attestation de producteur, document d\'enregistrement ou autre preuve officielle de votre activité, si vous en disposez.' }
+    { key: 'identity',        labelKey: 'onboarding.docIdentity',        required: true,  descriptionKey: 'onboarding.docIdentityDesc' },
+    { key: 'payment_proof',   labelKey: 'onboarding.docPaymentProof',    required: true,  descriptionKey: 'onboarding.docPaymentProofDesc' },
+    { key: 'activity_proof',  labelKey: 'onboarding.docActivityProof',   required: false, descriptionKey: 'onboarding.docActivityProofDesc' }
   ],
   company: [
-    { key: 'registration',    label: 'Document d\'immatriculation',                 required: true,  description: 'Extrait RCS ou document officiel équivalent attestant l\'existence de l\'entreprise.' },
-    { key: 'tax_id',          label: 'Identification fiscale',                      required: true,  description: 'NIF, carte fiscale ou document fiscal officiel équivalent.' },
-    { key: 'representative_id', label: 'Pièce d\'identité du représentant légal',   required: true,  description: 'Carte nationale d\'identité ou passeport en cours de validité du représentant déclaré.' },
-    { key: 'company_docs',    label: 'Document complémentaire de l\'entreprise',     required: false, description: 'Carte STAT, statuts, mandat du représentant ou autre justificatif officiel utile à la vérification.' },
-    { key: 'activity_auth',   label: 'Autorisation d\'activité',                    required: false, conditional: true, description: 'Licence, agrément, certificat ou autorisation administrative lorsque les produits vendus appartiennent à une activité réglementée.' },
-    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Le compte de paiement doit appartenir à l\'entreprise ou à un représentant autorisé. Masquez le solde et les transactions.' }
+    { key: 'registration',      labelKey: 'onboarding.docRegistration',       required: true,  descriptionKey: 'onboarding.docRegistrationDesc' },
+    { key: 'tax_id',            labelKey: 'onboarding.docTaxId',               required: true,  descriptionKey: 'onboarding.docTaxIdDesc' },
+    { key: 'representative_id', labelKey: 'onboarding.docRepresentativeId',   required: true,  descriptionKey: 'onboarding.docRepresentativeIdDesc' },
+    { key: 'company_docs',      labelKey: 'onboarding.docCompanyDocs',        required: false, descriptionKey: 'onboarding.docCompanyDocsDesc' },
+    { key: 'activity_auth',     labelKey: 'onboarding.docActivityAuth',       required: false, conditional: true, descriptionKey: 'onboarding.docActivityAuthDesc' },
+    { key: 'payment_proof',     labelKey: 'onboarding.docPaymentProof',       required: true,  descriptionKey: 'onboarding.docPaymentProofDesc' }
   ],
   cooperative: [
-    { key: 'registration',    label: 'Document d\'enregistrement',                  required: true,  description: 'Récépissé, agrément, certificat ou autre document officiel attestant l\'existence de l\'organisation.' },
-    { key: 'representative_id', label: 'Pièce d\'identité du responsable',           required: true,  description: 'Carte nationale d\'identité ou passeport en cours de validité du responsable déclaré.' },
-    { key: 'mandate',         label: 'Statuts ou mandat du responsable',            required: false, description: 'Document permettant de confirmer que la personne inscrite peut représenter l\'organisation.' },
-    { key: 'activity_auth',   label: 'Autorisation d\'activité',                    required: false, conditional: true, description: 'Licence, agrément ou certificat lorsque l\'activité ou les produits proposés sont réglementés.' },
-    { key: 'payment_proof',   label: 'Justificatif du compte de paiement',          required: true,  description: 'Le compte de paiement doit appartenir à l\'organisation ou au responsable autorisé. Masquez le solde et les transactions.' }
+    { key: 'registration',      labelKey: 'onboarding.docEnrollment',        required: true,  descriptionKey: 'onboarding.docEnrollmentDesc' },
+    { key: 'representative_id', labelKey: 'onboarding.docResponsibleId',     required: true,  descriptionKey: 'onboarding.docResponsibleIdDesc' },
+    { key: 'mandate',           labelKey: 'onboarding.docMandate',            required: false, descriptionKey: 'onboarding.docMandateDesc' },
+    { key: 'activity_auth',     labelKey: 'onboarding.docActivityAuth',       required: false, conditional: true, descriptionKey: 'onboarding.docActivityAuthDesc' },
+    { key: 'payment_proof',     labelKey: 'onboarding.docPaymentProof',       required: true,  descriptionKey: 'onboarding.docPaymentProofDesc' }
   ]
 };
 
 const BecomeSeller = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLang();
 
   const [checking, setChecking] = useState(true);
   const [existing, setExisting] = useState(null);
@@ -146,11 +148,11 @@ const BecomeSeller = () => {
     const file = fileList?.[0];
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setSlotErrors(prev => ({ ...prev, [slotKey]: 'Format non accepté. Utilisez JPG, PNG ou PDF.' }));
+      setSlotErrors(prev => ({ ...prev, [slotKey]: t('onboarding.docFormatError') }));
       return;
     }
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setSlotErrors(prev => ({ ...prev, [slotKey]: `Fichier trop volumineux (max ${MAX_SIZE_MB} Mo).` }));
+      setSlotErrors(prev => ({ ...prev, [slotKey]: t('onboarding.docSizeError', { max: MAX_SIZE_MB }) }));
       return;
     }
     setDocSlots(prev => ({ ...prev, [slotKey]: { file, existing: null } }));
@@ -218,15 +220,15 @@ const BecomeSeller = () => {
     setError('');
     if (!isAuthenticated) return;
     if (!sellerType) {
-      setError('Veuillez sélectionner votre type de vendeur.');
+      setError(t('onboarding.errorSellerType'));
       return;
     }
     if (!allRequiredUploaded) {
-      setError('Veuillez fournir tous les documents obligatoires pour votre profil.');
+      setError(t('onboarding.errorDocs'));
       return;
     }
     if (!consentGiven) {
-      setError('Vous devez accepter les conditions d\'utilisation de vos documents.');
+      setError(t('onboarding.errorConsent'));
       return;
     }
     setSaving(true);
@@ -268,7 +270,7 @@ const BecomeSeller = () => {
       }
       navigate('/vendeur/statut');
     } catch (err) {
-      setError(`Échec de l'envoi : ${err.message}`);
+      setError(t('onboarding.errorUpload', { error: err.message }));
     } finally {
       setSaving(false);
     }
@@ -287,21 +289,21 @@ const BecomeSeller = () => {
       <div key={slot.key} className={`sl-doc-slot${uploaded ? ' sl-doc-slot--filled' : ''}${slotError ? ' sl-doc-slot--error' : ''}`}>
         <div className="sl-doc-slot-header">
           <span className={badgeClass}>
-            {slot.required ? 'Obligatoire' : slot.conditional ? 'Selon votre activité' : 'Facultatif'}
+            {slot.required ? t('onboarding.docRequired') : slot.conditional ? t('onboarding.docConditional') : t('onboarding.docOptional')}
           </span>
-          <span className="sl-doc-slot-label">{slot.label}</span>
+          <span className="sl-doc-slot-label">{t(slot.labelKey)}</span>
         </div>
-        <p className="sl-doc-slot-desc">{slot.description}</p>
+        <p className="sl-doc-slot-desc">{t(slot.descriptionKey)}</p>
 
         {uploaded ? (
           <div className="sl-doc-slot-file">
             <FileText size={16} />
             <span className="sl-doc-slot-filename">
-              {isExisting ? existing?.name || 'Document transmis' : val.file.name}
+              {isExisting ? existing?.name || t('onboarding.docTransmitted') : val.file.name}
             </span>
             {!isExisting && <span className="sl-doc-slot-size">{formatSize(val.file.size)}</span>}
-            {isExisting && <span className="sl-doc-slot-existing">Déjà transmis</span>}
-            <button type="button" className="sl-doc-slot-remove" aria-label="Retirer ce fichier" onClick={() => removeSlotFile(slot.key)}>
+            {isExisting && <span className="sl-doc-slot-existing">{t('onboarding.docAlreadyTransmitted')}</span>}
+            <button type="button" className="sl-doc-slot-remove" aria-label={t('onboarding.docRemove')} onClick={() => removeSlotFile(slot.key)}>
               <X size={13} />
             </button>
           </div>
@@ -309,7 +311,7 @@ const BecomeSeller = () => {
           <>
             <label className="sl-doc-slot-upload">
               <Upload size={16} />
-              <span>Choisir un fichier</span>
+              <span>{t('onboarding.docChooseFile')}</span>
               <input
                 type="file"
                 accept={ACCEPTED_EXT}
@@ -343,12 +345,12 @@ const BecomeSeller = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico sl-notice-ico--info"><LogIn size={26} /></div>
-            <span className="sl-notice-eyebrow">Espace vendeur</span>
-            <h1>Connectez-vous pour déposer votre candidature</h1>
-            <p>La création d'une boutique sur Jerossa nécessite un compte acheteur. L'inscription est gratuite.</p>
+            <span className="sl-notice-eyebrow">{t('seller.space')}</span>
+            <h1>{t('onboarding.loginTitle')}</h1>
+            <p>{t('onboarding.loginText')}</p>
             <div className="sl-notice-actions">
-              <Link to="/login" className="j-pill-btn j-pill-btn--green">Se connecter</Link>
-              <Link to="/register" className="j-pill-btn j-pill-btn--outline-dark">Créer un compte</Link>
+              <Link to="/login" className="j-pill-btn j-pill-btn--green">{t('onboarding.login')}</Link>
+              <Link to="/register" className="j-pill-btn j-pill-btn--outline-dark">{t('onboarding.register')}</Link>
             </div>
           </div>
         </div>
@@ -362,13 +364,13 @@ const BecomeSeller = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico"><CheckCircle2 size={26} /></div>
-            <span className="sl-notice-eyebrow">Boutique validée</span>
-            <h1>Votre boutique « {existing.name} » est active</h1>
-            <p>Vous pouvez dès à présent publier des offres qui seront visibles dans votre boutique.</p>
+            <span className="sl-notice-eyebrow">{t('onboarding.approvedEyebrow')}</span>
+            <h1>{t('onboarding.approvedTitle', { name: existing.name })}</h1>
+            <p>{t('onboarding.approvedText')}</p>
             <div className="sl-notice-actions">
-              <Link to="/publier" className="j-pill-btn j-pill-btn--green">Publier une offre</Link>
+              <Link to="/publier" className="j-pill-btn j-pill-btn--green">{t('onboarding.publishOffer')}</Link>
               {existing.slug && (
-                <Link to={`/producteur/${existing.slug}`} className="j-pill-btn j-pill-btn--outline-dark">Voir ma boutique</Link>
+                <Link to={`/producteur/${existing.slug}`} className="j-pill-btn j-pill-btn--outline-dark">{t('onboarding.viewShop')}</Link>
               )}
             </div>
           </div>
@@ -383,11 +385,11 @@ const BecomeSeller = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico sl-notice-ico--info"><Clock size={26} /></div>
-            <span className="sl-notice-eyebrow">Candidature en cours</span>
-            <h1>Votre dossier est en cours d'examen</h1>
-            <p>Notre équipe vérifie les informations et pièces justificatives de « {existing.name} ». Vous serez notifié dès la validation.</p>
+            <span className="sl-notice-eyebrow">{t('onboarding.pendingEyebrow')}</span>
+            <h1>{t('onboarding.pendingTitle')}</h1>
+            <p>{t('onboarding.pendingText', { name: existing.name })}</p>
             <div className="sl-notice-actions">
-              <Link to="/vendeur/statut" className="j-pill-btn j-pill-btn--green">Voir le statut de ma demande</Link>
+              <Link to="/vendeur/statut" className="j-pill-btn j-pill-btn--green">{t('onboarding.viewStatus')}</Link>
             </div>
           </div>
         </div>
@@ -401,16 +403,16 @@ const BecomeSeller = () => {
         <div className="container sl-body">
           <div className="sl-notice">
             <div className="sl-notice-ico sl-notice-ico--danger"><Ban size={26} /></div>
-            <span className="sl-notice-eyebrow">Compte suspendu</span>
-            <h1>Votre boutique est suspendue</h1>
+            <span className="sl-notice-eyebrow">{t('onboarding.suspendedEyebrow')}</span>
+            <h1>{t('onboarding.suspendedTitle')}</h1>
             <p>
               {existing.review_note
-                ? `Motif : ${existing.review_note}`
-                : 'Votre boutique a été suspendue par notre équipe.'}
-              {' '}Contactez le support pour régulariser votre situation.
+                ? t('onboarding.suspendedReason', { reason: existing.review_note })
+                : t('onboarding.suspendedText')}
+              {' '}{t('onboarding.suspendedHint')}
             </p>
             <div className="sl-notice-actions">
-              <Link to="/contact" className="j-pill-btn j-pill-btn--green">Contacter le support</Link>
+              <Link to="/contact" className="j-pill-btn j-pill-btn--green">{t('onboarding.contactSupport')}</Link>
             </div>
           </div>
         </div>
@@ -426,15 +428,14 @@ const BecomeSeller = () => {
       <section className="sl-hero">
         <div className="container">
           <nav className="sl-breadcrumb">
-            <Link to="/">Accueil</Link>
+            <Link to="/">{t('onboarding.breadcrumbHome')}</Link>
             <span>/</span>
-            <span>Devenir vendeur</span>
+            <span>{t('onboarding.breadcrumbBecome')}</span>
           </nav>
-          <span className="sl-hero-tag">Espace vendeur</span>
-          <h1>Devenir vendeur sur Jerossa</h1>
+          <span className="sl-hero-tag">{t('onboarding.heroTag')}</span>
+          <h1>{t('onboarding.heroTitle')}</h1>
           <p>
-            Rejoignez la marketplace des producteurs de Madagascar et de l'île Maurice.
-            Complétez votre dossier : il sera examiné par notre équipe sous 48 h ouvrées.
+            {t('onboarding.heroText')}
           </p>
         </div>
       </section>
@@ -444,9 +445,9 @@ const BecomeSeller = () => {
           <div className="sl-rejection-banner">
             <XCircle size={18} />
             <div>
-              <strong>Votre candidature précédente a été refusée.</strong>
-              {existing.review_note && <p>Motif : {existing.review_note}</p>}
-              <p>Corrigez votre dossier ci-dessous puis renvoyez-le : vos pièces déjà transmises sont conservées.</p>
+              <strong>{t('onboarding.rejectionBanner')}</strong>
+              {existing.review_note && <p>{t('onboarding.rejectionReason', { reason: existing.review_note })}</p>}
+              <p>{t('onboarding.rejectionHint')}</p>
             </div>
           </div>
         )}
@@ -454,33 +455,33 @@ const BecomeSeller = () => {
         <form className="sl-layout" onSubmit={onSubmit}>
           <div className="sl-form">
             <div className="sl-section">
-              <h2 className="sl-section-title">Informations sur la boutique</h2>
-              <Field label="Nom de la boutique" required hint="Ex. : Coopérative SAVA Vanilla">
-                <input className="sl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom commercial de votre activité" required />
+              <h2 className="sl-section-title">{t('onboarding.sectionShop')}</h2>
+              <Field label={t('onboarding.fieldShopName')} required hint={t('onboarding.shopNameHint')}>
+                <input className="sl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('onboarding.shopNamePlaceholder')} required />
               </Field>
-              <Field label="Localisation" required hint="Région, pays">
-                <input className="sl-input" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex. : Sava, Madagascar" required />
+              <Field label={t('onboarding.fieldLocation')} required hint={t('onboarding.locationHint')}>
+                <input className="sl-input" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('seller.productEdit.originPlaceholder')} required />
               </Field>
               <div className="sl-grid-2">
-                <Field label="Année de création">
-                  <input className="sl-input" type="number" min="1900" max={new Date().getFullYear()} value={established} onChange={(e) => setEstablished(e.target.value)} placeholder="Ex. : 1998" />
+                <Field label={t('onboarding.fieldYear')}>
+                  <input className="sl-input" type="number" min="1900" max={new Date().getFullYear()} value={established} onChange={(e) => setEstablished(e.target.value)} placeholder={t('onboarding.placeholderYear')} />
                 </Field>
-                <Field label="Téléphone">
+                <Field label={t('onboarding.fieldPhone')}>
                   <input className="sl-input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+261 …" />
                 </Field>
               </div>
-              <Field label="Description de l'activité" required hint="Production, spécialités, méthodes, certifications…">
-                <textarea className="sl-input sl-textarea" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Présentez votre activité aux acheteurs…" required />
+              <Field label={t('onboarding.fieldDescription')} required hint={t('onboarding.descriptionHint')}>
+                <textarea className="sl-input sl-textarea" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('onboarding.descriptionPlaceholder')} required />
               </Field>
             </div>
 
             <div className="sl-section">
-              <h2 className="sl-section-title">Contact & paiement</h2>
-              <Field label="Email de contact" required>
+              <h2 className="sl-section-title">{t('onboarding.sectionContact')}</h2>
+              <Field label={t('onboarding.fieldEmail')} required>
                 <input className="sl-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@votreboutique.mg" required />
               </Field>
               <div className="sl-grid-2">
-                <Field label="Moyen de paiement souhaité" required>
+                <Field label={t('onboarding.fieldPayMethod')} required>
                   <div className="sl-select-wrap">
                     <select className="sl-input sl-select" value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
                       {PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}
@@ -488,18 +489,18 @@ const BecomeSeller = () => {
                     <ChevronDown size={15} />
                   </div>
                 </Field>
-                <Field label="Numéro / compte de réception" required hint="Numéro Mobile Money ou IBAN du compte">
+                <Field label={t('onboarding.fieldPayDetail')} required hint={t('onboarding.payDetailHint')}>
                   <input className="sl-input" value={payDetail} onChange={(e) => setPayDetail(e.target.value)} placeholder="034 00 000 00 / IBAN…" required />
                 </Field>
               </div>
             </div>
 
             <div className="sl-section">
-              <Field label="Type de vendeur" required>
+              <Field label={t('onboarding.fieldSellerType')} required>
                 <div className="sl-select-wrap">
                   <select className="sl-input sl-select" value={sellerType} onChange={handleSellerTypeChange} required>
-                    <option value="">— Sélectionnez votre profil —</option>
-                    {SELLER_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    <option value="">{t('onboarding.selectProfile')}</option>
+                    {SELLER_TYPES.map((type) => <option key={type.value} value={type.value}>{t('onboarding.sellerType' + type.value.charAt(0).toUpperCase() + type.value.slice(1))}</option>)}
                   </select>
                   <ChevronDown size={15} />
                 </div>
@@ -507,21 +508,18 @@ const BecomeSeller = () => {
             </div>
 
             <div className="sl-section">
-              <h2 className="sl-section-title">Vérification de votre identité et de votre activité</h2>
+              <h2 className="sl-section-title">{t('onboarding.sectionVerification')}</h2>
 
               <p className="sl-doc-intro">
-                Ces documents permettent à Jerossa de confirmer votre identité, l'existence de votre activité
-                et la correspondance de vos informations de paiement. Ils contribuent à protéger les acheteurs
-                et les vendeurs contre les comptes frauduleux.
+                {t('onboarding.docIntro')}
               </p>
 
               <div className="sl-doc-privacy">
                 <ShieldCheck size={18} />
                 <div>
-                  <strong>Confidentialité</strong>
+                  <strong>{t('onboarding.confidentiality')}</strong>
                   <p>
-                    Vos documents restent confidentiels. Ils sont uniquement accessibles aux administrateurs
-                    autorisés de Jerossa et ne sont jamais affichés sur votre profil public.
+                    {t('onboarding.confidentialityText')}
                   </p>
                 </div>
               </div>
@@ -529,15 +527,13 @@ const BecomeSeller = () => {
               <div className="sl-doc-info">
                 <Info size={15} />
                 <p>
-                  Jerossa demande uniquement les documents nécessaires à l'examen de votre dossier.
-                  Des justificatifs complémentaires peuvent être demandés si votre activité ou vos produits
-                  sont soumis à une autorisation particulière.
+                  {t('onboarding.additionalDocsInfo')}
                 </p>
               </div>
 
               {!sellerType && (
                 <p className="sl-doc-placeholder">
-                  Sélectionnez votre type de vendeur ci-dessus pour afficher les justificatifs correspondants.
+                  {t('onboarding.selectTypeHint')}
                 </p>
               )}
 
@@ -553,16 +549,13 @@ const BecomeSeller = () => {
                   className="sl-consent-checkbox"
                 />
                 <span className="sl-consent-text">
-                  Je confirme que les informations et documents transmis sont exacts et j'accepte qu'ils
-                  soient utilisés par Jerossa pour vérifier mon identité, mon activité et mes informations
-                  de paiement.
+                  {t('onboarding.consentText')}
                 </span>
               </label>
               <p className="sl-consent-legal">
-                Vous pouvez demander la rectification ou la suppression de vos données, sous réserve des
-                obligations légales applicables.
+                {t('onboarding.consentLegal')}
                 {' '}
-                <Link to="/privacy">Politique de confidentialité</Link>
+                <Link to="/privacy">{t('onboarding.privacyPolicy')}</Link>
               </p>
             </div>
           </div>
@@ -570,11 +563,11 @@ const BecomeSeller = () => {
           <aside className="sl-side">
             <div className="sl-side-card">
               <Store size={22} />
-              <h3>Comment ça marche ?</h3>
+              <h3>{t('onboarding.howItWorks')}</h3>
               <ol>
-                <li>Déposez votre dossier avec vos pièces justificatives.</li>
-                <li>Notre équipe vérifie votre identité et votre activité (sous 48 h ouvrées).</li>
-                <li>Une fois validé, publiez vos offres et recevez des commandes.</li>
+                <li>{t('onboarding.step1')}</li>
+                <li>{t('onboarding.step2')}</li>
+                <li>{t('onboarding.step3')}</li>
               </ol>
               {error && <p className="sl-error">{error}</p>}
               <button
@@ -583,16 +576,15 @@ const BecomeSeller = () => {
                 disabled={!canSubmit}
               >
                 {saving ? (
-                  <><Loader2 size={15} className="sl-spin" /> Envoi en cours…</>
+                  <><Loader2 size={15} className="sl-spin" /> {t('onboarding.submitting')}</>
                 ) : uploading ? (
-                  <><Loader2 size={15} className="sl-spin" /> Téléversement…</>
+                  <><Loader2 size={15} className="sl-spin" /> {t('onboarding.uploading')}</>
                 ) : (
-                  <>Envoyer ma candidature</>
+                  <>{t('onboarding.submitApplication')}</>
                 )}
               </button>
               <p className="sl-side-note">
-                En envoyant ce formulaire, vous acceptez les <Link to="/cgv">CGV</Link> et la{' '}
-                <Link to="/privacy">politique de confidentialité</Link> de Jerossa.
+                {t('onboarding.sideNotePrefix')} <Link to="/cgv">{t('onboarding.cgv')}</Link> {t('onboarding.sideNoteMid')} <Link to="/privacy">{t('onboarding.privacyPolicy')}</Link> {t('onboarding.sideNoteSuffix')}
               </p>
             </div>
           </aside>

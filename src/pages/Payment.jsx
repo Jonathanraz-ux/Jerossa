@@ -3,13 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, CreditCard, Smartphone, Landmark, ShieldCheck, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { fetchOrderByUser, confirmPayment } from '../services/orders';
 import { useCart } from '../context/CartContext';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 import { COMPANY_INFO } from '../config/companyInfo';
 
 const METHOD_META = {
-  card: { label: 'Carte bancaire', icon: CreditCard },
-  mobile: { label: 'Mobile Money', icon: Smartphone },
-  transfer: { label: 'Virement', icon: Landmark },
+  card: { icon: CreditCard },
+  mobile: { icon: Smartphone },
+  transfer: { icon: Landmark },
 };
 
 const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
@@ -18,6 +19,7 @@ const Payment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { clearCart } = useCart();
+  const { t } = useLang();
   const orderNumber = searchParams.get('order') || '';
   const method = METHOD_META[searchParams.get('method')] ? searchParams.get('method') : 'card';
   const [order, setOrder] = useState(null);
@@ -52,7 +54,7 @@ const Payment = () => {
     setPaying(false);
 
     if (!res.ok) {
-      setPayError(res.error?.message || "Le paiement n'a pas pu être traité. Réessayez.");
+      setPayError(res.error?.message || t('payment.processingError'));
       return;
     }
 
@@ -73,14 +75,14 @@ const Payment = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
             <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+              <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
               <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-              <li style={{ color: '#fff', fontWeight: 500 }}>Paiement sécurisé</li>
+              <li style={{ color: '#fff', fontWeight: 500 }}>{t('payment.securePayment')}</li>
             </ol>
           </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Paiement</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Paiement sécurisé</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Mode de paiement : {METHOD_META[method].label} — simulation de démonstration</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('payment.payment')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('payment.securePayment')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('payment.method')} : {t('payment.' + method)} — {t('payment.demo')}</p>
         </div>
       </section>
 
@@ -100,30 +102,30 @@ const Payment = () => {
         ) : notFound ? (
           <div className="scroll-animate empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--bg-cream)', borderRadius: '12px', border: '1px solid var(--border)' }}>
             <AlertTriangle size={48} style={{ color: 'var(--text-muted)', marginBottom: '16px' }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Commande introuvable</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Aucune commande en attente de paiement n'a été trouvée pour cette référence.</p>
-            <Link to="/checkout" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Retour au paiement</Link>
+            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>{t('payment.orderNotFound')}</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{t('payment.orderNotFoundText')}</p>
+            <Link to="/checkout" className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{t('payment.backToPayment')}</Link>
           </div>
         ) : alreadyPaid ? (
           <div className="scroll-animate empty-state" style={{ textAlign: 'center', padding: '60px 0', background: 'var(--success-bg)', borderRadius: '12px', border: '1px solid var(--success)' }}>
             <CheckCircle size={48} style={{ color: 'var(--success)', marginBottom: '16px' }} />
-            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>Paiement déjà confirmé</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>La commande {orderNumber} a déjà été payée.</p>
-            <Link to={`/order-confirmation?ref=${orderNumber}`} className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>Voir la confirmation</Link>
+            <h3 style={{ fontFamily: 'var(--font-serif)', marginBottom: '8px', color: 'var(--text-dark)' }}>{t('payment.alreadyPaid')}</h3>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>{t('payment.alreadyPaidText', { order: orderNumber })}</p>
+            <Link to={`/order-confirmation?ref=${orderNumber}`} className="btn btn-primary premium-btn" style={{ padding: '14px 28px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{t('payment.viewConfirmation')}</Link>
           </div>
         ) : (
           <>
             {/* Récapitulatif */}
             <div className="scroll-animate" style={{ background: 'var(--bg-cream)', borderRadius: '12px', padding: '24px', marginBottom: '24px', textAlign: 'left' }}>
-              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>Résumé de la commande {orderNumber}</h3>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>{t('payment.orderSummary', { order: orderNumber })}</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <span>Sous-total</span><span>{formatEUR(order.subtotal)}</span>
+                <span>{t('checkout.subtotal')}</span><span>{formatEUR(order.subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <span>Livraison</span><span>{order.shippingFee === 0 ? 'Gratuite' : formatEUR(order.shippingFee)}</span>
+                <span>{t('checkout.shipping')}</span><span>{order.shippingFee === 0 ? t('checkout.freeShipping') : formatEUR(order.shippingFee)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--border)', fontWeight: 700 }}>
-                <span>Total</span><span>{formatEUR(order.total)}</span>
+                <span>{t('common.total')}</span><span>{formatEUR(order.total)}</span>
               </div>
             </div>
 
@@ -134,9 +136,9 @@ const Payment = () => {
                   {method === 'card' && <CreditCard size={20} />}
                   {method === 'mobile' && <Smartphone size={20} />}
                   {method === 'transfer' && <Landmark size={20} />}
-                  {METHOD_META[method].label}
+                  {t('payment.' + method)}
                 </div>
-                <span className="pay-provider-sim"><Lock size={12} /> SIMULATION</span>
+                <span className="pay-provider-sim"><Lock size={12} /> {t('payment.simulation')}</span>
               </div>
 
               <div className="pay-provider-body">
@@ -150,7 +152,7 @@ const Payment = () => {
                         <span>CVV •••</span>
                       </div>
                     </div>
-                    <p className="pay-note">Carte de test fictive — aucun débit réel ne sera effectué.</p>
+                    <p className="pay-note">{t('payment.testCardNote')}</p>
                   </>
                 )}
 
@@ -158,19 +160,19 @@ const Payment = () => {
                   <>
                     <div className="pay-mobile">
                       <div className="pay-mobile-top">
-                        <span>Paiement Mobile Money (Simulateur)</span>
+                        <span>{t('payment.mobileSimulator')}</span>
                         <span>MADAGASCAR · MAURICE</span>
                       </div>
                       <div className="pay-mobile-phone">
-                        <span className="pay-mobile-label">Opérateurs supportés</span>
+                        <span className="pay-mobile-label">{t('payment.supportedOperators')}</span>
                         <span className="pay-mobile-number">MVola · Orange Money · Airtel · Juice</span>
                       </div>
                       <div className="pay-mobile-pin">
-                        <span className="pay-mobile-label">Validation</span>
-                        <span className="pay-mobile-dots">Validation instantanée</span>
+                        <span className="pay-mobile-label">{t('payment.validation')}</span>
+                        <span className="pay-mobile-dots">{t('payment.instantValidation')}</span>
                       </div>
                     </div>
-                    <p className="pay-note">Environnement de test — aucune transaction financière réelle ne sera prélevée.</p>
+                    <p className="pay-note">{t('payment.testMobileNote')}</p>
                   </>
                 )}
 
@@ -178,19 +180,19 @@ const Payment = () => {
                   <>
                     <div className="pay-bank">
                       <div className="pay-bank-row">
-                        <span className="pay-bank-label">Bénéficiaire</span>
-                        <span className="pay-bank-value">{COMPANY_INFO.legalName || 'Compte Sécurisé Jerossa'}</span>
+                        <span className="pay-bank-label">{t('payment.beneficiary')}</span>
+                        <span className="pay-bank-value">{COMPANY_INFO.legalName || t('payment.secureAccount')}</span>
                       </div>
                       <div className="pay-bank-row">
-                        <span className="pay-bank-label">Mode</span>
-                        <span>Virement bancaire (Madagascar / Maurice)</span>
+                        <span className="pay-bank-label">{t('payment.mode')}</span>
+                        <span>{t('payment.bankTransferMode')}</span>
                       </div>
                       <div className="pay-bank-row">
-                        <span className="pay-bank-label">Référence commande</span>
+                        <span className="pay-bank-label">{t('payment.orderReference')}</span>
                         <span style={{ fontWeight: 600 }}>{orderNumber}</span>
                       </div>
                     </div>
-                    <p className="pay-note">Environnement de test — la validation est immédiate pour la démonstration.</p>
+                    <p className="pay-note">{t('payment.testTransferNote')}</p>
                   </>
                 )}
               </div>
@@ -204,16 +206,16 @@ const Payment = () => {
 
             <div className="scroll-animate pay-actions">
               <button className="btn btn-primary premium-btn" onClick={() => handlePay(true)} disabled={paying} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '8px', fontWeight: 600, color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s', opacity: paying ? 0.7 : 1 }}>
-                {paying ? <><Loader2 size={16} className="spin" /> Traitement…</> : <><Lock size={16} /> Confirmer le paiement (simulation)</>}
+                {paying ? <><Loader2 size={16} className="spin" /> {t('payment.processing')}…</> : <><Lock size={16} /> {t('payment.confirmSimulation')}</>}
               </button>
               <button className="btn btn-outline premium-btn" onClick={() => handlePay(false)} disabled={paying} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '8px', fontWeight: 600, border: '1px solid var(--danger)', color: 'var(--danger)', background: 'transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
-                <XCircle size={16} /> Simuler un échec de paiement
+                <XCircle size={16} /> {t('payment.simulateFailure')}
               </button>
             </div>
 
             <div className="scroll-animate" style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
               <ShieldCheck size={14} style={{ color: 'var(--success)' }} />
-              Paiement 100% sécurisé — vos données sont protégées par le chiffrement SSL
+              {t('payment.secureFooter')}
             </div>
           </>
         )}

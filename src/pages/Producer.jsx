@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchProducers } from '../services/catalog';
 import { Star, MapPin } from 'lucide-react';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const Producer = () => {
+  const { t } = useLang();
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,21 +24,21 @@ const Producer = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
   <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
     <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-    <li style={{ color: '#fff', fontWeight: 500 }}>Producteurs</li>
+    <li style={{ color: '#fff', fontWeight: 500 }}>{t('producer.breadcrumb')}</li>
   </ol>
 </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Nos Producteurs</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Les Artisans de Jerossa</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Rencontrez les producteurs qui façonnent l\'excellence de nos matières premières.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('producer.surtitre')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('producer.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('producer.desc')}</p>
         </div>
       </section>
 
       <div className="container page-container">
         {/* Producers Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>Chargement des producteurs…</div>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>{t('producer.loading')}</div>
         ) : (
           <div className="producers-list-grid">
             {producers.map((producer, i) => (
@@ -56,7 +58,7 @@ const Producer = () => {
                         <span style={{ fontWeight: 600 }}>{producer.rating}</span>
                       </div>
                       <span style={{ color: 'var(--text-muted)' }}>•</span>
-                      <span style={{ color: 'var(--text-muted)' }}>Depuis {producer.established}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{t('producer.since', { year: producer.established })}</span>
                     </div>
                   </div>
                 </div>

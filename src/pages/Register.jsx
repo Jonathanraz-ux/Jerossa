@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, Store } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LangContext';
 import './animations.css';
 
 const Register = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
+  const { t } = useLang();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '' });
@@ -23,11 +25,11 @@ const Register = () => {
     setError('');
     setNotice('');
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.');
+      setError(t('auth.register.passwordMismatch'));
       return;
     }
     if (formData.password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.');
+      setError(t('auth.register.passwordTooShort'));
       return;
     }
     setLoading(true);
@@ -45,7 +47,7 @@ const Register = () => {
     if (data.session) {
       navigate('/my-account');
     } else {
-      setNotice('Compte créé ! Vérifiez votre email pour confirmer votre inscription.');
+      setNotice(t('auth.register.successNotice'));
     }
   };
 
@@ -56,14 +58,14 @@ const Register = () => {
         <div className="page-hero-content">
           <nav className="anim-fade-down" style={{ marginBottom: '16px' }}>
   <ol style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>Accueil</a></li>
+    <li><a href="/" className="link-premium" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('nav.home')}</a></li>
     <li style={{ color: 'rgba(255,255,255,0.4)' }}>/</li>
-    <li style={{ color: '#fff', fontWeight: 500 }}>Inscription</li>
+    <li style={{ color: '#fff', fontWeight: 500 }}>{t('auth.register.breadcrumb')}</li>
   </ol>
 </nav>
-          <span className="page-hero-surtitre anim-fade-up stagger-1">Inscription</span>
-          <h1 className="page-hero-title anim-fade-up stagger-2">Créer un compte</h1>
-          <p className="page-hero-subtitle anim-fade-up stagger-3">Rejoignez la communauté Jerossa.</p>
+          <span className="page-hero-surtitre anim-fade-up stagger-1">{t('auth.register.breadcrumb')}</span>
+          <h1 className="page-hero-title anim-fade-up stagger-2">{t('auth.register.title')}</h1>
+          <p className="page-hero-subtitle anim-fade-up stagger-3">{t('auth.register.subtitle')}</p>
         </div>
       </section>
 
@@ -74,8 +76,8 @@ const Register = () => {
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <User size={28} style={{ color: 'var(--primary)' }} />
               </div>
-              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)' }}>Créer un compte</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Rejoignez la communauté Jerossa</p>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: 'var(--text-dark)' }}>{t('auth.register.create')}</h1>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('auth.register.join')}</p>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -91,17 +93,17 @@ const Register = () => {
               )}
               <div className="form-row" style={{ marginBottom: '16px' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Prénom</label>
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.firstName')}</label>
                   <input type="text" name="firstName" className="form-input" placeholder="Jean" value={formData.firstName} onChange={handleChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Nom</label>
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.lastName')}</label>
                   <input type="text" name="lastName" className="form-input" placeholder="Dupont" value={formData.lastName} onChange={handleChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Adresse email</label>
+                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.email')}</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type="email" name="email" className="form-input" placeholder="votre@email.com" value={formData.email} onChange={handleChange} style={{ width: '100%', padding: '10px 12px 10px 40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
@@ -110,17 +112,17 @@ const Register = () => {
 
               <div className="form-group" style={{ marginBottom: '16px', padding: '12px 14px', borderRadius: '10px', background: 'var(--brand-green-light)', border: '1px solid rgba(58, 107, 79, 0.25)' }}>
                 <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--brand-green)', marginBottom: '3px' }}>
-                  <Store size={15} /> Vous souhaitez vendre sur JEROSSA ?
+                  <Store size={15} /> {t('auth.register.sellTitle')}
                 </strong>
                 <span style={{ display: 'block', fontSize: '12px', lineHeight: 1.5, color: 'var(--text-dark)' }}>
-                  Créez d'abord votre compte client, puis passez par{' '}
-                  <Link to="/vendeur/devenir" style={{ color: 'var(--brand-green)', fontWeight: 600, textDecoration: 'underline' }}>Devenir vendeur</Link> —
-                  une seule adresse email suffit et l'équipe validera votre candidature.
+                  {t('auth.register.sellText')}{' '}
+                  <Link to="/vendeur/devenir" style={{ color: 'var(--brand-green)', fontWeight: 600, textDecoration: 'underline' }}>{t('nav.becomeSeller')}</Link>{' '}
+                  {t('auth.register.sellText2')}
                 </span>
               </div>
 
               <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Mot de passe</label>
+                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.password')}</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type={showPassword ? 'text' : 'password'} name="password" className="form-input" placeholder="Min. 8 caractères" value={formData.password} onChange={handleChange} style={{ width: '100%', padding: '10px 12px 10px 40px', paddingRight: '40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
@@ -131,22 +133,22 @@ const Register = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '24px' }}>
-                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>Confirmer le mot de passe</label>
+                <label className="form-label" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '6px', display: 'block' }}>{t('auth.confirmPassword')}</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" className="form-input" placeholder="Confirmer" value={formData.confirmPassword} onChange={handleChange} style={{ width: '100%', padding: '10px 12px 10px 40px', paddingRight: '40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
+                  <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" className="form-input" placeholder={t('auth.confirmPassword')} value={formData.confirmPassword} onChange={handleChange} style={{ width: '100%', padding: '10px 12px 10px 40px', paddingRight: '40px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '14px', outline: 'none', transition: 'var(--transition)' }} />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}>
                     {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? 'Création…' : 'Créer mon compte'}</button>
+              <button type="submit" className="btn btn-primary premium-btn" disabled={loading} style={{ width: '100%', padding: '14px', fontSize: '14px', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: loading ? 'wait' : 'pointer', background: 'var(--primary)', color: '#fff', transition: 'all 0.2s' }}>{loading ? t('auth.register.creating') : t('auth.register.create')}</button>
             </form>
 
             <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)' }}>
-              Déjà un compte ?{' '}
-              <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Se connecter</Link>
+              {t('auth.hasAccount')}{' '}
+              <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{t('auth.login')}</Link>
             </div>
           </div>
         </div>

@@ -5,27 +5,32 @@ import {
 } from '../../services/admin';
 import { formatInt, formatDateTime } from '../format';
 import { PageHead, EmptyState, Avatar, Modal } from '../ui';
+import { useLang } from '../../context/LangContext';
 
 const SELLER_STATUS = {
-  pending: { label: 'En attente', tone: 'amber' },
-  approved: { label: 'Validée', tone: 'green' },
-  rejected: { label: 'Refusée', tone: 'red' },
-  suspended: { label: 'Suspendue', tone: 'neutral' },
+  pending: { tone: 'amber' },
+  approved: { tone: 'green' },
+  rejected: { tone: 'red' },
+  suspended: { tone: 'neutral' },
 };
 
 const SELLER_TYPE_LABELS = {
-  individual: 'Particulier / artisan',
-  company: 'Entreprise / société',
-  cooperative: 'Coopérative / association',
+  individual: 'admin.sellers.types.individual',
+  company: 'admin.sellers.types.company',
+  cooperative: 'admin.sellers.types.cooperative',
 };
 
-const SellerBadge = ({ status }) => (
-  <span className={`adm-badge adm-badge--${SELLER_STATUS[status]?.tone || 'neutral'}`}>
-    {SELLER_STATUS[status]?.label || status}
-  </span>
-);
+const SellerBadge = ({ status }) => {
+  const { t } = useLang();
+  return (
+    <span className={`adm-badge adm-badge--${SELLER_STATUS[status]?.tone || 'neutral'}`}>
+      {t('status.' + status) !== ('status.' + status) ? t('status.' + status) : status}
+    </span>
+  );
+};
 
 const SellersSection = () => {
+  const { t, lang } = useLang();
   const [sellers, setSellers] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [search, setSearch] = useState('');
@@ -64,26 +69,26 @@ const SellersSection = () => {
   return (
     <div>
       <PageHead
-        eyebrow="Communauté"
-        title="Vendeurs"
-        subtitle={`${formatInt(sellers.length)} boutique${sellers.length > 1 ? 's' : ''} liée${sellers.length > 1 ? 's' : ''} à des comptes — candidatures et boutiques actives`}
+        eyebrow={t('admin.nav.community')}
+        title={t('admin.sellers.title')}
+        subtitle={t('admin.sellers.subtitle', { count: formatInt(sellers.length) })}
       />
 
       <div className="adm-toolbar">
-        <div className="adm-pills" role="tablist" aria-label="Filtrer par statut">
+        <div className="adm-pills" role="tablist" aria-label={t('admin.sellers.filterByStatus')}>
           <button
             className={`adm-pill ${statusFilter === 'all' ? 'adm-pill--active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            Tous <span className="adm-pill-count">{sellers.length}</span>
+            {t('common.all')} <span className="adm-pill-count">{sellers.length}</span>
           </button>
-          {Object.entries(SELLER_STATUS).map(([key, cfg]) => (
+          {Object.entries(SELLER_STATUS).map(([key]) => (
             <button
               key={key}
               className={`adm-pill ${statusFilter === key ? 'adm-pill--active' : ''}`}
               onClick={() => setStatusFilter(key)}
             >
-              {cfg.label} {!!statusCounts[key] && <span className="adm-pill-count">{statusCounts[key]}</span>}
+              {t('status.' + key)} {!!statusCounts[key] && <span className="adm-pill-count">{statusCounts[key]}</span>}
             </button>
           ))}
         </div>
@@ -94,13 +99,13 @@ const SellersSection = () => {
           <Search size={15} strokeWidth={1.75} />
           <input
             type="text"
-            placeholder="Rechercher une boutique, un contact…"
+            placeholder={t('admin.sellers.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
         <span className="adm-cell-dim" style={{ marginLeft: 'auto' }}>
-          {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          {t('admin.sellers.results', { count: filtered.length })}
         </span>
       </div>
 
@@ -108,27 +113,27 @@ const SellersSection = () => {
         {sellers.length === 0 ? (
           <EmptyState
             icon={Store}
-            title="Aucune candidature vendeur"
-            text="Les demandes « Devenir vendeur » déposées depuis le site apparaîtront ici pour examen."
+            title={t('admin.sellers.emptyTitle')}
+            text={t('admin.sellers.emptyText')}
           />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Search}
             compact
-            title="Aucun résultat"
-            text="Ajustez la recherche ou le filtre de statut."
+            title={t('common.noResults')}
+            text={t('admin.sellers.noResultsText')}
           />
         ) : (
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
                 <tr>
-                  <th>Boutique</th>
-                  <th>Contact</th>
-                  <th>Localisation</th>
-                  <th>Pièces</th>
-                  <th>Déposée</th>
-                  <th>Statut</th>
+                  <th>{t('admin.sellers.colStore')}</th>
+                  <th>{t('admin.sellers.colContact')}</th>
+                  <th>{t('admin.sellers.colLocation')}</th>
+                  <th>{t('admin.sellers.colDocs')}</th>
+                  <th>{t('admin.sellers.colSubmitted')}</th>
+                  <th>{t('common.status')}</th>
                   <th />
                 </tr>
               </thead>
@@ -150,7 +155,7 @@ const SellersSection = () => {
                     </td>
                     <td className="adm-cell-dim" style={{ fontSize: 12.5 }}>{s.location || '—'}</td>
                     <td className="num">{s.documents.length}</td>
-                    <td className="adm-cell-dim" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(s.submittedAt)}</td>
+                    <td className="adm-cell-dim" style={{ whiteSpace: 'nowrap' }}>{formatDateTime(s.submittedAt, lang)}</td>
                     <td><SellerBadge status={s.status} /></td>
                     <td>
                       <div className="adm-row-actions">
@@ -172,6 +177,7 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState(seller.reviewNote || '');
   const [busy, setBusy] = useState(null);
+  const { t, lang } = useLang();
 
   const applyStatus = async (status) => {
     setBusy(status);
@@ -185,20 +191,20 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
 
   return (
     <>
-      <button className="adm-action" title="Examiner le dossier" onClick={() => setOpen(true)}>
+      <button className="adm-action" title={t('admin.sellers.examine')} onClick={() => setOpen(true)}>
         <Eye size={15} strokeWidth={1.75} />
       </button>
 
       {open && (
         <Modal
-          title={`Dossier — ${seller.name}`}
-          subtitle={`Déposé le ${formatDateTime(seller.submittedAt)}`}
+          title={t('admin.sellers.modalTitle', { name: seller.name })}
+          subtitle={t('admin.sellers.modalSub', { date: formatDateTime(seller.submittedAt, lang) })}
           onClose={() => setOpen(false)}
           maxWidth={680}
           footer={
             <>
               <button className="adm-btn adm-btn--ghost" onClick={() => setOpen(false)}>
-                Fermer
+                {t('common.close')}
               </button>
               <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                 {(seller.status === 'pending' || seller.status === 'approved') && (
@@ -208,7 +214,7 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
                     disabled={!!busy}
                   >
                     {busy === 'rejected' ? <Loader2 size={14} style={{ animation: 'adm-spin 0.9s linear infinite' }} /> : null}
-                    Refuser
+                    {t('admin.sellers.reject')}
                   </button>
                 )}
                 {(seller.status === 'pending' || seller.status === 'rejected') && (
@@ -218,7 +224,7 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
                     disabled={!!busy}
                   >
                     {busy === 'approved' ? <Loader2 size={14} style={{ animation: 'adm-spin 0.9s linear infinite' }} /> : null}
-                    Valider la boutique
+                    {t('admin.sellers.approveStore')}
                   </button>
                 )}
                 {seller.status === 'approved' && (
@@ -228,7 +234,7 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
                     disabled={!!busy}
                   >
                     {busy === 'suspended' ? <Loader2 size={14} style={{ animation: 'adm-spin 0.9s linear infinite' }} /> : null}
-                    Suspendre
+                    {t('admin.sellers.suspend')}
                   </button>
                 )}
                 {seller.status === 'suspended' && (
@@ -238,7 +244,7 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
                     disabled={!!busy}
                   >
                     {busy === 'approved' ? <Loader2 size={14} style={{ animation: 'adm-spin 0.9s linear infinite' }} /> : null}
-                    Réactiver
+                    {t('admin.sellers.reactivate')}
                   </button>
                 )}
               </div>
@@ -247,35 +253,35 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
         >
           <div className="adm-meta-grid" style={{ marginBottom: 18 }}>
             <div>
-              <div className="adm-meta-label">Statut</div>
+              <div className="adm-meta-label">{t('common.status')}</div>
               <div style={{ marginTop: 2 }}><SellerBadge status={seller.status} /></div>
             </div>
             <div>
-              <div className="adm-meta-label">Titulaire du compte</div>
+              <div className="adm-meta-label">{t('admin.sellers.accountHolder')}</div>
               <div className="adm-meta-value">{seller.ownerName || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Email de contact</div>
+              <div className="adm-meta-label">{t('admin.sellers.contactEmail')}</div>
               <div className="adm-meta-value">{seller.contactEmail || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Téléphone</div>
+              <div className="adm-meta-label">{t('common.phone')}</div>
               <div className="adm-meta-value">{seller.phone || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Localisation</div>
+              <div className="adm-meta-label">{t('admin.sellers.location')}</div>
               <div className="adm-meta-value">{seller.location || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Année de création</div>
+              <div className="adm-meta-label">{t('admin.sellers.estYear')}</div>
               <div className="adm-meta-value">{seller.established || '—'}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Type de vendeur</div>
-              <div className="adm-meta-value">{SELLER_TYPE_LABELS[seller.sellerType] || '—'}</div>
+              <div className="adm-meta-label">{t('admin.sellers.sellerType')}</div>
+              <div className="adm-meta-value">{t(SELLER_TYPE_LABELS[seller.sellerType] || 'admin.sellers.types.na')}</div>
             </div>
             <div>
-              <div className="adm-meta-label">Paiement souhaité</div>
+              <div className="adm-meta-label">{t('admin.sellers.paymentMethod')}</div>
               <div className="adm-meta-value">
                 {seller.paymentInfo?.method || '—'}
                 {seller.paymentInfo?.detail && <span className="adm-cell-dim"> · {seller.paymentInfo.detail}</span>}
@@ -283,24 +289,24 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
             </div>
             {seller.reviewedAt && (
               <div>
-                <div className="adm-meta-label">Examinée le</div>
-                <div className="adm-meta-value">{formatDateTime(seller.reviewedAt)}</div>
+                <div className="adm-meta-label">{t('admin.sellers.reviewedOn')}</div>
+                <div className="adm-meta-value">{formatDateTime(seller.reviewedAt, lang)}</div>
               </div>
             )}
           </div>
 
           {seller.description && (
             <>
-              <h4 style={sectionTitleStyle}>Description de l&apos;activité</h4>
+              <h4 style={sectionTitleStyle}>{t('admin.sellers.activityDesc')}</h4>
               <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--adm-text)', margin: '0 0 16px' }}>
                 {seller.description}
               </p>
             </>
           )}
 
-          <h4 style={sectionTitleStyle}>Pièces justificatives ({seller.documents.length})</h4>
+          <h4 style={sectionTitleStyle}>{t('admin.sellers.documents', { count: seller.documents.length })}</h4>
           {seller.documents.length === 0 ? (
-            <p className="adm-cell-dim" style={{ fontSize: 12.5, margin: '4px 0 16px' }}>Aucune pièce transmise.</p>
+            <p className="adm-cell-dim" style={{ fontSize: 12.5, margin: '4px 0 16px' }}>{t('admin.sellers.noDoc')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
               {seller.documents.map((doc, i) => (
@@ -309,14 +315,14 @@ const SellerReviewModal = ({ seller, onUpdated }) => {
             </div>
           )}
 
-          <h4 style={sectionTitleStyle}>Motif / note interne</h4>
+          <h4 style={sectionTitleStyle}>{t('admin.sellers.noteLabel')}</h4>
           <textarea
             className="adm-input"
             rows={2}
             placeholder={
               seller.status === 'approved'
-                ? 'Visible par l\'équipe uniquement'
-                : 'Motif communiqué au vendeur en cas de refus ou suspension'
+                ? t('admin.sellers.notePhApproved')
+                : t('admin.sellers.notePhOther')
             }
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -339,6 +345,7 @@ const sectionTitleStyle = {
 
 const DocumentRow = ({ doc, index }) => {
   const [loadingUrl, setLoadingUrl] = useState(false);
+  const { t } = useLang();
 
   const openDoc = async () => {
     setLoadingUrl(true);
@@ -359,11 +366,11 @@ const DocumentRow = ({ doc, index }) => {
           whiteSpace: 'nowrap',
           maxWidth: 320,
         }}>
-          {doc.name || `Pièce ${index}`}
+          {doc.name || t('admin.sellers.piece', { index })}
         </div>
-        <div className="adm-order-item-spec">{doc.type || 'fichier'}{doc.size ? ` · ${Math.round(doc.size / 1024)} Ko` : ''}</div>
+        <div className="adm-order-item-spec">{doc.type || t('admin.sellers.file')}{doc.size ? ` · ${Math.round(doc.size / 1024)} Ko` : ''}</div>
       </div>
-      <button className="adm-action" title="Ouvrir le document" onClick={openDoc} disabled={loadingUrl}>
+      <button className="adm-action" title={t('admin.sellers.openDoc')} onClick={openDoc} disabled={loadingUrl}>
         {loadingUrl ? <Loader2 size={14} style={{ animation: 'adm-spin 0.9s linear infinite' }} /> : <ExternalLink size={14} strokeWidth={1.75} />}
       </button>
     </div>
