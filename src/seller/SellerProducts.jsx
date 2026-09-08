@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Package, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Check, X, Send } from 'lucide-react';
 import { fetchMyProducts, updateMyProduct, deleteMyProduct } from '../services/seller';
 import { formatEUR } from '../admin/format';
 import { formatDate } from '../i18n';
@@ -26,6 +26,11 @@ const SellerProducts = () => {
     if (p.verified) return;
     const res = await updateMyProduct(p.id, { active: !p.active });
     if (res.ok) setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, active: !p.active } : x)));
+  };
+
+  const submitForReview = async (p) => {
+    const res = await updateMyProduct(p.id, { status: 'pending' });
+    if (res.ok) setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, status: 'pending' } : x)));
   };
 
   const remove = async (p) => {
@@ -66,7 +71,6 @@ const SellerProducts = () => {
                   <th>{t('seller.products.colProduct')}</th>
                   <th>{t('seller.products.colPrice')}</th>
                   <th>{t('seller.products.colStatus')}</th>
-                  <th>{t('seller.products.colVerified')}</th>
                   <th />
                 </tr>
               </thead>
@@ -88,23 +92,34 @@ const SellerProducts = () => {
                     </td>
                     <td className="sv-num">{formatEUR(p.priceEur)} / {p.unit}</td>
                     <td>
-                      <button
-                        type="button"
-                        title={p.verified
-                          ? t('seller.products.titleVerified')
-                          : (p.active ? t('seller.products.titleOnline') : t('seller.products.titlePaused'))}
-                        onClick={() => toggleActive(p)}
-                        className={`sv-badge sv-badge--${p.active ? 'green' : 'neutral'}`}
-                        style={{ border: 'none', cursor: p.verified ? 'not-allowed' : 'pointer', opacity: p.verified ? 0.65 : 1 }}
-                        disabled={p.verified}
-                      >
-                        {p.active ? <>{t('seller.products.statusOnline')}</> : <>{t('seller.products.statusPaused')}</>}
-                      </button>
-                    </td>
-                    <td>
-                      {p.verified
-                        ? <span className="sv-badge sv-badge--blue"><Check size={11} /> {t('seller.products.verified')}</span>
-                        : <span className="sv-badge sv-badge--amber"><X size={11} /> {t('seller.products.pending')}</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          title={p.status === 'verified' ? t('seller.products.titleVerified') : (p.active ? t('seller.products.titleOnline') : t('seller.products.titlePaused'))}
+                          onClick={() => toggleActive(p)}
+                          className={`sv-badge sv-badge--${p.active ? 'green' : 'neutral'}`}
+                          style={{ border: 'none', cursor: p.status === 'verified' ? 'not-allowed' : 'pointer', opacity: p.status === 'verified' ? 0.65 : 1 }}
+                          disabled={p.status === 'verified'}
+                        >
+                          {p.active ? t('seller.products.statusOnline') : t('seller.products.statusPaused')}
+                        </button>
+                        {p.status === 'verified' ? (
+                          <span className="sv-badge sv-badge--blue"><Check size={11} /> {t('seller.products.verified')}</span>
+                        ) : p.status === 'rejected' ? (
+                          <span className="sv-badge sv-badge--red"><X size={11} /> {t('seller.products.rejected')}</span>
+                        ) : p.status === 'pending' ? (
+                          <span className="sv-badge sv-badge--amber">{t('seller.products.pending')}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => submitForReview(p)}
+                            className="sv-badge sv-badge--neutral"
+                            style={{ border: 'none', cursor: 'pointer' }}
+                          >
+                            <Send size={11} /> {t('seller.products.submitForReview')}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="sv-actions" style={{ justifyContent: 'flex-end' }}>

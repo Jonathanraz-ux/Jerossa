@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, ChevronDown, Menu, X, HelpCircle, Globe, PlusCircle, Package, ArrowRight, BadgeCheck, Home as HomeIcon, LayoutGrid, User, MessageSquare, Store } from 'lucide-react';
 import './Navbar.css';
 import { useCurrency, MARKETS, CURRENCIES } from '../context/CurrencyContext';
@@ -128,6 +128,7 @@ const PublishModal = ({ open, onClose }) => {
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLang();
   const [menuOpen, setMenuOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
@@ -135,7 +136,17 @@ const Navbar = () => {
   const [categories, setCategories] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { count } = useCart();
-  const { isAuthenticated, signOut, user, profile } = useAuth();
+  const { isAuthenticated, signOut, user, producer, producerLoading } = useAuth();
+
+  // Lien vendeur dérivé du statut réel de la boutique (table `producers`).
+  const sellerStatus = producer?.status;
+  let sellerNav = { label: t('nav.becomeSeller'), to: '/vendeur/devenir' };
+  if (sellerStatus === 'approved') sellerNav = { label: t('nav.myShop'), to: '/espace-vendeur' };
+  else if (sellerStatus === 'pending') sellerNav = { label: t('nav.applicationPending'), to: '/vendeur/statut' };
+  else if (sellerStatus === 'rejected') sellerNav = { label: t('nav.applicationRejected'), to: '/vendeur/statut' };
+  else if (sellerStatus === 'suspended') sellerNav = { label: t('nav.shopSuspended'), to: '/vendeur/statut' };
+  const sellerNavLoading = isAuthenticated && producerLoading;
+  const inSellerSpace = location.pathname.startsWith('/espace-vendeur');
 
   useEffect(() => {
     fetchCategories().then(setCategories);
@@ -172,9 +183,9 @@ const Navbar = () => {
               <Link to="/about" className="nav-topbar-link">{t('nav.about')}</Link>
               {isAuthenticated ? (
                 <>
-                  {profile?.role === 'seller' && (
-                    <Link to="/espace-vendeur" className="nav-topbar-link nav-topbar-link--seller" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                      <Store size={13} strokeWidth={1.8} /> {t('nav.sellerSpace')}
+                  {sellerStatus === 'approved' && producer?.slug && (
+                    <Link to={`/producteur/${producer.slug}`} className="nav-topbar-link nav-topbar-link--seller" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                      <Store size={13} strokeWidth={1.8} /> {t('nav.viewMyShop')}
                     </Link>
                   )}
                   <Link to="/my-account" className="nav-topbar-link nav-topbar-link--strong">
@@ -240,10 +251,16 @@ const Navbar = () => {
               </div>
             </div>
             <Link to="/producteurs" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.sellers')}</Link>
-            {profile?.role === 'seller' ? (
-              <Link to="/espace-vendeur" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>{t('nav.sellerSpace')}</Link>
+            {sellerNavLoading ? (
+              <span className="nav-link nav-link--seller nav-link--pending" aria-busy="true">{t('nav.sellerNavPending')}</span>
             ) : (
-              <Link to="/vendeur/devenir" className="nav-link nav-link--seller" onClick={() => setMenuOpen(false)}>{t('nav.becomeSeller')}</Link>
+              <Link
+                to={sellerNav.to}
+                className={`nav-link nav-link--seller${inSellerSpace ? ' nav-link--active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {sellerNav.label}
+              </Link>
             )}
             <Link to="/#comment-ca-marche" className="nav-link" onClick={() => setMenuOpen(false)}>{t('nav.how')}</Link>
             <div className="nav-mobile-lang">

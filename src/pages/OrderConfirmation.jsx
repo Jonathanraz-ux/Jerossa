@@ -3,14 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Package, ArrowLeft, Loader2 } from 'lucide-react';
 import { fetchOrderByUser } from '../services/orders';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { formatDate } from '../i18n';
 import './animations.css';
-
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
 
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const { t, lang } = useLang();
+  const { convert } = useCurrency();
   const ref = searchParams.get('ref');
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(!!ref);
@@ -92,7 +92,7 @@ const OrderConfirmation = () => {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{t('common.total')}</span>
-            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)' }}>{order ? formatEUR(order.total) : '—'}</span>
+            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)' }}>{order ? convert(order.total) : '—'}</span>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ const OrderConfirmation = () => {
             {order.items.map((item, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '10px 0', borderBottom: i < order.items.length - 1 ? '1px solid var(--border)' : 'none', fontSize: '14px' }}>
                 <span style={{ flex: 1 }}>{item.qty} × {item.name}</span>
-                <span style={{ color: 'var(--primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{item.price || formatEUR(item.priceEUR * item.qty)}</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{convert(item.priceEUR * item.qty)}</span>
               </div>
             ))}
           </div>

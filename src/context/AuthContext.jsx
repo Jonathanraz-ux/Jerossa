@@ -6,6 +6,8 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [producer, setProducer] = useState(null);
+  const [producerLoading, setProducerLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const refreshProfile = useCallback(async (userId) => {
@@ -25,21 +27,52 @@ export const AuthProvider = ({ children }) => {
     setProfile(data);
   }, []);
 
+  // Statut vendeur réel (source de vérité : table `producers`), chargé une fois
+  // après l'authentification puis caché dans le contexte.
+  const refreshProducer = useCallback(async (userId) => {
+    if (!userId) {
+      setProducer(null);
+      setProducerLoading(false);
+      return;
+    }
+    setProducerLoading(true);
+    const { data, error } = await supabase
+      .from('producers')
+      .select('id, name, slug, status')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) {
+      console.error('[auth] refreshProducer', error);
+    } else {
+      setProducer(data);
+    }
+    setProducerLoading(false);
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      if (data.session?.user) refreshProfile(data.session.user.id);
+      if (data.session?.user) {
+        refreshProfile(data.session.user.id);
+        refreshProducer(data.session.user.id);
+      }
       setLoading(false);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      if (nextSession?.user) refreshProfile(nextSession.user.id);
-      else setProfile(null);
+      if (nextSession?.user) {
+        refreshProfile(nextSession.user.id);
+        refreshProducer(nextSession.user.id);
+      } else {
+        setProfile(null);
+        setProducer(null);
+        setProducerLoading(false);
+      }
     });
 
     return () => sub?.subscription.unsubscribe();
-  }, [refreshProfile]);
+  }, [refreshProfile, refreshProducer]);
 
   const signIn = useCallback(async (email, password) => {
     return supabase.auth.signInWithPassword({ email, password });
@@ -65,6 +98,8 @@ export const AuthProvider = ({ children }) => {
   const value = {
     session,
     profile,
+    producer,
+    producerLoading,
     user: session?.user ?? null,
     isAuthenticated: !!session,
     loading,
@@ -72,6 +107,7 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signOut,
     refreshProfile,
+    refreshProducer,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

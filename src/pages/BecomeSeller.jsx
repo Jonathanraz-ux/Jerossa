@@ -69,7 +69,7 @@ const DOCUMENT_SLOTS = {
 
 const BecomeSeller = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const { t } = useLang();
 
   const [checking, setChecking] = useState(true);
@@ -130,11 +130,17 @@ const BecomeSeller = () => {
         }
       } else if (!data) {
         setEmail(user.email || '');
+        if (profile) {
+          setPhone(profile.phone || '');
+          setLocation(
+            [profile.city, profile.country].filter(Boolean).join(', ') || ''
+          );
+        }
       }
       setChecking(false);
     })();
     return () => { alive = false; };
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, profile]);
 
   const handleSellerTypeChange = (e) => {
     const newType = e.target.value;
@@ -350,7 +356,7 @@ const BecomeSeller = () => {
             <p>{t('onboarding.loginText')}</p>
             <div className="sl-notice-actions">
               <Link to="/login" className="j-pill-btn j-pill-btn--green">{t('onboarding.login')}</Link>
-              <Link to="/register" className="j-pill-btn j-pill-btn--outline-dark">{t('onboarding.register')}</Link>
+              <Link to="/inscription-vendeur" className="j-pill-btn j-pill-btn--outline-dark">{t('onboarding.register')}</Link>
             </div>
           </div>
         </div>

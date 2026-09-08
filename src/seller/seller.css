@@ -251,8 +251,10 @@
 .sv-actions { display: flex; align-items: center; gap: 0.4rem; }
 
 .sv-icon-btn {
-  width: 30px;
-  height: 30px;
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: #fff;
@@ -387,7 +389,7 @@
   position: fixed;
   inset: 0;
   background: rgba(20, 33, 26, 0.55);
-  z-index: 90;
+  z-index: 300;
   display: flex;
   align-items: center;
   justify-content: center;

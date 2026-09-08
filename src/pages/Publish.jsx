@@ -180,7 +180,8 @@ const Publish = () => {
           availability: pAvailability,
           images: imageUrls,
           active: true,
-          verified: false
+          verified: false,
+          status: 'pending'
         })
         .select()
         .single();

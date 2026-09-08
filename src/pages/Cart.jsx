@@ -4,12 +4,14 @@ import { Trash2, ArrowLeft, ShoppingBag, Plus, Minus, ShieldCheck, X } from 'luc
 import { useCart } from '../context/CartContext';
 import { FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import EmptyState from '../components/common/EmptyState';
 
 const Cart = () => {
   const { t } = useLang();
+  const { convert } = useCurrency();
   const { items, subtotal, shipping, total, updateQty, removeItem, notice, dismissNotice } = useCart();
 
   const cartItems = items;
@@ -82,7 +84,7 @@ const Cart = () => {
                 <div className="cart-item-details" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 className="cart-item-name" style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, color: 'var(--text-dark)', margin: '0 0 4px' }}>{item.title}</h3>
                   <span className="cart-item-spec" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>{item.seller}</span>
-                  <span className="cart-item-price" style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700, color: 'var(--primary)' }}>{item.priceEUR.toFixed(2)} € / {item.unit}</span>
+                  <span className="cart-item-price" style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700, color: 'var(--primary)' }}>{convert(item.priceEUR)} / {item.unit}</span>
                   <div className="cart-item-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '12px' }}>
                     <div className="qty-control" style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                       <button className="qty-btn" onClick={() => updateQty(item.productId, -1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={14} /></button>
@@ -90,7 +92,7 @@ const Cart = () => {
                       <button className="qty-btn" onClick={() => updateQty(item.productId, 1)} style={{ background: 'var(--bg-cream)', border: 'none', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={14} /></button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{(item.priceEUR * item.qty).toFixed(2)} €</span>
+                      <span style={{ fontWeight: 600, fontSize: '14px' }}>{convert(item.priceEUR * item.qty)}</span>
                       <button className="cart-remove-btn" onClick={() => removeItem(item.productId)} aria-label={t('common.delete')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px', transition: 'color 0.2s' }}>
                         <Trash2 size={16} />
                       </button>
@@ -105,10 +107,10 @@ const Cart = () => {
         <div className="cart-summary scroll-animate" style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', position: 'sticky', top: '100px' }}>
           <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 600, marginBottom: '20px' }}>{t('cart.summary')}</h3>
           <div className="cart-summary-line" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: 'var(--text-muted)' }}>
-            <span>{t('cart.subtotal')}</span><span>{subtotal.toFixed(2)} €</span>
+            <span>{t('cart.subtotal')}</span><span>{convert(subtotal)}</span>
           </div>
           <div className="cart-summary-line" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: 'var(--text-muted)' }}>
-            <span>{t('cart.shipping')}</span><span style={{ color: shipping === 0 ? 'var(--success)' : 'inherit' }}>{shipping === 0 ? t('cart.free') : shipping.toFixed(2) + ' €'}</span>
+            <span>{t('cart.shipping')}</span><span style={{ color: shipping === 0 ? 'var(--success)' : 'inherit' }}>{shipping === 0 ? t('cart.free') : convert(shipping)}</span>
           </div>
           {shipping === 0 && (
             <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -116,7 +118,7 @@ const Cart = () => {
             </div>
           )}
           <div className="cart-summary-total" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontSize: '18px', fontWeight: 700, color: 'var(--text-dark)', borderTop: '1px dashed var(--border)', paddingTop: '12px' }}>
-            <span>{t('common.total')}</span><span>{total.toFixed(2)} €</span>
+            <span>{t('common.total')}</span><span>{convert(total)}</span>
           </div>
           <Link to="/checkout" className="btn btn-primary cart-checkout-btn" style={{ width: '100%', padding: '14px', borderRadius: '8px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}>
             {t('cart.checkout')}

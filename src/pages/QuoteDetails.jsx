@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchQuoteRequestByNumber, acceptQuote, declineQuote } from '../services/quotes';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
+import { FREE_SHIPPING_THRESHOLD_EUR, STANDARD_SHIPPING_FEE_EUR } from '../config/commerce';
 import { formatDate } from '../i18n';
 import { ArrowLeft, FileText, MessageSquare, Clock, CheckCircle2, XCircle, Loader2, PackageCheck, UserRound } from 'lucide-react';
 import './animations.css';
@@ -13,12 +15,11 @@ const STATUS_COLORS = {
   declined: { background: 'var(--danger-bg)', color: 'var(--danger)' },
 };
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const QuoteDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const { convert } = useCurrency();
   const [quote, setQuote] = useState(null);
   const [action, setAction] = useState('idle');
   const [error, setError] = useState('');
@@ -87,7 +88,7 @@ const QuoteDetails = () => {
   const statusColors = STATUS_COLORS[quote.status] || { background: 'var(--danger-bg)', color: 'var(--danger)' };
   const response = quote.response;
   const subtotal = response ? response.priceEUR * quote.quantity : null;
-  const shipping = subtotal != null ? (subtotal < 200 ? 15 : 0) : null;
+  const shipping = subtotal != null ? (subtotal > FREE_SHIPPING_THRESHOLD_EUR ? 0 : STANDARD_SHIPPING_FEE_EUR) : null;
 
   return (
     <div className="container" style={{ minHeight: '80vh' }}>
@@ -165,19 +166,19 @@ const QuoteDetails = () => {
             <div className="quote-detail-grid">
               <div>
                 <div className="quote-detail-label">{t('quotePage.proposedPrice')}</div>
-                <div className="quote-detail-value" style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatEUR(response.priceEUR)} / {response.unit}</div>
+                <div className="quote-detail-value" style={{ color: 'var(--primary)', fontWeight: 700 }}>{convert(response.priceEUR)} / {response.unit}</div>
               </div>
               <div>
                 <div className="quote-detail-label">{t('quotePage.subtotal')}</div>
-                <div className="quote-detail-value">{formatEUR(subtotal)}</div>
+                <div className="quote-detail-value">{convert(subtotal)}</div>
               </div>
               <div>
                 <div className="quote-detail-label">{t('quotePage.shipping')}</div>
-                <div className="quote-detail-value">{shipping === 0 ? t('quotePage.free') : formatEUR(shipping)}</div>
+                <div className="quote-detail-value">{shipping === 0 ? t('quotePage.free') : convert(shipping)}</div>
               </div>
               <div>
                 <div className="quote-detail-label">{t('quotePage.totalEstimate')}</div>
-                <div className="quote-detail-value" style={{ fontWeight: 700 }}>{formatEUR(subtotal + shipping)}</div>
+                <div className="quote-detail-value" style={{ fontWeight: 700 }}>{convert(subtotal + shipping)}</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>

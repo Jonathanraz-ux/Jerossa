@@ -5,6 +5,7 @@ import { fetchOrderByNumber } from '../services/orders';
 import { requestRefund } from '../services/refunds';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import './animations.css';
 
 const REASONS = [
@@ -15,12 +16,11 @@ const REASONS = [
   { value: 'autre', labelKey: 'refund.reasonOther' },
 ];
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const RefundRequest = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useLang();
+  const { convert } = useCurrency();
   const orderNumber = searchParams.get('order') || '';
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -146,7 +146,7 @@ const RefundRequest = () => {
               </div>
               <div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{t('refund.totalPaid')}</div>
-                <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{formatEUR(order.total)}</div>
+                <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{convert(order.total)}</div>
               </div>
             </div>
 
@@ -175,7 +175,7 @@ const RefundRequest = () => {
               <div className="form-group">
                 <label className="form-label">{t('refund.amountRequestedField')}</label>
                 <input type="number" min="0.01" step="0.01" className="form-input" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('refund.maximum', { amount: formatEUR(order.total) })}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('refund.maximum', { amount: convert(order.total) })}</span>
               </div>
 
               <div className="form-group">

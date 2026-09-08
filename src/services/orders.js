@@ -110,10 +110,13 @@ export const fetchMyOrders = async (userId) => {
 
 export const fetchOrderByNumber = async (orderNumber) => {
   if (!orderNumber) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*)')
     .eq('order_number', orderNumber)
+    .eq('user_id', user.id)
     .maybeSingle();
   if (error) {
     console.error('[orders] fetchOrderByNumber', error);

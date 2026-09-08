@@ -4,6 +4,7 @@ import { Lock, CreditCard, Smartphone, Landmark, ShieldCheck, CheckCircle, XCirc
 import { fetchOrderByUser, confirmPayment } from '../services/orders';
 import { useCart } from '../context/CartContext';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import './animations.css';
 import { COMPANY_INFO } from '../config/companyInfo';
 
@@ -13,13 +14,12 @@ const METHOD_META = {
   transfer: { icon: Landmark },
 };
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const Payment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { clearCart } = useCart();
   const { t } = useLang();
+  const { convert } = useCurrency();
   const orderNumber = searchParams.get('order') || '';
   const method = METHOD_META[searchParams.get('method')] ? searchParams.get('method') : 'card';
   const [order, setOrder] = useState(null);
@@ -119,13 +119,13 @@ const Payment = () => {
             <div className="scroll-animate" style={{ background: 'var(--bg-cream)', borderRadius: '12px', padding: '24px', marginBottom: '24px', textAlign: 'left' }}>
               <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 600, marginBottom: '16px' }}>{t('payment.orderSummary', { order: orderNumber })}</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <span>{t('checkout.subtotal')}</span><span>{formatEUR(order.subtotal)}</span>
+                <span>{t('checkout.subtotal')}</span><span>{convert(order.subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <span>{t('checkout.shipping')}</span><span>{order.shippingFee === 0 ? t('checkout.freeShipping') : formatEUR(order.shippingFee)}</span>
+                <span>{t('checkout.shipping')}</span><span>{order.shippingFee === 0 ? t('checkout.freeShipping') : convert(order.shippingFee)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--border)', fontWeight: 700 }}>
-                <span>{t('common.total')}</span><span>{formatEUR(order.total)}</span>
+                <span>{t('common.total')}</span><span>{convert(order.total)}</span>
               </div>
             </div>
 

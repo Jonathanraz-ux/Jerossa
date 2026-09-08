@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchRefundByNumber } from '../services/refunds';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { formatDate } from '../i18n';
 import { ArrowLeft, RotateCcw, Package, Landmark } from 'lucide-react';
 import './animations.css';
@@ -14,11 +15,10 @@ const STATUS_COLORS = {
   processed: { background: 'var(--success-bg)', color: 'var(--success)' },
 };
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const RefundDetails = () => {
   const { id } = useParams();
   const { t, lang } = useLang();
+  const { convert } = useCurrency();
   const [refund, setRefund] = useState(null);
 
   useEffect(() => {
@@ -96,11 +96,11 @@ const RefundDetails = () => {
         <div className="refund-detail-grid">
           <div>
             <div className="refund-detail-label">{t('refund.amountRequested')}</div>
-            <div className="refund-detail-value">{formatEUR(refund.amountRequested)}</div>
+            <div className="refund-detail-value">{convert(refund.amountRequested)}</div>
           </div>
           <div>
             <div className="refund-detail-label">{t('refund.amountRefunded')}</div>
-            <div className="refund-detail-value" style={{ color: refund.amountRefunded > 0 ? 'var(--success)' : 'inherit' }}>{refund.amountRefunded > 0 ? formatEUR(refund.amountRefunded) : '—'}</div>
+            <div className="refund-detail-value" style={{ color: refund.amountRefunded > 0 ? 'var(--success)' : 'inherit' }}>{refund.amountRefunded > 0 ? convert(refund.amountRefunded) : '—'}</div>
           </div>
           <div>
             <div className="refund-detail-label">{t('refund.order')}</div>

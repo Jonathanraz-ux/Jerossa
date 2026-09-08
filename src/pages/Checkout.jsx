@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CreditCard, Lock, Truck, MapPin, Check, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
+import { CreditCard, Lock, Truck, MapPin, Check, ArrowLeft, ArrowRight, AlertTriangle, Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder } from '../services/orders';
+import { fetchMyAddresses } from '../services/addresses';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { STANDARD_SHIPPING_FEE_EUR, EXPRESS_SHIPPING_FEE_EUR, FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 import './animations.css';
 
@@ -12,8 +14,12 @@ const Checkout = () => {
   const [searchParams] = useSearchParams();
   const { items: cartItems, subtotal, currency } = useCart();
   const { t } = useLang();
+  const { convert } = useCurrency();
   const [step, setStep] = useState(1);
   const [paymentFailed, setPaymentFailed] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddrId, setSelectedAddrId] = useState(null);
+  const [showNewAddr, setShowNewAddr] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '', phone: '',
     address: '', city: '', postalCode: '', country: 'MG'
@@ -28,7 +34,27 @@ const Checkout = () => {
     if (searchParams.get('payment') === 'failed') {
       setPaymentFailed(true);
     }
+    fetchMyAddresses().then((addrs) => {
+      setSavedAddresses(addrs);
+      const def = addrs.find((a) => a.isDefault);
+      if (def) {
+        setSelectedAddrId(def.id);
+        setFormData({ firstName: def.firstName, lastName: def.lastName, email: def.email, phone: def.phone, address: def.address, city: def.city, postalCode: def.postalCode, country: def.country });
+      }
+    });
   }, [searchParams]);
+
+  const selectAddress = (addr) => {
+    setSelectedAddrId(addr.id);
+    setShowNewAddr(false);
+    setFormData({ firstName: addr.firstName, lastName: addr.lastName, email: addr.email, phone: addr.phone, address: addr.address, city: addr.city, postalCode: addr.postalCode, country: addr.country });
+  };
+
+  const startNewAddress = () => {
+    setSelectedAddrId(null);
+    setShowNewAddr(true);
+    setFormData({ firstName: '', lastName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: 'MG' });
+  };
 
   const shippingRates = { standard: STANDARD_SHIPPING_FEE_EUR, express: EXPRESS_SHIPPING_FEE_EUR, free: 0 };
   const shippingCost = subtotal > FREE_SHIPPING_THRESHOLD_EUR ? shippingRates.free : shippingRates[shippingMethod];
@@ -64,36 +90,41 @@ const Checkout = () => {
       currency,
     }));
 
-    const { ok, data, error } = await createOrder({
-      items: orderItems,
-      subtotal,
-      shippingFee: shippingCost,
-      total,
-      currency,
-      paymentMethod,
-      address: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        country: formData.country,
-      },
-    });
+    try {
+      const { ok, data, error } = await createOrder({
+        items: orderItems,
+        subtotal,
+        shippingFee: shippingCost,
+        total,
+        currency,
+        paymentMethod,
+        address: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        },
+      });
 
-    setSubmitting(false);
+      if (!ok) {
+        console.error('[checkout]', error);
+        setOrderError(t('checkout.orderError'));
+        return;
+      }
 
-    if (!ok) {
-      console.error('[checkout]', error);
+      // Phase 7 : la commande est créée en PENDING, le paiement s'effectue sur
+      // la page provider simulé (/payment). Le panier n'est vidé qu'après succès.
+      navigate(`/payment?order=${data.order_number}&method=${paymentMethod}`);
+    } catch (err) {
+      console.error('[checkout] unexpected', err);
       setOrderError(t('checkout.orderError'));
-      return;
+    } finally {
+      setSubmitting(false);
     }
-
-    // Phase 7 : la commande est créée en PENDING, le paiement s'effectue sur
-    // la page provider simulé (/payment). Le panier n'est vidé qu'après succès.
-    navigate(`/payment?order=${data.order_number}&method=${paymentMethod}`);
   };
 
   const steps = [
@@ -154,47 +185,76 @@ const Checkout = () => {
                   <MapPin size={18} />
                   {t('checkout.shippingAddress')}
                 </h2>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">{t('auth.firstName')}</label>
-                    <input type="text" name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} placeholder="Jean" />
+
+                {savedAddresses.length > 0 && !showNewAddr && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {savedAddresses.map((addr) => (
+                        <label key={addr.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', border: `1px solid ${selectedAddrId === addr.id ? 'var(--primary)' : 'var(--border)'}`, borderRadius: '8px', cursor: 'pointer', background: selectedAddrId === addr.id ? 'var(--primary-light)' : 'var(--bg-white)', transition: 'all 0.2s' }} onClick={() => selectAddress(addr)}>
+                          <input type="radio" name="savedAddr" checked={selectedAddrId === addr.id} onChange={() => selectAddress(addr)} style={{ accentColor: 'var(--primary)' }} />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '14px' }}>{addr.firstName} {addr.lastName}{addr.isDefault && <span style={{ fontSize: '11px', color: 'var(--success)', marginLeft: '6px' }}>{t('account.defaultBadge')}</span>}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{addr.address}, {addr.city}, {addr.country}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <button onClick={startNewAddress} style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      <Plus size={14} /> {t('account.newAddress')}
+                    </button>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">{t('auth.lastName')}</label>
-                    <input type="text" name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} placeholder="Dupont" />
+                )}
+
+                {(savedAddresses.length === 0 || showNewAddr) && (
+                  <div>
+                    {savedAddresses.length > 0 && (
+                      <button onClick={() => { setShowNewAddr(false); setSelectedAddrId(savedAddresses[0]?.id); if (savedAddresses[0]) selectAddress(savedAddresses[0]); }} style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <ArrowLeft size={14} /> {t('account.myAddresses')}
+                      </button>
+                    )}
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">{t('auth.firstName')}</label>
+                        <input type="text" name="firstName" className="form-input" value={formData.firstName} onChange={handleChange} placeholder="Jean" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">{t('auth.lastName')}</label>
+                        <input type="text" name="lastName" className="form-input" value={formData.lastName} onChange={handleChange} placeholder="Dupont" />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('auth.email')}</label>
+                      <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} placeholder="jean@exemple.com" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('common.phone')}</label>
+                      <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+261 32 123 4567" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('checkout.address')}</label>
+                      <input type="text" name="address" className="form-input" value={formData.address} onChange={handleChange} placeholder="Lot IVT 123, Ambohijatovo" />
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">{t('account.city')}</label>
+                        <input type="text" name="city" className="form-input" value={formData.city} onChange={handleChange} placeholder="Antananarivo" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">{t('checkout.postalCode')}</label>
+                        <input type="text" name="postalCode" className="form-input" value={formData.postalCode} onChange={handleChange} placeholder="101" />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{t('checkout.country')}</label>
+                      <select name="country" className="form-select" value={formData.country} onChange={handleChange}>
+                        <option value="MG">Madagascar</option>
+                        <option value="MU">Île Maurice</option>
+                        <option value="FR">France</option>
+                        <option value="RE">La Réunion</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t('auth.email')}</label>
-                  <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} placeholder="jean@exemple.com" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t('common.phone')}</label>
-                  <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleChange} placeholder="+261 32 123 4567" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t('checkout.address')}</label>
-                  <input type="text" name="address" className="form-input" value={formData.address} onChange={handleChange} placeholder="Lot IVT 123, Ambohijatovo" />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">{t('account.city')}</label>
-                    <input type="text" name="city" className="form-input" value={formData.city} onChange={handleChange} placeholder="Antananarivo" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">{t('checkout.postalCode')}</label>
-                    <input type="text" name="postalCode" className="form-input" value={formData.postalCode} onChange={handleChange} placeholder="101" />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t('checkout.country')}</label>
-                  <select name="country" className="form-select" value={formData.country} onChange={handleChange}>
-                    <option value="MG">Madagascar</option>
-                    <option value="MU">Île Maurice</option>
-                    <option value="FR">France</option>
-                    <option value="RE">La Réunion</option>
-                  </select>
-                </div>
+                )}
                 {formError && (
                   <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '0.8125rem' }}>
                     {formError}
@@ -320,24 +380,24 @@ const Checkout = () => {
                 <div>
                   <div className="checkout-summary-item-name">{item.title}</div>
                   <div className="checkout-summary-item-qty">{t('checkout.qty')}: {item.qty}</div>
-                  <div className="checkout-summary-item-price">{(item.priceEUR * item.qty).toFixed(2)} €</div>
+                  <div className="checkout-summary-item-price">{convert(item.priceEUR * item.qty)}</div>
                 </div>
               </div>
             ))}
             <div className="checkout-summary-divider" />
             <div className="checkout-summary-line">
               <span>{t('checkout.subtotal')}</span>
-              <span>{subtotal.toFixed(2)} €</span>
+              <span>{convert(subtotal)}</span>
             </div>
             <div className="checkout-summary-line">
               <span>{t('checkout.shipping')}</span>
               <span style={{ color: shippingCost === 0 ? 'var(--success)' : 'inherit' }}>
-                {shippingCost === 0 ? t('checkout.freeShipping') : shippingCost.toFixed(2) + ' €'}
+                {shippingCost === 0 ? t('checkout.freeShipping') : convert(shippingCost)}
               </span>
             </div>
             <div className="checkout-summary-total">
               <span>{t('common.total')}</span>
-              <span>{total.toFixed(2)} €</span>
+              <span>{convert(total)}</span>
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ import Services from './pages/Services';
 import ServiceDetails from './pages/ServiceDetails';
 import Publish from './pages/Publish';
 import BecomeSeller from './pages/BecomeSeller';
+import SellerRegister from './pages/SellerRegister';
 import SellerStatus from './pages/SellerStatus';
 import ProtectedSellerRoute from './components/ProtectedSellerRoute';
 import ProtectedClientRoute from './components/ProtectedClientRoute';
@@ -87,6 +88,7 @@ function AppRoutes() {
           <Route path="/services/:id" element={<ServiceDetails />} />
           <Route path="/publier" element={<Publish />} />
           <Route path="/vendeur/devenir" element={<BecomeSeller />} />
+          <Route path="/inscription-vendeur" element={<SellerRegister />} />
           <Route path="/vendeur/statut" element={<SellerStatus />} />
           <Route
             path="/espace-vendeur"

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RotateCcw, ArrowRight, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { fetchMyRefunds } from '../services/refunds';
 import { formatDate } from '../i18n';
 import './animations.css';
@@ -10,11 +11,10 @@ import StatusBadge from '../components/common/StatusBadge';
 import EmptyState from '../components/common/EmptyState';
 import { RowsSkeleton } from '../components/common/Skeletons';
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const MyRefunds = () => {
   const { user } = useAuth();
   const { t, lang } = useLang();
+  const { convert } = useCurrency();
   const [refunds, setRefunds] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +87,7 @@ const MyRefunds = () => {
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>{refund.id}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{refund.orderNumber}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{formatDate(refund.date, lang)}</td>
-                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{formatEUR(refund.amountRequested)}</td>
+                    <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{convert(refund.amountRequested)}</td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><StatusBadge status={refund.status} /></td>
                     <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}><Link to={`/refund/${refund.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>{t('account.details')} <ArrowRight size={12} /></Link></td>
                   </tr>

@@ -80,6 +80,7 @@ const mapMyProduct = (row) => ({
   images: row.images || [],
   active: row.active,
   verified: row.verified,
+  status: row.status || (row.verified ? 'verified' : 'draft'),
   createdAt: row.created_at,
 });
 

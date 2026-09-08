@@ -192,7 +192,7 @@
 .product-manage-cat { font-size: 0.6875rem; color: var(--text-muted); }
 
 /* ========== ACTION ICONS ========== */
-.action-icon-btn { background: none; border: none; cursor: pointer; padding: 6px; border-radius: var(--radius-sm); transition: var(--transition); color: var(--text-muted); }
+.action-icon-btn { background: none; border: none; cursor: pointer; padding: 6px; min-width: 36px; min-height: 36px; border-radius: var(--radius-sm); transition: var(--transition); color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; }
 .action-icon-btn:hover { background: var(--bg-cream); }
 .action-icon-btn.edit:hover { color: var(--primary); }
 .action-icon-btn.delete:hover { color: var(--danger); }
@@ -218,4 +218,5 @@
   .product-detail-layout { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
+  .payment-methods-grid { grid-template-columns: 1fr; }
 }

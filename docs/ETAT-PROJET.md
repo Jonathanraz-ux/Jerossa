@@ -1,6 +1,6 @@
 # JEROSSA — État du projet
 
-> Mise à jour : 27 août 2026
+> Mise à jour : 6 septembre 2026
 > Déploiement : Vercel (https://jerossa.vercel.app) · Base : Supabase (fsdfieofbbopmzuforck)
 
 ---
@@ -17,7 +17,7 @@
 - **Dashboard admin** : KPIs, gestion produits/catégories/commandes/utilisateurs, route protégée par rôle (`ProtectedAdminRoute`).
 - Responsive mobile/tablette soigné ; animations au scroll ; rewrite SPA configuré sur Vercel.
 
-### Backend Supabase (13 migrations)
+### Backend Supabase (24 migrations)
 1. `core_tables` — profiles, producers, categories, products…
 2. `auth_rls` — trigger `handle_new_user`, RLS profils/produits…
 3. `catalog_public_ids` + `seed_catalog` — catalogue de départ.
@@ -69,6 +69,22 @@
   - Bug majeur : `fetchMyQuotes` traitait `quote_responses` (tableau embarqué) comme un objet → **NaN** affiché dans `SellerQuotes`. Corrigé avec accès `[0]` (même shape que `quotes.js`).
 - **Bugs admin corrigés** : `fetchAdminQuotes` (même bug d'embed `[0]`, latent) ; `updatePlatformSetting` (`.upsert().eq()` invalide en PostgREST → `onConflict: 'key'`).
 - **Audit complet** (build + lint verts) : écrans clients, pages publiques, câblage admin (9 onglets ↔ 9 sections), Auth (trigger `on_auth_user_created` → `profiles`), publish/insert produits — aucun autre bug prouvé.
+
+### Session du 6 septembre (sécurité credentials + refactor catalogue + audit espace vendeur)
+- **Sécurité — suppression des identifiants admin en dur** : les identifiants admin (`Admin@Jerossa2026`, exposés dans les commits `5186788`/`80db9c8`/`3475981` — `seed_admin.sql` + `GUIDE-TEST-CLIENT.md`) sont réellement exposés → rotation/révocation manuelle requise côté Supabase. Actions :
+  - `.gitignore` : `.env` + `.env.*` ignorés (sauf `!.env.example`) ; `.env.example` = placeholders vides (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN=`).
+  - `supabase/migrations/20260820000002_seed_admin.sql` réécrite en no-op documenté (plus d'email/mot de passe/rôle).
+  - `GUIDE-TEST-CLIENT.md` nettoyé ; `README.md` : section installation + création admin manuelle.
+  - Ancien compte `admin@jerossa.mg` supprimé manuellement : vérifié (0 ligne `auth.users`, 0 orphelin sur les tables liées, 66 politiques RLS intactes). Comptes restants : `noctisdigitalforge@gmail.com` (actif), `cboyjoo22@gmail.com` (admin).
+  - `SUPABASE_ACCESS_TOKEN`, clé service_role, clé anon, URL, `SUPABASE_DB_PASSWORD` : jamais commités (rien à révoquer).
+  - Commit `51ec5b9` poussé sur `main`.
+- **Refactor catalogue** (commit `c73ed79`) : styles du catalogue extraits du bloc `<style>` inline de `Catalogue.jsx` vers un vrai fichier `Catalogue.css` ; `SmartImg.jsx` fiabilisé (fallback piloté par l'état React `currentSrc` au lieu d'une mutation du DOM, gestion du cache unifiée, `useEffect` sans deps corrigé).
+- **Audit espace vendeur** : état constaté — les 3 fonctionnalités de la doc « à venir » (commandes reçues, KPIs, validation d'onboarding) sont **déjà implémentées**. Le guide de test (`GUIDE-TEST-CLIENT.md`) était périmé, corrigé. Correctifs appliqués (commit `de96c5d` + migration `20260906000001_secure_bulk_message_insert_and_cleanup.sql` poussée) :
+  - **Sécurité** : policy `messages_insert_participant` ne laisse plus n'importe quel utilisateur authentifié insérer un message dans une conversation (désormais réservée au participant acheteur/vendeur ou admin — alignée sur la policy SELECT ; corrigeait un contournement possible du RPC `send_message`).
+  - **Nettoyage** : requête morte `v_replied_convo` dans `get_seller_stats` supprimée.
+  - **Cohérence RLS** : `svd_delete_own` référençait le statut inexistant `needs_changes` → restreint à `pending`/`rejected` (seuls statuts valides d'une candidature).
+- Points de refactorification identifiés mais non traités (décision : différés) : table `seller_verification_documents` dormante (l'onboarding stocke les pièces dans `producers.documents` jsonb) ; rattachement commande ↔ vendeur **par nom** (`producers.name = order_items.seller`) fragile, à remplacer par une FK `seller_id` sur `order_items`.
+- Build + lint verts ; `main` poussé et à jour.
 
 ---
 

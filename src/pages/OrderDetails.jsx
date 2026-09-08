@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchOrderByNumber } from '../services/orders';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { formatDate } from '../i18n';
 import { ArrowLeft, Truck, MapPin, CreditCard, RotateCcw } from 'lucide-react';
 import './animations.css';
@@ -16,11 +17,10 @@ const STATUS_COLORS = {
   refunded: { background: 'var(--danger-bg)', color: 'var(--danger)' },
 };
 
-const formatEUR = (value) => `${Number(value).toFixed(2).replace('.', ',')} €`;
-
 const OrderDetails = () => {
   const { id } = useParams();
   const { t, lang } = useLang();
+  const { convert } = useCurrency();
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
@@ -161,14 +161,14 @@ const OrderDetails = () => {
               <tr key={i}>
                 <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontWeight: 500 }}>{item.name}</td>
                 <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{item.qty}</td>
-                <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{item.price || formatEUR(item.priceEUR)}</td>
+                <td style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>{convert(item.priceEUR * item.qty)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '18px' }}>
           <span>{t('common.total')}</span>
-          <span style={{ color: 'var(--primary)' }}>{typeof order.total === 'string' ? order.total : formatEUR(order.total)}</span>
+          <span style={{ color: 'var(--primary)' }}>{typeof order.total === 'string' ? order.total : convert(order.total)}</span>
         </div>
       </div>
 

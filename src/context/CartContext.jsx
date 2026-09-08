@@ -45,19 +45,21 @@ export const CartProvider = ({ children }) => {
     if (!product?.id) return { ok: false, message: 'Produit introuvable.' };
     const quantity = Math.max(1, Number(qty) || 1);
     const nextMarket = product.market || 'MG';
+    let accepted = false;
 
-    if (items.length > 0 && items[0].market !== nextMarket) {
-      setNotice(CART_RULE_MESSAGE);
-      return { ok: false, message: CART_RULE_MESSAGE };
-    }
-
-    setNotice(null);
-    const existing = items.find((i) => i.productId === product.id);
-    if (existing) {
-      setItems(items.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + quantity } : i)));
-    } else {
-      setItems([
-        ...items,
+    setItems((prev) => {
+      if (prev.length > 0 && prev[0].market !== nextMarket) {
+        setNotice(CART_RULE_MESSAGE);
+        return prev;
+      }
+      setNotice(null);
+      accepted = true;
+      const existing = prev.find((i) => i.productId === product.id);
+      if (existing) {
+        return prev.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + quantity } : i));
+      }
+      return [
+        ...prev,
         {
           productId: product.id,
           title: product.title,
@@ -68,10 +70,10 @@ export const CartProvider = ({ children }) => {
           market: nextMarket,
           qty: quantity,
         },
-      ]);
-    }
-    return { ok: true };
-  }, [items]);
+      ];
+    });
+    return accepted ? { ok: true } : { ok: false, message: CART_RULE_MESSAGE };
+  }, []);
 
   const updateQty = useCallback((productId, delta) => {
     setItems((prev) => {

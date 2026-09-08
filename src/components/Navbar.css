@@ -255,6 +255,27 @@
   background: var(--brand-green);
 }
 
+/* Lien vendeur actif (dans son espace vendeur) */
+.nav-link--active {
+  color: var(--brand-green);
+}
+
+.nav-link--active::after {
+  width: 100%;
+}
+
+/* Placeholder pendant le chargement du statut vendeur */
+.nav-link--pending {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  opacity: 0.55;
+  cursor: default;
+}
+
+.nav-link--pending::after {
+  background: transparent;
+}
+
 .mobile-bar-seller {
   color: var(--brand-green);
 }
