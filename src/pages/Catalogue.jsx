@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { fetchProducts } from '../services/catalog';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLang } from '../context/LangContext';
-import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck } from 'lucide-react';
+import { Search, ArrowRight, Star, SlidersHorizontal, X, BadgeCheck, Check } from 'lucide-react';
 import './Catalogue.css';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
@@ -162,6 +162,12 @@ const Catalogue = () => {
                     </div>
                     <span>({prod.reviews})</span>
                   </div>
+                  {prod.availability && (
+                    <span className={`catalog-product-avail ${prod.available ? '' : 'catalog-product-avail--out'}`}>
+                      {prod.available ? <Check size={11} /> : <X size={11} />}
+                      {prod.available ? prod.availability : t('product.unavailable')}
+                    </span>
+                  )}
                   <div className="catalog-product-footer">
                     <span className="catalog-product-price">
                       {convert(prod.priceEUR)}

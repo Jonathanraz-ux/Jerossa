@@ -5,10 +5,11 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
 import { createQuoteRequest } from '../services/quotes';
-import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X, MessageSquare } from 'lucide-react';
+import { Star, Truck, Package, ShieldCheck, Heart, Minus, Plus, Check, MapPin, Clock, CreditCard, FileText, Loader2, X, MessageSquare, AlertTriangle } from 'lucide-react';
 import './animations.css';
 import SmartImg from '../components/common/SmartImg';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
+import { useCurrency } from '../context/CurrencyContext';
 import ContactSellerModal from '../components/ContactSellerModal';
 
 const ProductDetails = () => {
@@ -17,12 +18,14 @@ const ProductDetails = () => {
   const { addItem } = useCart();
   const { user } = useAuth();
   const { t } = useLang();
+  const { currency } = useCurrency();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [cartError, setCartError] = useState('');
   const [addedToWishlist, setAddedToWishlist] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -40,6 +43,7 @@ const ProductDetails = () => {
     fetchProductByIdentifier(id).then((p) => {
       if (!active) return;
       setProduct(p);
+      setCartError('');
       setLoading(false);
       if (p) {
         fetchRelatedProducts(p, 4).then((related) => {
@@ -157,9 +161,10 @@ const ProductDetails = () => {
             <div className="pd-divider" />
 
             <div className="pd-price-row">
-              <span className="pd-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, 'EUR')}</span>
-              <span className="pd-stock">
-                <Check size={14} /> {product.stock}
+              <span className="pd-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, currency)}</span>
+              <span className={product.available ? 'pd-stock' : 'pd-stock pd-stock--out'}>
+                {product.available ? <Check size={14} /> : <AlertTriangle size={14} />}
+                {product.available ? (product.stock || product.availability || t('product.available')) : t('product.unavailable')}
               </span>
             </div>
 
@@ -185,7 +190,11 @@ const ProductDetails = () => {
             <div className="pd-logistics">
               <div className="pd-log-item">
                 <Package size={15} />
-                <span><strong>{t('product.stock')} :</strong> {product.stock}</span>
+                <span><strong>{t('product.stock')} :</strong> {product.stock || product.availability || '—'}</span>
+              </div>
+              <div className="pd-log-item">
+                <Clock size={15} />
+                <span><strong>{t('product.availability')} :</strong> {product.availability || '—'}</span>
               </div>
               <div className="pd-log-item">
                 <Truck size={15} />
@@ -210,14 +219,44 @@ const ProductDetails = () => {
               </div>
             </div>
 
+            {!product.available && (
+              <div className="pd-unavailable-banner">
+                <AlertTriangle size={15} /> {t('product.unavailableDesc')}
+              </div>
+            )}
+
+            {cartError && (
+              <div className="pd-unavailable-banner" style={{ background: 'var(--warning-bg)', color: 'var(--warning)', border: '1px solid rgba(210,153,34,0.3)' }}>
+                <AlertTriangle size={15} /> {cartError}
+              </div>
+            )}
+
             <div className="pd-actions">
               <button
                 className="pd-add-cart"
-                onClick={() => { addItem(product, quantity); setAddedToCart(true); setTimeout(() => setAddedToCart(false), 2000); }}
+                disabled={!product.available}
+                onClick={() => {
+                  const res = addItem(product, quantity);
+                  if (res.ok) {
+                    setCartError('');
+                    setAddedToCart(true);
+                    setTimeout(() => setAddedToCart(false), 2000);
+                  } else {
+                    setAddedToCart(false);
+                    setCartError(res.message || t('common.error'));
+                  }
+                }}
               >
-                {addedToCart ? <><Check size={16} /> {t('cart.addedToCart')}</> : t('cart.addToCart')}
+                {product.available ? (addedToCart ? <><Check size={16} /> {t('cart.addedToCart')}</> : t('cart.addToCart')) : t('product.unavailable')}
               </button>
-              <button className="pd-buy-now" onClick={() => { addItem(product, quantity); navigate('/checkout'); }}>
+              <button className="pd-buy-now" disabled={!product.available} onClick={() => {
+                const res = addItem(product, quantity);
+                if (res.ok) {
+                  navigate('/checkout');
+                } else {
+                  setCartError(res.message || t('common.error'));
+                }
+              }}>
                 {t('cart.buyNow')}
               </button>
               <button
@@ -283,7 +322,7 @@ const ProductDetails = () => {
                     <span className="catalog-product-seller">{prod.seller}</span>
                     <h3 className="catalog-product-name">{prod.title}</h3>
                     <div className="catalog-product-footer">
-                      <span className="catalog-product-price">{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
+                      <span className="catalog-product-price">{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, currency)}</span>
                     </div>
                   </div>
                 </Link>
@@ -402,6 +441,9 @@ const ProductDetails = () => {
         .pd-price-row { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.25rem; }
         .pd-price { font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; color: var(--primary); }
         .pd-stock { font-size: 0.8125rem; color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .pd-stock--out { color: var(--danger); }
+        .pd-unavailable-banner { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger); border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 500; margin-bottom: 1rem; }
+        .pd-add-cart:disabled, .pd-buy-now:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
         .pd-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
         .pd-variants { margin-bottom: 1.5rem; }
         .pd-var-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-dark); margin-bottom: 0.5rem; display: block; letter-spacing: 0.5px; }

@@ -73,13 +73,14 @@ export const fetchMyQuoteRequests = async (userId) => {
 export const fetchQuoteRequestByNumber = async (quoteNumber) => {
   if (!quoteNumber) return null;
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data, error } = await supabase
+  let query = supabase
     .from('quote_requests')
     .select('*, quote_responses(*)')
-    .eq('quote_number', quoteNumber)
-    .eq('user_id', user.id)
-    .maybeSingle();
+    .eq('quote_number', quoteNumber);
+  if (user) {
+    query = query.eq('user_id', user.id);
+  }
+  const { data, error } = await query.maybeSingle();
   if (error) {
     console.error('[quotes] fetchQuoteRequestByNumber', error);
     return null;

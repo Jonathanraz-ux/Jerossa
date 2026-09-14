@@ -118,7 +118,19 @@ const Checkout = () => {
 
       // Phase 7 : la commande est créée en PENDING, le paiement s'effectue sur
       // la page provider simulé (/payment). Le panier n'est vidé qu'après succès.
-      navigate(`/payment?order=${data.order_number}&method=${paymentMethod}`);
+      // On signale à /payment l'adresse éventuellement nouvelle à sauvegarder,
+      // seulement si elle diffère d'une adresse déjà enregistrée dans le carnet.
+      const addrDup = savedAddresses.some((a) =>
+        [a.firstName, a.lastName, a.address, a.city, a.country, a.postalCode]
+          .map((v) => String(v || '').trim().toLowerCase())
+          .join('|') ===
+        [formData.firstName, formData.lastName, formData.address, formData.city, formData.country, formData.postalCode]
+          .map((v) => String(v || '').trim().toLowerCase())
+          .join('|')
+      );
+      navigate(`/payment?order=${data.order_number}&method=${paymentMethod}`, {
+        state: { shipTo: { ...formData }, saveAddress: !selectedAddrId && !addrDup },
+      });
     } catch (err) {
       console.error('[checkout] unexpected', err);
       setOrderError(t('checkout.orderError'));

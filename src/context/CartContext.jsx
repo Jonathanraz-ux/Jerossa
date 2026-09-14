@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { STANDARD_SHIPPING_FEE_EUR, FREE_SHIPPING_THRESHOLD_EUR } from '../config/commerce';
 
 const CART_STORAGE_KEY = 'jerossa_cart_v1';
@@ -31,6 +31,13 @@ export const CartProvider = ({ children }) => {
   const [items, setItems] = useState(readStoredCart);
   const [notice, setNotice] = useState(null);
 
+  // Miroir synchrone de l'état du panier : permet à addItem de décider de la
+  // règle de devise de façon fiable (setItems est asynchrone).
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   useEffect(() => {
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
@@ -45,15 +52,15 @@ export const CartProvider = ({ children }) => {
     if (!product?.id) return { ok: false, message: 'Produit introuvable.' };
     const quantity = Math.max(1, Number(qty) || 1);
     const nextMarket = product.market || 'MG';
-    let accepted = false;
+    const current = itemsRef.current;
 
+    if (current.length > 0 && current[0].market !== nextMarket) {
+      setNotice(CART_RULE_MESSAGE);
+      return { ok: false, message: CART_RULE_MESSAGE };
+    }
+
+    setNotice(null);
     setItems((prev) => {
-      if (prev.length > 0 && prev[0].market !== nextMarket) {
-        setNotice(CART_RULE_MESSAGE);
-        return prev;
-      }
-      setNotice(null);
-      accepted = true;
       const existing = prev.find((i) => i.productId === product.id);
       if (existing) {
         return prev.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + quantity } : i));
@@ -72,7 +79,7 @@ export const CartProvider = ({ children }) => {
         },
       ];
     });
-    return accepted ? { ok: true } : { ok: false, message: CART_RULE_MESSAGE };
+    return { ok: true };
   }, []);
 
   const updateQty = useCallback((productId, delta) => {

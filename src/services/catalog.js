@@ -2,6 +2,17 @@ import { supabase } from '../lib/supabase';
 
 const PRODUCT_SELECT = '*, producers(name, user_id, status)';
 
+// Fréquence : un produit ne doit plus être vendu quand son texte de stock ou de
+// disponibilité indique explicitement une rupture. Les valeurs « Sur commande »,
+// « Quantité limitée », etc. restent commandables.
+const OUT_OF_STOCK_RE =
+  /épuis|indisponible|rupture|hors stock|plus en stock|sold out|out of stock|unavailable/i;
+
+const isAvailable = (row) =>
+  !!row.active &&
+  !(row.availability && OUT_OF_STOCK_RE.test(row.availability)) &&
+  !(row.stock && OUT_OF_STOCK_RE.test(row.stock));
+
 const formatPrice = (value, unit) => {
   const num = Number(value);
   const formatted = Number.isInteger(num)
@@ -26,6 +37,7 @@ const mapProduct = (row) => ({
   unit: row.unit,
   origin: row.origin,
   availability: row.availability,
+  available: isAvailable(row),
   verified: row.verified,
   reviews: row.reviews,
   type: row.type,

@@ -8,10 +8,12 @@ import { ProductGridSkeleton } from '../components/common/Skeletons';
 import EmptyState from '../components/common/EmptyState';
 import { useLang } from '../context/LangContext';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Category = () => {
   const { slug } = useParams();
   const { t } = useLang();
+  const { currency } = useCurrency();
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ const Category = () => {
                       <span>({prod.reviews})</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}</span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>{formatUnitPriceFromEUR(prod.priceEUR, prod.unit, currency)}</span>
                       <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>{t('category.view')} <ArrowRight size={12} /></span>
                     </div>
                   </div>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, CreditCard, Smartphone, Landmark, ShieldCheck, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
 import { fetchOrderByUser, confirmPayment } from '../services/orders';
+import { createAddress } from '../services/addresses';
 import { useCart } from '../context/CartContext';
 import { useLang } from '../context/LangContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -16,6 +17,7 @@ const METHOD_META = {
 
 const Payment = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { clearCart } = useCart();
   const { t } = useLang();
@@ -59,6 +61,12 @@ const Payment = () => {
     }
 
     if (success) {
+      const { shipTo, saveAddress } = location.state || {};
+      if (saveAddress && shipTo) {
+        createAddress(shipTo).then((r) => {
+          if (!r.ok) console.error('[checkout] saveAddress', r.error);
+        });
+      }
       clearCart();
       navigate(`/order-confirmation?ref=${orderNumber}`);
     } else {

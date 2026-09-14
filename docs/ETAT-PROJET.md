@@ -1,6 +1,6 @@
 # JEROSSA — État du projet
 
-> Mise à jour : 6 septembre 2026
+> Mise à jour : 11 septembre 2026
 > Déploiement : Vercel (https://jerossa.vercel.app) · Base : Supabase (fsdfieofbbopmzuforck)
 
 ---
@@ -86,19 +86,31 @@
 - Points de refactorification identifiés mais non traités (décision : différés) : table `seller_verification_documents` dormante (l'onboarding stocke les pièces dans `producers.documents` jsonb) ; rattachement commande ↔ vendeur **par nom** (`producers.name = order_items.seller`) fragile, à remplacer par une FK `seller_id` sur `order_items`.
 - Build + lint verts ; `main` poussé et à jour.
 
+### Session du 11 septembre (validation client + correctifs qualité)
+- **Parcours client validé** (vérification en code + lint/build verts) :
+  - Panier → devis : ajout/modification/suppression d'articles OK (règle panier homogène MGA/MUR), demande de devis OK (connecté et invité).
+  - Adresse → commande → confirmation : adresse validée et stockée dans `orders.shipping_address` ; `create_order` recalcule les totaux côté serveur (anti-falsification) et bloque les vendeurs en pause ; paiement simulé → `paid` ; confirmation avec référence `JRS-…` + timeline de suivi.
+  - **Numéro de suivi : différé à l'expédition** (saisi par l'admin dans `orders.tracking`) — décision : pas de faux `TRK-…` à la confirmation.
+  - Statut de commande visible : `MyOrders` + `OrderDetails` (badge + timeline), RLS client/admin OK.
+  - Remboursements : `request_refund` RPC (éligibilité payée + montant ≤ total + anti-doublon) → traités dans l'admin (`RefundsSection`, `process_refund` gardé par `is_admin()` depuis `20260907000001`, commande basculée en `refunded`).
+  - **Audit emails/notifications** : infra prête (`email_logs` + RLS admin + `fetchEmailLogs`, `notifications` + RLS), mais **seuls les remboursements sont câblés** (`request_refund` : notification + email simulé ; `process_refund` : notification). Inscription (seul l'email GoTrue part), validation vendeur (`admin_update_producer_status`), commande (`create_order`/`confirm_payment`) et changement de statut n'émettent **rien** ni en email ni en notification. Les préférences vendeur (`notify_new_orders/messages/quotes`) sont stockées mais non consommées. → à câbler dans les RPC au moment de l'intégration Resend.
+  - Correctifs livrés en soutien : devise homogène (fiches/recherche/catégorie/boutique producteur/aperçu rapide via `useCurrency`, plus de `'EUR'` en dur) ; crash recherche corrigé (`(p.description || '')`) ; **disponibilités** (champ `available` dans `catalog.js`, bandeau + boutons bloqués en rupture sur fiche produit et aperçu rapide, ligne de dispo sur les cartes catalogue, i18n FR/EN) ; `addItem` fiabilisé (refus multi-devise affiché en alerte inline, plus de faux « Ajouté au panier » ni redirection checkout) ; suivi de devis invité (plus de blocage anonyme) ; **adresse libre tapée au checkout sauvegardée dans le carnet après paiement réussi** (dédoublonnage, non bloquant).
+
 ---
 
 ## 2. Ce qui reste à faire
 
 ### Bloquant (avant mise en production)
 - [ ] **Provider de paiement MG/MU** — choix client (Orange Money/MVola/carte ; MCB/SBM) puis intégration réelle via Edge Functions (`createPayment`, `verifyPayment`, webhook). Actuellement simulé.
-- [ ] **Emails transactionnels** — Edge Function `emailService` + Resend (15 templates prévus au MVP, §9 du document de conception). Rien n'est branché aujourd'hui.
+- [ ] **Emails transactionnels** — Edge Function `emailService` + Resend dès le mail pro disponible (15 templates prévus au MVP, §9 du document de conception). État au 11/09 : `email_logs` + RLS admin + `fetchEmailLogs` prêts ; **seul le remboursement est câblé** (email simulé). À câbler dans les RPC à l'intégration : bienvenue inscription, validation vendeur (`admin_update_producer_status`), commande (`create_order`/`confirm_payment`), changement de statut/expédition, devis, en activant les préférences vendeur (`notify_new_*`, déjà stockées).
+- [ ] **Notifications in-app** — table `notifications` + RLS prêtes, câblées uniquement sur le remboursement ; à généraliser (statut commande, validation vendeur, devis, messages).
 - [x] ~~**Storage Supabase**~~ — **fait le 24 août** : buckets `product-images` (public) + `seller-documents` (privé) créés via migration `20260824000001`, policies RLS par dossier `{uid}`, upload réel branché dans `Publish.jsx`. Reste : brancher les pièces justificatives dans l'onboarding vendeur.
 
 ### Fonctionnel
 - [x] ~~**Onboarding vendeur**~~ — **fait le 26 août** : demande « Devenir vendeur » (`/vendeur/devenir`) avec upload pièces vers `seller-documents`, page statut (`/vendeur/statut`), migration RLS complète, **section admin de validation/refus/suspension**, **création réelle de produits dans `Publish.jsx`** (backend + front branchés, RLS testée).
 - [x] ~~**Espace vendeur**~~ — **fait le 27 août** : commandes reçues, devis reçus (avec réponse), profil boutique, KPIs (CA/commission/net) dans `/espace-vendeur` (tableau de bord, produits, commandes, devis, fiche boutique). Backend RLS + RPC (`fetch_my_orders`, `respond_to_quote`, `update_my_shop`).
-- [ ] Espace admin : remboursements (traitement), paiements, devis, activité/logs, paramètres plateforme (livraison, commission). Tables + RPC déjà en place (`fetchAdminRefunds`/`processRefund`/`fetchAdminQuotes` existent mais aucun onglet/ui ne les consomme) — pur front.
+- [x] ~~**Parcours client validé**~~ — **fait le 11 septembre** : panier/devis, adresse+commande+confirmation `JRS-…`, statut de commande visible, remboursements enregistrés/traités en admin. Suivi carrier différé à l'expédition.
+- [ ] Espace admin — reste **Paiements** (table + RLS existants, aucune intégration provider réelle) et **Activité/Logs** (`email_logs` + `fetchEmailLogs` prêts), volontairement différés en attente de l'API paiement/emails. Déjà câblés : produits, catégories, commandes (statut/suivi), utilisateurs, devis (réponse/refus), remboursements (approbation/refus/traitement), vendeurs (validation/suspension/réactivation), paramètres plateforme (commission/livraison).
 - [x] ~~**Réinitialisation de mot de passe**~~ — **fait le 24 août** : `ForgotPassword.jsx` branché sur `resetPasswordForEmail` + nouvelle page `/reset-password` (`ResetPassword.jsx`, `updateUser({password})`). Redirections autorisées côté Supabase : `jerossa.vercel.app/**` + `localhost:5173/**`. À tester en réel après déploiement Vercel.
 
 ### Technique / hygiène

@@ -12,6 +12,7 @@ import ContactSellerModal from '../components/ContactSellerModal';
 import SellerReviews from '../components/SellerReviews';
 import { fetchSellerStats } from '../services/reviews';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
+import { useCurrency } from '../context/CurrencyContext';
 import './animations.css';
 
 const TABS = {
@@ -36,6 +37,7 @@ const getAvailabilityLabel = (availability, t) => {
 const ProducerShop = () => {
   const { id } = useParams();
   const { t } = useLang();
+  const { currency } = useCurrency();
   const [producer, setProducer] = useState(null);
   const [producerProducts, setProducerProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -400,7 +402,7 @@ const ProducerShop = () => {
                               paddingTop: '10px', borderTop: '1px solid var(--border)',
                             }}>
                               <span style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 700, color: 'var(--primary)' }}>
-                                {formatUnitPriceFromEUR(prod.priceEUR, prod.unit, 'EUR')}
+                                {formatUnitPriceFromEUR(prod.priceEUR, prod.unit, currency)}
                               </span>
                               <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
                                 {t('shop.product.view')} <ArrowRight size={12} />

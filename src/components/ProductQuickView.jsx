@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { X, Star, Truck, Package, ShieldCheck, ChevronRight, Check } from 'lucide-react';
+import { X, Star, Truck, Package, ShieldCheck, ChevronRight, Check, AlertTriangle } from 'lucide-react';
 import { fetchProductByIdentifier } from '../services/catalog';
 import { useCart } from '../context/CartContext';
 import { useLang } from '../context/LangContext';
+import { useCurrency } from '../context/CurrencyContext';
 import './ProductQuickView.css';
 import SmartImg from './common/SmartImg';
 import { formatUnitPriceFromEUR } from '../lib/currency.js';
@@ -14,12 +15,17 @@ const ProductQuickView = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { t } = useLang();
+  const { currency } = useCurrency();
   const [product, setProduct] = useState(null);
   const [added, setAdded] = useState(false);
+  const [addError, setAddError] = useState('');
 
   useEffect(() => {
     if (productId) {
-      fetchProductByIdentifier(productId).then(setProduct);
+      fetchProductByIdentifier(productId).then((p) => {
+        setProduct(p);
+        setAddError('');
+      });
     } else {
       setProduct(null);
     }
@@ -33,15 +39,25 @@ const ProductQuickView = () => {
   };
 
   const handleAddToCart = () => {
-    addItem(product, 1);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    const res = addItem(product, 1);
+    if (res.ok) {
+      setAddError('');
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1500);
+    } else {
+      setAdded(false);
+      setAddError(res.message || t('common.error'));
+    }
   };
 
   const handleBuyNow = () => {
-    addItem(product, 1);
-    closeQuickView();
-    navigate('/checkout');
+    const res = addItem(product, 1);
+    if (res.ok) {
+      closeQuickView();
+      navigate('/checkout');
+    } else {
+      setAddError(res.message || t('common.error'));
+    }
   };
 
   // Close on Escape key
@@ -101,7 +117,7 @@ const ProductQuickView = () => {
               <span className="reviews-count">{product.rating} ({product.reviews} {t('product.reviews')})</span>
             </div>
 
-            <div className="quickview-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, 'EUR')}</div>
+            <div className="quickview-price">{formatUnitPriceFromEUR(product.priceEUR, product.unit, currency)}</div>
 
             <p className="quickview-description">{product.description}</p>
 
@@ -121,7 +137,7 @@ const ProductQuickView = () => {
             <div className="quickview-logistics">
               <div className="logistic-item">
                 <Package size={20} className="logistic-icon" />
-                <span><strong>{t('product.stock')} :</strong> {product.stock}</span>
+                <span><strong>{t('product.availability')} :</strong> {product.availability || (product.available ? t('product.available') : t('product.unavailable'))}</span>
               </div>
               <div className="logistic-item">
                 <Truck size={20} className="logistic-icon" />
@@ -133,12 +149,24 @@ const ProductQuickView = () => {
               </div>
             </div>
 
+            {!product.available && (
+              <div className="quickview-unavailable">
+                <AlertTriangle size={14} /> {t('product.unavailableDesc')}
+              </div>
+            )}
+
+            {addError && (
+              <div className="quickview-unavailable" style={{ background: 'var(--warning-bg)', color: 'var(--warning)', border: '1px solid rgba(210,153,34,0.3)' }}>
+                <AlertTriangle size={14} /> {addError}
+              </div>
+            )}
+
             <div className="quickview-actions">
-              <button className="btn btn-primary quickview-btn-buy" onClick={handleBuyNow}>
-                {t('cart.buyNow')}
+              <button className="btn btn-primary quickview-btn-buy" onClick={handleBuyNow} disabled={!product.available}>
+                {product.available ? t('cart.buyNow') : t('product.unavailable')}
               </button>
-              <button className="btn btn-outline quickview-btn-cart" onClick={handleAddToCart}>
-                {added ? <><Check size={14} /> {t('cart.added')}</> : t('cart.addToCart')}
+              <button className="btn btn-outline quickview-btn-cart" onClick={handleAddToCart} disabled={!product.available}>
+                {product.available ? (added ? <><Check size={14} /> {t('cart.added')}</> : t('cart.addToCart')) : t('product.unavailable')}
               </button>
             </div>
             
