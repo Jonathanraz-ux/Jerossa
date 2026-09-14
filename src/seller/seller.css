@@ -52,6 +52,7 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 500;
   line-height: 1.15;
+  color: #fff;
 }
 
 .sv-view-shop {
