@@ -1,0 +1,60 @@
+# ==================================================
+# Jerossa — NON-RÉGRESSION DES CORRECTIFS DE SÉCURITÉ (CI isolée)
+# Environnement : DOCKER local (runner ubuntu) — JAMAIS la base liée.
+# --------------------------------------------------
+# Ce workflow prouve DYNAMIQUEMENT les 5 gardes bloquantes à l'aide d'une
+# instance Supabase **locale isolée** (`supabase start`, Docker) chargée des
+# migrations + données de test synthétiques, puis exécute les tests
+# `supabase/tests/non_regression_security.sql` (T1..T5) avec une session
+# `authenticated` simulée (rôle + JWT) — indépendamment de la base liée.
+#
+# ⚠️ RÈGLE D'OR : AUCUN `db push`/`db query --linked` ici. Le workflow ne
+# connaît **que** l'instance locale.
+# ==================================================
+name: non_regression_security
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'supabase/config.toml'
+
+jobs:
+  test-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer la CLI Supabase v2.115.0 (version épinglée)
+        uses: supabase/setup-cli@v1
+        with:
+          version: v2.115.0
+
+      - name: Démarrer l'instance Supabase LOCALE isolée (Docker)
+        run: supabase start
+
+      - name: Appliquer les migrations EXISTANTES + corrective sur le LOCAL
+        run: supabase db push --local
+
+      - name: EXÉCUTER les non-régressions anonymes T1..T5 (gardes auth.uid/REVOKE)
+        run: supabase db query --local --file supabase/tests/non_regression_security.sql
+
+      - name: EXÉCUTER les PREUVES JWT authentifiées réelles T1..T5 (session JWT)
+        run: supabase db query --local --file supabase/tests/authenticated_security.sql
+        # T1 : prix client falsifié -> recalculé depuis le catalogue (auth.uid réelle)
+        # T2 : confirm_payment EXECUTE révoqué (REVOKE)
+        # T3 : products verified=false à l'insert/update vendeur (modération)
+        # T4 : messages_update_own restreint à sender_id=auth.uid()
+        # T5 : create_quote_request lié à auth.uid()
+
+      - name: Arrêter proprement l'instance (aucun artefact conservé)
+        run: supabase stop
+        if: always()
