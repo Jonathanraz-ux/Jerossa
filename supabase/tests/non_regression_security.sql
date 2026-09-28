@@ -387,6 +387,66 @@ end;
 $$;
 
 -- ==================================================
+-- T12. ORDERS — aucune policy ne lit la table parente/ enfant (42P17)
+-- ==================================================
+-- RÉGRESSION PROUVÉE en base liée : deux policies de lecture vendeur avaient
+-- été appliquées à la main. « orders_select_seller » lisait « order_items »
+-- alors que « order_items_select_owner » lit « orders » → 42P17
+-- « infinite recursion detected in policy » → HTTP 500 sur
+-- GET /rest/v1/orders?select=*,order_items(*) → page « Mon compte » vide.
+--
+-- Le vendeur lit ses commandes via le RPC SECURITY DEFINER fetch_my_orders()
+-- (cf. 20260826000002_seller_space.sql) : aucune policy vendeur n'est
+-- nécessaire, et surtout aucune lecture croisée.
+--
+-- Vérification STATIQUE (structure des policies) : elle protège aussi bien
+-- les environnements de CI, où aucun JWT n'est disponible pour une preuve
+-- dynamique.
+do $$
+declare
+  v_cross int;
+  v_names text;
+begin
+  select count(*), coalesce(string_agg(t.tablename || '.' || t.policyname, ', '), '')
+    into v_cross, v_names
+  from (
+    -- orders dont la policy référence order_items
+    select 'orders'::text as tablename, po.polname as policyname
+    from pg_policy po
+    join pg_class c on c.oid = po.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relname = 'orders'
+      and position('order_items' in coalesce(pg_get_expr(po.polqual, po.polrelid), '')) > 0
+    union all
+    -- order_items dont la policy référence orders
+    select 'order_items'::text as tablename, po.polname as policyname
+    from pg_policy po
+    join pg_class c on c.oid = po.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relname = 'order_items'
+      and position('orders' in coalesce(pg_get_expr(po.polqual, po.polrelid), '')) > 0
+      and position('order_items' in coalesce(pg_get_expr(po.polqual, po.polrelid), '')) = 0
+  ) t;
+
+  if v_cross > 0 then
+    raise exception '[T12] ÉCHEC : lecture croisée orders <-> order_items dans la policy % → 42P17 au runtime.', v_names;
+  end if;
+
+  if not exists (
+    select 1 from pg_policy po
+    join pg_class c on c.oid = po.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relname = 'orders'
+      and po.polname = 'orders_select_owner'
+  ) then
+    raise exception '[T12] ÉCHEC : policy orders_select_owner absente (l''acheteur ne verrait plus ses commandes).';
+  end if;
+
+  raise notice '[T12] OK : aucune policy ne croise orders <-> order_items (pas de 42P17) et la lecture acheteur est intacte.';
+end;
+$$;
+
+-- ==================================================
 -- SYNTHÈSE
 -- ==================================================
 do $$
