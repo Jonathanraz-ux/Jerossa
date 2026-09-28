@@ -3,6 +3,21 @@ import { supabase } from '../lib/supabase';
 
 const RETRY_DELAY_MS = 3000;
 
+let topicSeq = 0;
+
+/**
+ * Supabase Realtime indexe ses canaux par topic : `channel(topic)` renvoie le
+ * canal déjà existant s'il porte ce nom. Appeler `.on()` sur un canal déjà
+ * souscrit lève alors
+ * "cannot add `postgres_changes` callbacks for X after `subscribe()`".
+ *
+ * Or le même abonnement est monté en parallèle par la Navbar, Mon compte et
+ * l'espace vendeur, et le double montage de StrictMode rejoue l'effet dans la
+ * même tick (removeChannel est asynchrone : l'ancien canal reste encore
+ * enregistré). Chaque abonné doit donc avoir un topic unique.
+ */
+const uniqueTopic = (prefix) => `${prefix}:${Date.now()}:${(topicSeq += 1)}`;
+
 /**
  * Hook pour s'abonner aux nouveaux messages d'une conversation
  * via Supabase Realtime (postgres_changes).
@@ -56,7 +71,7 @@ export const useRealtimeMessages = (conversationId, onNewMessage, options = {}) 
       if (cancelled) return;
 
       const channel = supabase
-        .channel(`messages:${conversationId}:${Date.now()}`)
+        .channel(uniqueTopic(`messages:${conversationId}`))
         .on(
           'postgres_changes',
           {
@@ -140,7 +155,7 @@ export const useRealtimeConversations = (onNewConversationMessage, currentUserId
     }
 
     const channel = supabase
-      .channel('conversations-unread')
+      .channel(uniqueTopic('conversations-unread'))
       .on(
         'postgres_changes',
         {
