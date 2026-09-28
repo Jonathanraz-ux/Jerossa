@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Send, ArrowLeft, MessageSquare, Loader2, AlertCircle, WifiOff, X } from 'lucide-react';
 import { fetchMyConversations } from '../services/messages';
 import { useConversationChat } from '../hooks/useConversationChat';
+import useStickyScroll from '../hooks/useStickyScroll';
 import { useLang } from '../context/LangContext';
 import { localeFor } from '../i18n';
 
@@ -13,7 +14,6 @@ const MessagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(conversationId || null);
   const [newMessage, setNewMessage] = useState('');
-  const messagesEndRef = useRef(null);
 
   const loadConversations = useCallback(async ({ showSpinner = false } = {}) => {
     if (showSpinner) setLoading(true);
@@ -35,14 +35,20 @@ const MessagesPage = () => {
     onInboxChanged: loadConversations,
   });
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // Défilement confiné à la zone de messages : la page ne bouge plus, et le
+  // polling 8 s ne peut plus relancer une descente pendant la relecture.
+  const { scrollerRef, scrollToBottom } = useStickyScroll({
+    conversationId: selectedConvo,
+    lastMessageId: messages[messages.length - 1]?.id ?? null,
+  });
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo) return;
     const sent = await send(newMessage);
-    if (sent) setNewMessage('');
+    if (sent) {
+      setNewMessage('');
+      scrollToBottom();
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -180,7 +186,7 @@ const MessagesPage = () => {
                 )}
 
                 {/* Messages */}
-                <div className="msg-chat-body">
+                <div className="msg-chat-body" ref={scrollerRef}>
                   {messages.map((msg) => (
                     <div key={msg.id} className={`msg-bubble ${msg.isOwn ? 'msg-bubble--own' : ''} ${msg.pending ? 'msg-bubble--pending' : ''}`}>
                       <p>{msg.content}</p>
@@ -191,7 +197,6 @@ const MessagesPage = () => {
                       </span>
                     </div>
                   ))}
-                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input */}

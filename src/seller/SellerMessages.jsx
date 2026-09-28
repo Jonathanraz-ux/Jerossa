@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Send, ArrowLeft, MessageSquare, Loader2, AlertCircle, WifiOff, X } from 'lucide-react';
 import { fetchMyConversations } from '../services/messages';
 import { useConversationChat } from '../hooks/useConversationChat';
+import useStickyScroll from '../hooks/useStickyScroll';
 import { useLang } from '../context/LangContext';
 import { localeFor } from '../i18n';
 
@@ -13,7 +14,6 @@ const SellerMessages = () => {
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [newMessage, setNewMessage] = useState('');
-  const messagesEndRef = useRef(null);
 
   const loadConversations = useCallback(async ({ showSpinner = false } = {}) => {
     if (showSpinner) setLoading(true);
@@ -32,14 +32,20 @@ const SellerMessages = () => {
     onInboxChanged: loadConversations,
   });
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // Défilement confiné à la zone de messages : la page ne bouge plus, et le
+  // polling 8 s ne peut plus relancer une descente pendant la relecture.
+  const { scrollerRef, scrollToBottom } = useStickyScroll({
+    conversationId: selectedConvo,
+    lastMessageId: messages[messages.length - 1]?.id ?? null,
+  });
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo) return;
     const sent = await send(newMessage);
-    if (sent) setNewMessage('');
+    if (sent) {
+      setNewMessage('');
+      scrollToBottom();
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -182,11 +188,14 @@ const SellerMessages = () => {
               )}
 
               {/* Messages */}
-              <div style={{
-                flex: 1, overflowY: 'auto', padding: '1rem',
-                display: 'flex', flexDirection: 'column', gap: '0.5rem',
-                background: '#faf9f7', minHeight: 280, maxHeight: 420,
-              }}>
+              <div
+                ref={scrollerRef}
+                style={{
+                  flex: 1, overflowY: 'auto', padding: '1rem',
+                  display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                  background: '#faf9f7', minHeight: 280, maxHeight: 420,
+                }}
+              >
                 {messages.map((msg) => (
                   <div key={msg.id} style={{
                     maxWidth: '75%', padding: '0.65rem 0.85rem',
@@ -209,7 +218,6 @@ const SellerMessages = () => {
                     </span>
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Input */}

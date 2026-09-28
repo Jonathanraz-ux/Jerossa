@@ -15,9 +15,12 @@ export default function ScrollManager() {
   useEffect(() => {
     const { hash } = location;
 
-    // Navigation classique : repartir du haut
+    // Navigation classique : repartir du haut.
+    // `instant` et non `auto` : `html { scroll-behavior: smooth }` s'applique
+    // à `auto` et rendrait cette remontée animée, en concurrence avec les
+    // défilements internes des pages (messagerie, sections ancrées).
     if (!hash) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       return undefined;
     }
 
