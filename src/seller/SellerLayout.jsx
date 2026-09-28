@@ -5,16 +5,22 @@ import {
   RefreshCw, MessageSquare, Star, TrendingUp, Settings,
 } from 'lucide-react';
 import { fetchMyProducer } from '../services/seller';
-import { fetchMyConversations } from '../services/messages';
+import { useUnreadMessages } from '../hooks/useUnreadMessages';
+import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import './seller.css';
 
 const SellerLayout = () => {
   const { t } = useLang();
+  const { user } = useAuth();
   const [producer, setProducer] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { unreadCount, refreshUnread } = useUnreadMessages(user?.id || null);
+  const onConversationUpdated = useCallback(
+    () => { refreshUnread({ force: true }); },
+    [refreshUnread],
+  );
 
   const TABS = [
     { to: '/espace-vendeur', end: true, label: t('seller.nav.dashboard'), icon: LayoutDashboard },
@@ -35,20 +41,7 @@ const SellerLayout = () => {
     setLoading(false);
   }, []);
 
-  const loadUnread = useCallback(async () => {
-    try {
-      const convos = await fetchMyConversations();
-      const count = (convos || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-      setUnreadCount(count);
-    } catch (e) {
-      console.error('[SellerLayout] loadUnread error', e);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-    loadUnread();
-  }, [load, loadUnread]);
+  useEffect(() => { load(); }, [load]);
 
   if (loading && !producer) {
     return (
@@ -130,7 +123,7 @@ const SellerLayout = () => {
       </nav>
 
       <main className="container sv-content">
-        <Outlet context={{ producer, onConversationUpdated: loadUnread }} />
+        <Outlet context={{ producer, onConversationUpdated }} />
       </main>
     </div>
   );

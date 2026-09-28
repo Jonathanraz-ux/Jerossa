@@ -223,6 +223,9 @@ const ProducerShop = () => {
                 <button
                   className="j-pill-btn j-pill-btn--outline-dark"
                   onClick={() => setContactModal({ mode: 'quote' })}
+                  disabled={!producer.sellerAvailable}
+                  title={producer.sellerAvailable ? undefined : t('producerShop.sellerUnavailableDesc')}
+                  style={!producer.sellerAvailable ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                 >
                   <FileText size={15} /> {t('shop.quote')}
                 </button>
@@ -418,7 +421,10 @@ const ProducerShop = () => {
                           e.preventDefault();
                           setContactModal({ mode: 'quote', product: prod });
                         }}
+                        disabled={!producer.sellerAvailable}
+                        title={producer.sellerAvailable ? undefined : t('producerShop.sellerUnavailableDesc')}
                         className="ps-card-quote-btn"
+                        style={!producer.sellerAvailable ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
                         <FileText size={13} /> {t('shop.product.quote')}
                       </button>

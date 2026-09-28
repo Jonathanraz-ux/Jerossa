@@ -2,10 +2,10 @@
 # Jerossa — NON-RÉGRESSION DES CORRECTIFS DE SÉCURITÉ (CI isolée)
 # Environnement : DOCKER local (runner ubuntu) — JAMAIS la base liée.
 # --------------------------------------------------
-# Ce workflow prouve DYNAMIQUEMENT les 5 gardes bloquantes à l'aide d'une
+# Ce workflow prouve DYNAMIQUEMENT les gardes bloquantes à l'aide d'une
 # instance Supabase **locale isolée** (`supabase start`, Docker) chargée des
 # migrations + données de test synthétiques, puis exécute les tests
-# `supabase/tests/non_regression_security.sql` (T1..T5) avec une session
+# `supabase/tests/non_regression_security.sql` (T1..T11) avec une session
 # `authenticated` simulée (rôle + JWT) — indépendamment de la base liée.
 #
 # ⚠️ RÈGLE D'OR : AUCUN `db push`/`db query --linked` ici. Le workflow ne
@@ -44,16 +44,22 @@ jobs:
       - name: Appliquer les migrations EXISTANTES + corrective sur le LOCAL
         run: supabase db push --local
 
-      - name: EXÉCUTER les non-régressions anonymes T1..T5 (gardes auth.uid/REVOKE)
+      - name: EXÉCUTER les non-régressions T1..T11 (gardes auth.uid/REVOKE/RLS)
         run: supabase db query --local --file supabase/tests/non_regression_security.sql
-
-      - name: EXÉCUTER les PREUVES JWT authentifiées réelles T1..T5 (session JWT)
-        run: supabase db query --local --file supabase/tests/authenticated_security.sql
-        # T1 : prix client falsifié -> recalculé depuis le catalogue (auth.uid réelle)
+        # T1 : prix client falsifié -> recalculé depuis le catalogue
         # T2 : confirm_payment EXECUTE révoqué (REVOKE)
         # T3 : products verified=false à l'insert/update vendeur (modération)
         # T4 : messages_update_own restreint à sender_id=auth.uid()
         # T5 : create_quote_request lié à auth.uid()
+        # T6 : list_my_conversations cloisonnée sur les participants
+        # T7 : list_my_conversations non exécutable par anon
+        # T8 : aucune colonne email exposée au vendeur
+        # T9 : public.messages publié dans supabase_realtime
+        # T10: RLS de lecture des messages limitée aux participants
+        # T11: messages.seq identity + dernier message trié dessus (ex æquo)
+
+      - name: EXÉCUTER les PREUVES JWT authentifiées réelles T1..T5 (session JWT)
+        run: supabase db query --local --file supabase/tests/authenticated_security.sql
 
       - name: Arrêter proprement l'instance (aucun artefact conservé)
         run: supabase stop

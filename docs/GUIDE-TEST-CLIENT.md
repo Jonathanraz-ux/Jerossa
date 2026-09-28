@@ -65,6 +65,27 @@
 ### H. Suivi public sans compte
 - Page **Suivi de commande** (`/track/NUMERO`) : entrez le numéro de commande reçu à l'étape D pour voir son statut, même déconnecté.
 
+### I. Messagerie client / vendeur
+> Prérequis : la messagerie n'est active que pour un vendeur **avec un compte réel approuvé**. Les boutiques de démonstration du catalogue ont volontairement le bouton désactivé. Pour tester : créer un compte, passer **Devenir vendeur**, puis faire approuver la boutique dans `/admin` (onglet Vendeurs). L'acheteur doit être un **second compte** (on ne peut pas se contacter soi-même).
+
+Côté client :
+1. Depuis une fiche produit ou une boutique vendeur approuvée, cliquer **Contacter le vendeur**.
+2. Envoyer un message → cliquer **Voir la conversation** : la conversation s'ouvre sur `/my-messages/ID`.
+3. **Contrôle clé** : le message doit apparaître **immédiatement dans la bulle** du côté qui l'envoie, sans rechargement de page. C'est le défaut historique corrigé — si la bulle manque, la messagerie est à nouveau cassée.
+4. Ouvrir la **même conversation dans deux navigateurs** (un côté client, un côté vendeur) : chaque message entrant doit apparaître tout seul (Realtime) ou au plus tard en 8-10 s (repli automatique si le temps réel est coupé).
+5. Le badge de non-lus de l'icône Messages (barre du haut) et de **Mon compte → Mes messages** doit se mettre à jour sans rechargement.
+6. Le nom du vendeur et le produit apparaissent dans l'en-tête de la conversation.
+
+Côté vendeur (même boutique, dans un autre navigateur) :
+1. **Espace vendeur → Messages** : la conversation du client apparaît avec le **nom du client** (et non « Client » générique).
+2. Répondre : la bulle doit apparaître immédiatement chez le vendeur **et** chez le client.
+3. Fermer puis rouvrir la conversation : l'historique complet est présent, messages des deux côtés.
+4. Sur `/espace-vendeur`, l'onglet **Messages** affiche le compteur de non-lus.
+
+À vérifier aussi :
+- Un message en échec (par exemple une session expirée) doit afficher un bandeau rouge « Message non envoyé » avec le motif, et le texte doit rester dans le champ pour être renvoyé — il ne doit jamais disparaître silencieusement.
+- Boutons **Devis** d'une boutique de démo : ils doivent être désactivés comme le bouton **Contacter**, jamais renvoyer une erreur serveur.
+
 ---
 
 ## 3. Parcours administrateur

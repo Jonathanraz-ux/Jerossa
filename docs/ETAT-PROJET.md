@@ -17,7 +17,7 @@
 - **Dashboard admin** : KPIs, gestion produits/catégories/commandes/utilisateurs, route protégée par rôle (`ProtectedAdminRoute`).
 - Responsive mobile/tablette soigné ; animations au scroll ; rewrite SPA configuré sur Vercel.
 
-### Backend Supabase (24 migrations)
+### Backend Supabase (25 migrations)
 1. `core_tables` — profiles, producers, categories, products…
 2. `auth_rls` — trigger `handle_new_user`, RLS profils/produits…
 3. `catalog_public_ids` + `seed_catalog` — catalogue de départ.
@@ -29,6 +29,8 @@
 9. `storage_buckets` (24 août) — buckets `product-images` (public, 5 Mo) et `seller-documents` (privé, 10 Mo), policies RLS par dossier `{uid}` + accès admin.
 10. `seller_onboarding` (26 août) — colonnes vendeur + RLS candidature/approuvé (cf. § 26 août).
 11. `seller_space` (26 août) — espace vendeur : RPC `fetch_my_orders`, `update_my_shop`, `respond_to_quote`. RLS commandes/devis remontés au vendeur.
+12. `messaging_reliability` (28 sept) — RPC `list_my_conversations` (boîte de réception en une requête, libellé de l'acheteur sans fuite d'email) + garantie idempotente de la publication `supabase_realtime` sur `messages`/`conversations`. Cf. § Messagerie.
+13. `messaging_chronological_tiebreak` (28 sept) — colonne `messages.seq` (bigint identity) + tri du dernier message sur `(created_at, seq)`. Cf. § Messagerie.
 
 ### Session debug du 21 août (auth 500)
 - Diagnostic complet du 500 sur `/auth/v1/token?grant_type=password`.
@@ -96,6 +98,19 @@
   - **Audit emails/notifications** : infra prête (`email_logs` + RLS admin + `fetchEmailLogs`, `notifications` + RLS), mais **seuls les remboursements sont câblés** (`request_refund` : notification + email simulé ; `process_refund` : notification). Inscription (seul l'email GoTrue part), validation vendeur (`admin_update_producer_status`), commande (`create_order`/`confirm_payment`) et changement de statut n'émettent **rien** ni en email ni en notification. Les préférences vendeur (`notify_new_orders/messages/quotes`) sont stockées mais non consommées. → à câbler dans les RPC au moment de l'intégration Resend.
   - Correctifs livrés en soutien : devise homogène (fiches/recherche/catégorie/boutique producteur/aperçu rapide via `useCurrency`, plus de `'EUR'` en dur) ; crash recherche corrigé (`(p.description || '')`) ; **disponibilités** (champ `available` dans `catalog.js`, bandeau + boutons bloqués en rupture sur fiche produit et aperçu rapide, ligne de dispo sur les cartes catalogue, i18n FR/EN) ; `addItem` fiabilisé (refus multi-devise affiché en alerte inline, plus de faux « Ajouté au panier » ni redirection checkout) ; suivi de devis invité (plus de blocage anonyme) ; **adresse libre tapée au checkout sauvegardée dans le carnet après paiement réussi** (dédoublonnage, non bloquant).
 
+### Messagerie client ⇄ vendeur (fiabilisée le 28 sept)
+- **Modèle** : une seule table `conversations` lue par les deux écrans ; `buyer_id` = compte client, `seller_id` = boutique (`producers.user_id`), `messages.sender_id` = compte auteur. Le même `services/messages.js` sert les deux côtés, donc `isOwn` est calculé identiquement partout.
+- **Migration réellement appliquée en prod** le 28 sept : les deux migrations du chantier sont **poussées en base liée** (`supabase db push --linked`, 30 migrations au vert, historique local = remote) et non seulement écrites. Vérifié par 8 verdicts lecture seule (`supabase/tests/_verif_liee_messagerie.sql`, M1..M8) et 7 preuves fonctionnelles à JWT réel.
+- **Bug bloquant corrigé** : le message envoyé n'apparaissait **chez personne côté émetteur** (le callback Realtime écartait l'événement « déjà optimiste » alors qu'aucun ajout optimiste n'existait — `pendingSendRef`). Cause introduite en `d91a8cc`. Remplacé par un état de conversation partagé `useConversationChat` : ajout optimiste, réconciliation par un rechargement serveur après le `send_message`, et le Realtime ne fait **plus que** ajouter (dédupliqué par ID).
+- **Zéro dépendance au temps réel** : repli polling (8 s sur la conversation, 30 s sur la boîte de réception, 45 s sur les badges), suspension onglet caché, reconnexion automatique du canal, bandeau « actualisation auto » quand le Realtime tombe. Un message entrant ne peut plus rester invisible.
+- **Échec d'envoi visible** : bandeau rouge avec le message du serveur, la bulle optimiste est retirée et le texte reste dans le champ pour être renvoyé.
+- **Nom du counterpart** : `public.profiles` est en RLS « propriétaire seul » **et sans colonne `email`** ; l'ancien `select('id, full_name, email')` échouait en silence et le vendeur voyait toujours « Client ». Remplacé par la RPC `list_my_conversations` (migration `20260928000001`), qui expose `full_name` et **aucun email**.
+- **Chronologie déterministe** (bug trouvé par la preuve fonctionnelle, pas par relecture) : `order by m.created_at desc` **n'est pas un tri total**. `now()` étant figé au début de transaction, deux messages insérés dans la *même* transaction ont exactement le même `created_at` — et la fonction renvoyait alors le **mauvais dernier message** (aperçu périmé, ordre des bulles instable). Corrigé par `messages.seq` (bigint `generated always as identity`) comme tiebreaker, côté serveur (`(created_at, seq)`) **et** côté client (`byChronology` dans `useConversationChat`, `.order('seq')` dans `fetchConversationMessages`). Migration `20260928000002`.
+- **Badge de non-lus temps réel** : `useUnreadMessages` branche le hook `useRealtimeConversations` (jusqu'ici du code mort) dans la Navbar, Mon compte et l'espace vendeur, avec anti-rafale.
+- **Performance** : la liste des conversations passait de `1 + 2N` requêtes à **une seule** (`list_my_conversations`).
+- **Autres correctifs** : interpolation `{var}` supportée à côté de `{{var}}` dans `t()` (l'en-tête vendeur affichait littéralement « Produit : {title} ») ; après premier contact, bouton « Voir la conversation » ; boutons **Devis** désactivés comme **Contacter** sur une boutique non disponible ; schéma de test `supabase/tests/_verif_liee_messagerie.sql` + non-régressions T6..T11.
+- **Limite assumée** : la messagerie n'est active que pour un vendeur avec compte réel **approuvé** (garde `create_or_get_conversation`). Les 8 producteurs de démonstration ont `user_id IS NULL` : leurs boutons sont désactivés, c'est voulu. En base liée au 28/09 : **0 conversation, 0 message** — la messagerie n'a jamais été exercée en conditions réelles par un utilisateur, seul un vendeur lié à un compte existe (`Noctis Digital Forge`, approuvé). Premier vrai test à faire en recette.
+
 ---
 
 ## 2. Ce qui reste à faire
@@ -128,6 +143,8 @@
 4. **En cas de 500 Supabase Auth, aller directement dans Logs → service « Auth »** (pas les logs Edge/API) : le `error_id` de la réponse y correspond à l'erreur PostgreSQL exacte. C'est ce qui a débloqué le diagnostic en une étape.
 5. **La CLI Supabase ne se connecte plus par email/mot de passe** : Personal Access Token obligatoire (Dashboard → Account → Tokens) ou flow navigateur. Le token est sensible — jamais dans Git, uniquement `.env.local` local ou secrets CI/CD.
 6. **Config Auth via Management API** : `PATCH /v1/projects/{ref}/config/auth`. Champ `uri_allow_list` = liste **séparée par des virgules** (les retours à la ligne sont silencieusement supprimés). Vérifier ensuite avec un GET — le PATCH renvoie une valeur qui peut différer de ce qui est stocké.
+7. **Un `ORDER BY` sur un timestamp n'est pas un tri total** : `now()`/`clock_timestamp()` et les colonnes texte ne sont pas des identifiants d'ordre fiables. Toujours ajouter un tiebreaker monotone (`bigint identity`) dès qu'un ordre doit être stable ou afficher « le dernier élément ». Trouvé ici **uniquement par la preuve dynamique** (transaction annulée en base liée) : la relecture du code et les 8 verdicts structurels M1..M8 étaient tous au vert alors que la fonction renvoyait le mauvais message. Les tests statiques prouvent qu'une garde *existe*, jamais qu'un *résultat* est bon.
+8. **Un test de non-régression doit avoir un contrôle négatif** : vérifier une fois qu'il échoue bien quand la garantie est absente (ici : colonne `seq` renommée → le test lève). Un test qui passe toujours ne prouve rien.
 
 ### Montée en qualité
 5. **Passer à TypeScript** comme prévu au document de conception (§1.1) — le code est actuellement en JSX.

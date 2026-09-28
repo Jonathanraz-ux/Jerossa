@@ -33,12 +33,15 @@ export const LangProvider = ({ children }) => {
     setLang(lang === 'fr' ? 'en' : 'fr');
   }, [lang, setLang]);
 
-  // Interpolation : t('key', { nom: 'Vanille' }) remplace {{nom}}.
+  // Interpolation : t('key', { nom: 'Vanille' }) remplace {{nom}} et {nom}.
   const t = useCallback((key, vars) => {
     let str = translations[lang]?.[key] ?? translations[DEFAULT_LANG][key] ?? key;
     if (vars) {
       Object.entries(vars).forEach(([k, v]) => {
         str = str.split(`{{${k}}}`).join(v);
+      });
+      Object.entries(vars).forEach(([k, v]) => {
+        str = str.split(`{${k}}`).join(v);
       });
     }
     return str;

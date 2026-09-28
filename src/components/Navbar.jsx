@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
 import { fetchCategories } from '../services/catalog';
-import { fetchMyConversations } from '../services/messages';
+import { useUnreadMessages } from '../hooks/useUnreadMessages';
 import LanguageSwitcher from './common/LanguageSwitcher';
 
 const Popover = ({ open, onClose, children, align = 'left' }) => {
@@ -134,9 +134,9 @@ const Navbar = () => {
   const [publishOpen, setPublishOpen] = useState(false);
   const [catsOpen, setCatsOpen] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const { count } = useCart();
   const { isAuthenticated, signOut, user, producer, producerLoading } = useAuth();
+  const { unreadCount } = useUnreadMessages(isAuthenticated ? user?.id : null);
 
   // Lien vendeur dérivé du statut réel de la boutique (table `producers`).
   const sellerStatus = producer?.status;
@@ -151,14 +151,6 @@ const Navbar = () => {
   useEffect(() => {
     fetchCategories().then(setCategories);
   }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated || !user) { setUnreadCount(0); return; }
-    fetchMyConversations().then((convos) => {
-      const total = convos.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-      setUnreadCount(total);
-    });
-  }, [isAuthenticated, user]);
 
   const openPublish = () => { setMenuOpen(false); setPublishOpen(true); };
 

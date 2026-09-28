@@ -24,6 +24,7 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
 
   const handleSend = async () => {
     if (!isAuthenticated) {
@@ -63,10 +64,16 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
 
     setSubmitting(false);
     if (res.ok) {
+      setConversationId(res.data?.conversation_id || null);
       setDone(true);
     } else {
       setError(res.error?.message || t('contact.error'));
     }
+  };
+
+  const goToConversation = () => {
+    onClose?.();
+    navigate(conversationId ? `/my-messages/${conversationId}` : '/my-messages');
   };
 
   const sellerName = seller?.name || '';
@@ -111,13 +118,22 @@ const ContactSellerModal = ({ seller, product, mode, onClose }) => {
             <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
               {isQuote ? t('quote.success') : t('contact.success')}
             </p>
-            <button
-              className="btn btn-outline"
-              onClick={onClose}
-              style={{ marginTop: '1rem' }}
-            >
-              {t('common.close')}
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-primary"
+                onClick={goToConversation}
+                style={{ marginTop: '0.25rem' }}
+              >
+                {t('contact.viewConversation')}
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={onClose}
+                style={{ marginTop: '0.25rem' }}
+              >
+                {t('common.close')}
+              </button>
+            </div>
           </div>
         ) : (
           <div style={{ padding: '1.25rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -1,80 +1,36 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Send, ArrowLeft, MessageSquare, Loader2 } from 'lucide-react';
-import {
-  fetchMyConversations, fetchConversationMessages,
-  sendMessage, markConversationRead,
-} from '../services/messages';
-import { useRealtimeMessages } from '../hooks/useRealtimeMessages';
-import { useAuth } from '../context/AuthContext';
+import { Send, ArrowLeft, MessageSquare, Loader2, AlertCircle, WifiOff, X } from 'lucide-react';
+import { fetchMyConversations } from '../services/messages';
+import { useConversationChat } from '../hooks/useConversationChat';
 import { useLang } from '../context/LangContext';
 import { localeFor } from '../i18n';
 
 const SellerMessages = () => {
   const { onConversationUpdated } = useOutletContext() || {};
-  const { user } = useAuth();
   const { t, lang } = useLang();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedConvo, setSelectedConvo] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [loadingMessages, setLoadingMessages] = useState(false);
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
-  const pendingSendRef = useRef(false);
 
-  const loadConversations = useCallback(async () => {
-    setLoading(true);
+  const loadConversations = useCallback(async ({ showSpinner = false } = {}) => {
+    if (showSpinner) setLoading(true);
     const data = await fetchMyConversations();
     setConversations(data || []);
     setLoading(false);
     if (onConversationUpdated) onConversationUpdated();
   }, [onConversationUpdated]);
 
-  useEffect(() => { loadConversations(); }, [loadConversations]);
+  useEffect(() => { loadConversations({ showSpinner: true }); }, [loadConversations]);
 
-  const loadMessages = useCallback(async (convoId) => {
-    if (!convoId) return;
-    setLoadingMessages(true);
-    const data = await fetchConversationMessages(convoId);
-    setMessages(data || []);
-    setLoadingMessages(false);
-    await markConversationRead(convoId);
-    const updated = await fetchMyConversations();
-    setConversations(updated || []);
-    if (onConversationUpdated) onConversationUpdated();
-  }, [onConversationUpdated]);
-
-  useEffect(() => {
-    if (selectedConvo) loadMessages(selectedConvo);
-  }, [selectedConvo, loadMessages]);
-
-  // Realtime subscription for the selected conversation
-  useRealtimeMessages(selectedConvo, useCallback((newMsg) => {
-    // Anti-doublon : si on vient d'envoyer ce message (déjà optimistiquement ajouté via Realtime by sender), on ignore
-    if (pendingSendRef.current && newMsg.sender_id === user?.id) {
-      pendingSendRef.current = false;
-      return;
-    }
-    setMessages((prev) => {
-      // Vérifier l'unicité par ID
-      if (prev.some((m) => m.id === newMsg.id)) return prev;
-      return [...prev, {
-        id: newMsg.id,
-        senderId: newMsg.sender_id,
-        isOwn: newMsg.sender_id === user?.id,
-        content: newMsg.content,
-        isRead: newMsg.is_read,
-        createdAt: newMsg.created_at,
-      }];
-    });
-    // Rafraîchir la liste des conversations (dernier message, non lus)
-    fetchMyConversations().then((updated) => {
-      setConversations(updated || []);
-      if (onConversationUpdated) onConversationUpdated();
-    });
-  }, [onConversationUpdated, user?.id]));
+  const {
+    messages, loading: loadingMessages, sending, sendError, realtimeOk, send, setSendError,
+  } = useConversationChat({
+    conversationId: selectedConvo,
+    onInboxChanged: loadConversations,
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,22 +38,8 @@ const SellerMessages = () => {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo) return;
-    setSending(true);
-    pendingSendRef.current = true;
-    const res = await sendMessage({ conversationId: selectedConvo, content: newMessage.trim() });
-    if (res.ok) {
-      setNewMessage('');
-      // Ne pas recharger manuellement : Realtime va ajouter le message.
-      // Mais marquer comme lu immédiatement.
-      await markConversationRead(selectedConvo);
-      // Rafraîchir les compteurs
-      const updated = await fetchMyConversations();
-      setConversations(updated || []);
-      if (onConversationUpdated) onConversationUpdated();
-    } else {
-      pendingSendRef.current = false;
-    }
-    setSending(false);
+    const sent = await send(newMessage);
+    if (sent) setNewMessage('');
   };
 
   const handleKeyDown = (e) => {
@@ -221,7 +163,23 @@ const SellerMessages = () => {
                     {selectedConvoData?.productTitle ? t('seller.messages.productLabel', { title: selectedConvoData.productTitle }) : selectedConvoData?.subject}
                   </div>
                 </div>
+                {!realtimeOk && (
+                  <span className="sv-msg-conn-warn" title={t('messages.realtimeFallback')}>
+                    <WifiOff size={12} /> {t('messages.realtimeFallbackShort')}
+                  </span>
+                )}
               </div>
+
+              {/* Send error */}
+              {sendError !== null && (
+                <div className="sv-msg-error" role="alert">
+                  <AlertCircle size={15} />
+                  <span>{t('messages.sendError')}{sendError ? ` — ${sendError}` : ''}</span>
+                  <button type="button" onClick={() => setSendError(null)} aria-label={t('common.close')}>
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
 
               {/* Messages */}
               <div style={{
@@ -237,14 +195,17 @@ const SellerMessages = () => {
                     color: msg.isOwn ? '#fff' : 'var(--text-dark)',
                     border: msg.isOwn ? '1px solid var(--primary)' : '1px solid var(--border)',
                     alignSelf: msg.isOwn ? 'flex-end' : 'flex-start',
+                    opacity: msg.pending ? 0.65 : 1,
                   }}>
-                    <p style={{ margin: 0 }}>{msg.content}</p>
+                    <p style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{msg.content}</p>
                     <span style={{
                       display: 'block', fontSize: '0.63rem', marginTop: 4,
                       opacity: 0.7, textAlign: 'right',
                       color: msg.isOwn ? 'rgba(255,255,255,0.85)' : 'var(--text-muted)',
                     }}>
-                      {new Date(msg.createdAt).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })}
+                      {msg.pending
+                        ? t('messages.sending')
+                        : new Date(msg.createdAt).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 ))}
@@ -346,6 +307,23 @@ const SellerMessages = () => {
           display: flex;
           flex-direction: column;
           background: #fff;
+        }
+        .sv-msg-conn-warn {
+          display: inline-flex; align-items: center; gap: 4px;
+          font-size: 0.68rem; color: #8a6d1f; background: #fdf5e2;
+          border: 1px solid #ecd9a8; border-radius: 20px;
+          padding: 2px 8px; flex-shrink: 0;
+        }
+        .sv-msg-error {
+          display: flex; align-items: center; gap: 8px;
+          padding: 0.6rem 1rem; font-size: 0.8rem;
+          color: #8c2f2f; background: #fdf0f0;
+          border-bottom: 1px solid #f2d3d3;
+        }
+        .sv-msg-error span { flex: 1; min-width: 0; }
+        .sv-msg-error button {
+          border: none; background: transparent; color: inherit;
+          cursor: pointer; display: flex; padding: 2px;
         }
         .sv-msg-back-btn {
           display: none;

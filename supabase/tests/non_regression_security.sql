@@ -189,6 +189,204 @@ end;
 $$;
 
 -- ==================================================
+-- T6. LIST_MY_CONVERSATIONS — inbox filtrée sur les participants
+-- ==================================================
+-- La fonction est SECURITY DEFINER (elle contourne la RLS « propriétaire
+-- seul » de public.profiles pour afficher le nom de l'acheteur). Elle ne
+-- doit donc PAS compter sur la RLS pour cloisonner : le filtre
+-- participant doit être explicite, sinon n'importe quel utilisateur
+-- authentifié listerait les conversations des autres.
+do $$
+declare
+  v_def text;
+  v_prosecdef boolean := false;
+  v_has_auth_uid boolean := false;
+  v_has_buyer_guard boolean := false;
+begin
+  select pg_get_functiondef(d.oid)::text, d.prosecdef
+  into v_def, v_prosecdef
+  from pg_proc d
+  join pg_namespace n on n.oid = d.pronamespace
+  where n.nspname = 'public'
+    and d.proname = 'list_my_conversations'
+    and d.prokind = 'f'
+  limit 1;
+
+  if v_def is null then
+    raise exception '[T6] ÉCHEC : list_my_conversations introuvable (boîte de réception cassée).';
+  end if;
+
+  v_has_auth_uid := (position('auth.uid()' in v_def) > 0);
+  v_has_buyer_guard := (position('buyer_id = auth.uid()' in v_def) > 0);
+
+  if not v_prosecdef then
+    raise exception '[T6] ÉCHEC : list_my_conversations n''est pas SECURITY DEFINER (nom de l''acheteur inaccessible).';
+  end if;
+
+  if not (v_has_auth_uid and v_has_buyer_guard) then
+    raise exception '[T6] ÉCHEC : list_my_conversations ne filtre pas explicitement sur auth.uid() / buyer_id.';
+  end if;
+
+  raise notice '[T6] OK : list_my_conversations cloisonnée sur les participants.';
+end;
+$$;
+
+-- ==================================================
+-- T7. LIST_MY_CONVERSATIONS — EXECUTE réservé à authenticated
+-- ==================================================
+-- La clé anon est publique dans le bundle : si la fonction restait
+-- exécutable par anon, toutes les conversations seraient lisibles.
+do $$
+declare
+  v_leak boolean;
+begin
+  select exists (
+    select 1
+    from information_schema.role_routine_grants g
+    where g.specific_schema = 'public'
+      and g.routine_name = 'list_my_conversations'
+      and g.grantee in ('anon', 'public')
+      and g.privilege_type = 'EXECUTE'
+  ) into v_leak;
+
+  if v_leak then
+    raise exception '[T7] ÉCHEC : list_my_conversations est exécutable par anon/public (fuite de conversations).';
+  end if;
+
+  raise notice '[T7] OK : list_my_conversations réservée à authenticated.';
+end;
+$$;
+
+-- ==================================================
+-- T8. LIST_MY_CONVERSATIONS — aucune fuite d'email au vendeur
+-- ==================================================
+-- La messagerie sert justement à éviter le contact direct : la fonction ne
+-- doit sélectionner que full_name, jamais une colonne email.
+do $$
+begin
+  if exists (
+    select 1
+    from pg_proc d
+    join pg_namespace n on n.oid = d.pronamespace
+    where n.nspname = 'public'
+      and d.proname = 'list_my_conversations'
+      and position('email' in pg_get_functiondef(d.oid)) > 0
+  ) then
+    raise exception '[T8] ÉCHEC : list_my_conversations sélectionne une colonne email (contournement de la messagerie).';
+  end if;
+
+  raise notice '[T8] OK : aucun email exposé au vendeur via la messagerie.';
+end;
+$$;
+
+-- ==================================================
+-- T9. REALTIME — public.messages doit être publié
+-- ==================================================
+-- Sans publication, aucun message entrant n'est poussé : le chat ne se
+-- remplit qu'au rechargement de page, ce qui masque la panne.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'messages'
+  ) then
+    raise exception '[T9] ÉCHEC : public.messages hors de la publication supabase_realtime (chat sans temps réel).';
+  end if;
+
+  raise notice '[T9] OK : public.messages est dans la publication supabase_realtime.';
+end;
+$$;
+
+-- ==================================================
+-- T10. MESSAGES — RLS de lecture limitée aux participants
+-- ==================================================
+-- La policy de SELECT conditionne à la fois le PostgREST ET la diffusion
+-- Realtime : si elle disparaît, chaque abonné reçoit les messages de tous.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policy po
+    join pg_class c on c.oid = po.polrelid
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'messages'
+      and po.polname = 'messages_select_participant'
+  ) then
+    raise exception '[T10] ÉCHEC : policy messages_select_participant absente (fuite inter-conversations).';
+  end if;
+
+  raise notice '[T10] OK : RLS de lecture des messages limitée aux participants.';
+end;
+$$;
+
+-- ==================================================
+-- T11. MESSAGES — Chronologie déterministe (ex æquo created_at)
+-- ==================================================
+-- Régression PROUVE sur la base liée (preuve F2, données synthétiques
+-- annulées) : `order by m.created_at desc` seul n'est pas un tri total.
+-- `now()` est figé au début de la transaction, donc deux messages insérés
+-- dans la MÊME transaction ont exactement le même created_at — et la
+-- fonction renvoyait alors le MAUVAIS dernier message (aperçu périmé dans
+-- la boîte de réception, ordre des bulles qui sautille au rechargement).
+--
+-- La colonne `seq` (identity) fournit l'ordre total manquant.
+--
+-- Vérification STATIQUE : la CI locale n'a aucun auth.users, donc insérer
+-- une conversation y serait impossible (FK buyer_id). La preuve
+-- dynamique est faite en base liée (transaction annulée) et la CI garde
+-- la non-régression sur la structure.
+do $$
+declare
+  v_is_identity boolean := false;
+  v_def         text;
+  v_has_seq     boolean := false;
+  v_dup_seq     bigint := 0;
+begin
+  select (a.attidentity in ('a', 'd')) into v_is_identity
+  from pg_attribute a
+  join pg_class c on c.oid = a.attrelid
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public' and c.relname = 'messages'
+    and a.attname = 'seq' and a.attnum > 0 and not a.attisdropped;
+
+  if v_is_identity is null or v_is_identity = false then
+    raise exception '[T11] ÉCHEC : colonne messages.seq absente ou non identity — le tri par created_at seul n''est pas déterministe.';
+  end if;
+
+  select pg_get_functiondef(d.oid)::text into v_def
+  from pg_proc d
+  join pg_namespace n on n.oid = d.pronamespace
+  where n.nspname = 'public' and d.proname = 'list_my_conversations'
+    and d.prokind = 'f'
+  limit 1;
+
+  if v_def is null then
+    raise exception '[T11] ÉCHEC : list_my_conversations introuvable.';
+  end if;
+
+  v_has_seq := (position('seq' in v_def) > 0);
+  if not v_has_seq then
+    raise exception '[T11] ÉCHEC : le dernier message n''est pas trié par seq (ex æquo de created_at non départagé).';
+  end if;
+
+  -- seq doit être unique : c'est lui qui porte l'ordre total.
+  select count(*) into v_dup_seq from (
+    select seq from public.messages group by seq having count(*) > 1
+  ) d;
+
+  if v_dup_seq > 0 then
+    raise exception '[T11] ÉCHEC : % valeur(s) de seq dupliquée(s) — le tiebreaker n''est plus total.', v_dup_seq;
+  end if;
+
+  raise notice '[T11] OK : messages.seq est une identity unique et le dernier message est trié dessus.';
+end;
+$$;
+
+-- ==================================================
 -- SYNTHÈSE
 -- ==================================================
 do $$

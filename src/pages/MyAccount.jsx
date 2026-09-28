@@ -4,7 +4,7 @@ import { User, Package, Heart, Settings as SettingsIcon, LogOut, MapPin, Chevron
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { fetchMyOrders } from '../services/orders';
-import { fetchMyConversations } from '../services/messages';
+import { useUnreadMessages } from '../hooks/useUnreadMessages';
 import { useLang } from '../context/LangContext';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import './animations.css';
@@ -15,7 +15,7 @@ const MyAccount = () => {
   const { t } = useLang();
   const [activeSection, setActiveSection] = useState('profile');
   const [orders, setOrders] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { unreadCount } = useUnreadMessages(user?.id || null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -42,10 +42,6 @@ const MyAccount = () => {
     if (user) {
       fetchMyOrders(user.id).then((data) => {
         if (data) setOrders(data);
-      });
-      fetchMyConversations().then((convos) => {
-        const total = (convos || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
-        setUnreadCount(total);
       });
     }
   }, [user]);
