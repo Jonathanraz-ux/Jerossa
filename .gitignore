@@ -15,6 +15,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Documents d'audit de sécurité (sensibles — ne pas versionner)
+docs/audit-securite-*.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
