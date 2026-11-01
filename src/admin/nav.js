@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tags, ShoppingCart, Wallet, FileText, Users, UserCheck,
-  MessageSquare, Settings, Store,
+  MessageSquare, Settings, Store, BadgeCheck, Landmark,
 } from 'lucide-react';
 import fr from '../i18n/fr.json';
 import en from '../i18n/en.json';
@@ -25,6 +25,7 @@ const buildNavSections = (t) => [
       { id: 'orders', label: t('admin.nav.orders'), icon: ShoppingCart },
       { id: 'quotes', label: t('admin.nav.quotes'), icon: FileText },
       { id: 'refunds', label: t('admin.nav.refunds'), icon: Wallet },
+      { id: 'payments', label: t('admin.nav.payments'), icon: BadgeCheck },
     ],
   },
   {
@@ -38,7 +39,10 @@ const buildNavSections = (t) => [
   },
   {
     label: t('admin.nav.system'),
-    items: [{ id: 'settings', label: t('admin.nav.settings'), icon: Settings }],
+    items: [
+      { id: 'payment-instructions', label: t('admin.nav.paymentInstructions'), icon: Landmark },
+      { id: 'settings', label: t('admin.nav.settings'), icon: Settings },
+    ],
   },
 ];
 

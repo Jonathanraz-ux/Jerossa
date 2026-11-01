@@ -14,6 +14,8 @@ import ClientsSection from '../admin/sections/ClientsSection';
 import SellersSection from '../admin/sections/SellersSection';
 import MessagesSection from '../admin/sections/MessagesSection';
 import SettingsSection from '../admin/sections/SettingsSection';
+import PaymentsSection from '../admin/sections/PaymentsSection';
+import PaymentInstructionsSection from '../admin/sections/PaymentInstructionsSection';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const AdminDashboard = () => {
@@ -187,6 +189,10 @@ const AdminContent = ({ section, setActiveSection }) => {
       return <MessagesSection />;
     case 'settings':
       return <SettingsSection />;
+    case 'payments':
+      return <PaymentsSection />;
+    case 'payment-instructions':
+      return <PaymentInstructionsSection />;
     default:
       return null;
   }

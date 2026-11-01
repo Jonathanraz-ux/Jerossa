@@ -131,9 +131,16 @@ const OrderDetails = () => {
           <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-dark)' }}>
             <CreditCard size={18} style={{ color: 'var(--primary)' }} /> {t('order.payment')}
           </h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-            {order.paymentMethod === 'card' ? t('payment.cardNumber') : order.paymentMethod === 'mobile' ? t('payment.mobileMoney') : order.paymentMethod === 'transfer' ? t('payment.bankTransfer') : t('order.paymentConfirmed')}
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            {order.paymentMethod === 'card' ? t('payment.cardNumber') : order.paymentMethod === 'mobile' ? t('payment.mobileMoney') : order.paymentMethod === 'transfer' ? t('payment.bankTransfer') : order.paymentMethod === 'manual' ? t('payment.manual') : t('order.paymentConfirmed')}
           </p>
+          {order.paymentMethod === 'manual' && (
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: 1.5 }}>
+              {order.paymentStatus === 'paid'
+                ? t('payment.manualVerified', { ref: order.id })
+                : t('payment.manualPending')}
+            </p>
+          )}
         </div>
       </div>
 

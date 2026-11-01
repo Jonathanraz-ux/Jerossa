@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Package, ArrowLeft, Loader2 } from 'lucide-react';
+import { CheckCircle, CreditCard, Package, ArrowLeft, Loader2 } from 'lucide-react';
 import { fetchOrderByUser } from '../services/orders';
 import { useLang } from '../context/LangContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -105,6 +105,26 @@ const OrderConfirmation = () => {
                 <span style={{ color: 'var(--primary)', fontWeight: 600, whiteSpace: 'nowrap' }}>{convert(item.priceEUR * item.qty)}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {order && order.paymentMethod === 'manual' && order.paymentStatus !== 'paid' && (
+          <div className="scroll-animate" style={{ background: 'var(--warning-bg)', border: '1px solid var(--warning)', borderRadius: '12px', padding: '20px 24px', marginBottom: '32px', textAlign: 'left' }}>
+            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 600, marginBottom: '8px', color: 'var(--text-dark)' }}>{t('order.paymentPendingTitle')}</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{t('order.paymentPendingText')}</p>
+            <Link to={`/payment?order=${order.id}`} className="btn btn-primary premium-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '8px', fontWeight: 600, textDecoration: 'none', color: '#fff', background: 'var(--primary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+              <CreditCard size={16} /> {t('order.payNow')}
+            </Link>
+          </div>
+        )}
+
+        {order && order.paymentStatus === 'paid' && (
+          <div className="scroll-animate" style={{ background: 'var(--success-bg)', border: '1px solid var(--success)', borderRadius: '12px', padding: '20px 24px', marginBottom: '32px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <CheckCircle size={20} style={{ color: 'var(--success)', flexShrink: 0 }} />
+            <div>
+              <strong style={{ fontSize: '14px', color: 'var(--text-dark)' }}>{t('order.paymentConfirmedByJerossa')}</strong>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>{t('order.paymentConfirmedText')}</p>
+            </div>
           </div>
         )}
 

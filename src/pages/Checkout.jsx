@@ -26,7 +26,7 @@ const Checkout = () => {
   });
   const [formError, setFormError] = useState('');
   const [shippingMethod, setShippingMethod] = useState('standard');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod] = useState('manual');
   const [orderError, setOrderError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -116,10 +116,9 @@ const Checkout = () => {
         return;
       }
 
-      // Phase 7 : la commande est créée en PENDING, le paiement s'effectue sur
-      // la page provider simulé (/payment). Le panier n'est vidé qu'après succès.
-      // On signale à /payment l'adresse éventuellement nouvelle à sauvegarder,
-      // seulement si elle diffère d'une adresse déjà enregistrée dans le carnet.
+      // La commande est créée en PENDING : le paiement est manuel, vérifié par
+      // Jerossa. La page /payment affiche les coordonnées officielles et le
+      // formulaire de preuve. Le panier n'est vidé qu'après envoi de la preuve.
       const addrDup = savedAddresses.some((a) =>
         [a.firstName, a.lastName, a.address, a.city, a.country, a.postalCode]
           .map((v) => String(v || '').trim().toLowerCase())
@@ -327,36 +326,24 @@ const Checkout = () => {
                   <CreditCard size={18} />
                   {t('checkout.securePayment')}
                 </h2>
-                <div className="payment-methods">
-                  <button className={`payment-method ${paymentMethod === 'card' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('card')}>
-                    <CreditCard size={22} />
-                    <span>{t('payment.card')}</span>
-                  </button>
-                  <button className={`payment-method ${paymentMethod === 'mobile' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('mobile')}>
-                    <span style={{ fontSize: '1.25rem' }}>📱</span>
-                    <span>{t('payment.mobileMoney')}</span>
-                  </button>
-                  <button className={`payment-method ${paymentMethod === 'transfer' ? 'payment-method--active' : ''}`} onClick={() => setPaymentMethod('transfer')}>
-                    <span style={{ fontSize: '1.25rem' }}>🏦</span>
-                    <span>{t('payment.bankTransfer')}</span>
-                  </button>
-                </div>
 
                 <div className="payment-sim">
                   <div className="payment-sim-header">
                     <Lock size={14} />
-                    {t('checkout.simPayment')}
+                    {t('checkout.manualPayment')}
                   </div>
                   <div className="payment-sim-body">
-                    <div className="payment-sim-card">
-                      <div className="payment-sim-card-brand">VISA</div>
-                      <div className="payment-sim-card-number">•••• •••• •••• 4242</div>
-                      <div className="payment-sim-card-details">
-                        <span>VALID THRU 12/28</span>
-                        <span>CVV •••</span>
-                      </div>
-                    </div>
-                    <p className="payment-sim-note">{t('checkout.simNote')}</p>
+                    <p className="payment-sim-note" style={{ textAlign: 'left', lineHeight: 1.6, fontSize: '0.8125rem', color: 'var(--text-dark)', marginTop: 0 }}>
+                      {t('checkout.manualText1')}
+                    </p>
+                    <ul className="payment-steps" style={{ listStyle: 'none', padding: 0, margin: '12px 0 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <li><strong>1.</strong> {t('checkout.manualStep1')}</li>
+                      <li><strong>2.</strong> {t('checkout.manualStep2')}</li>
+                      <li><strong>3.</strong> {t('checkout.manualStep3')}</li>
+                    </ul>
+                    <p className="payment-sim-note" style={{ textAlign: 'left', marginTop: '12px' }}>
+                      {t('checkout.manualVerify')}
+                    </p>
                   </div>
                 </div>
 
@@ -371,13 +358,13 @@ const Checkout = () => {
                     <ArrowLeft size={16} /> {t('common.back')}
                   </button>
                   <button className="checkout-confirm-btn" onClick={handleConfirm} disabled={submitting} style={{ opacity: submitting ? 0.7 : 1 }}>
-                    <Lock size={16} /> {submitting ? t('common.saving') : t('checkout.confirmPay')}
+                    <Lock size={16} /> {submitting ? t('common.saving') : t('checkout.confirmManual')}
                   </button>
                 </div>
 
                 <div className="checkout-security">
                   <Lock size={14} />
-                  <span>{t('checkout.secureFooter')}</span>
+                  <span>{t('payment.secureFooter')}</span>
                 </div>
               </div>
             )}
